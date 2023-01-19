@@ -1,0 +1,17 @@
+# Compiled
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/*.so
+
+# Common
+.idea/
+.ipynb_checkpoints/
+
+# Custom
+bin/
+env/
+out/
+res/
+tmp/
