@@ -443,7 +443,7 @@ def print_padded_sequence (mrna : str, sequences : Dict[str, str], width : int =
 	print()
 	print()
 
-def pad_single (sequence : str, length : Union[int, List[int]], side : Union[int, str], pad_value : str = 'N') -> str :
+def pad_single (sequence : str, length : Union[int, List[int]], side : Union[int, str], pad_value : str = None) -> str :
 	"""
 	Doc
 	"""
@@ -451,12 +451,15 @@ def pad_single (sequence : str, length : Union[int, List[int]], side : Union[int
 	if isinstance(length, list) :
 		length = sum(length)
 
+	if pad_value is None :
+		pad_value = '-'
+
 	if isinstance(side, str) :
 		match side.lower() :
 			case 'left'  : side = -1
 			case 'none'  : side =  0
 			case 'right' : side =  1
-			case _       : raise ValueError
+			case _       : raise ValueError()
 
 	diff = length - len(sequence)
 
@@ -471,7 +474,7 @@ def pad_single (sequence : str, length : Union[int, List[int]], side : Union[int
 
 	return sequence + pad_value * diff
 
-def pad_multiple (sequences : Dict[str, str], length : Union[int, List[int]], side : Union[int, str], pad_value : str = 'N') -> Dict[str, str] :
+def pad_multiple (sequences : Dict[str, str], length : Union[int, List[int]], side : Union[int, str], pad_value : str = None) -> Dict[str, str] :
 	"""
 	Doc
 	"""
@@ -495,27 +498,31 @@ def merge_and_pad_sequences (sequences : Dict[str, Dict], lengths : Dict[str, Un
 
 	for key, value in sequences.items() :
 		prom = pad_single(
-			sequence = value['Prom']['seq'],
-			side     = padding['prom'],
-			length   = lengths['prom']
+			sequence  = value['Prom']['seq'],
+			side      = padding['prom'],
+			length    = lengths['prom'],
+			pad_value = None
 		)
 
 		utr5 = pad_single(
-			sequence = value['UTR5']['seq'],
-			side     = padding['utr5'],
-			length   = lengths['utr5']
+			sequence  = value['UTR5']['seq'],
+			side      = padding['utr5'],
+			length    = lengths['utr5'],
+			pad_value = None
 		)
 
 		utr3 = pad_single(
-			sequence = value['UTR3']['seq'],
-			side     = padding['utr3'],
-			length   = lengths['utr3']
+			sequence  = value['UTR3']['seq'],
+			side      = padding['utr3'],
+			length    = lengths['utr3'],
+			pad_value = None
 		)
 
 		term = pad_single(
-			sequence = value['Term']['seq'],
-			side     = padding['term'],
-			length   = lengths['term']
+			sequence  = value['Term']['seq'],
+			side      = padding['term'],
+			length    = lengths['term'],
+			pad_value = None
 		)
 
 		strand = value['CDS']['key'].split(' | ')[1]

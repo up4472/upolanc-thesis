@@ -25,9 +25,9 @@ class Zrimec2020r (Module) :
 			params = params
 		)
 
-		self.fc2 = Linear(
-			in_features  = params['fc1']['features'],
-			out_features = params['fc2']['features']
+		self.fc3 = Linear(
+			in_features  = params['fc2']['features'],
+			out_features = params['fc3']['features']
 		)
 
 		self.relu = ReLU(inplace = False)
@@ -55,7 +55,7 @@ class Zrimec2020r (Module) :
 
 		x = self.backbone(x, v)
 
-		x = self.fc2(x)
+		x = self.fc3(x)
 		x = self.relu(x)
 
 		return x
@@ -83,7 +83,7 @@ if __name__ == '__main__' :
 			'in_width'    : 2150,
 			'in_features' : 64
 		},
-		'fc2' : {
+		'fc3' : {
 			'features' : 8
 		}
 	})

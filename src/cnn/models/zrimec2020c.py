@@ -29,10 +29,10 @@ class Zrimec2020c (Module) :
 
 		self.heads = ModuleList([
 			Linear(
-				in_features  = params['fc1']['features'],
-				out_features = params['fc2']['features']
+				in_features  = params['fc2']['features'],
+				out_features = params['fc3']['features']
 			)
-			for _ in range(params['fc2']['heads'])
+			for _ in range(params['fc3']['heads'])
 		])
 
 	@property
@@ -87,7 +87,7 @@ if __name__ == '__main__' :
 			'in_width'    : 2150,
 			'in_features' : 64
 		},
-		'fc2' : {
+		'fc3' : {
 			'heads'    : 8,
 			'features' : 5
 		}

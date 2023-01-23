@@ -2,15 +2,20 @@ import numpy
 import random
 import torch
 
-def lock_random (seed : int = None) -> None :
+def lock_random (seed : int = None, generate_seed : bool = False) -> int :
 	"""
 	Doc
 	"""
+
+	if seed is None and generate_seed :
+		seed = random.randint(1, 1_000_000_000_000)
 
 	if seed is not None :
 		torch.manual_seed(seed)
 		numpy.random.seed(seed)
 		random.seed(seed)
+
+	return seed
 
 def get_device (only_cpu : bool = False) -> torch.device :
 	"""

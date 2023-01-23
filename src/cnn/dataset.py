@@ -1,12 +1,12 @@
-from torch            import Generator
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
-from torch.utils.data import Subset
-from torch.utils.data import random_split
-from typing           import Dict
+from torch.utils.data import SubsetRandomSampler
+from typing           import Any
 from typing           import List
 from typing           import Tuple
-import itertools
+
+from sklearn.model_selection import train_test_split
+
 import numpy
 
 from src.cnn._encoder import generate_mapping
@@ -14,46 +14,44 @@ from src.cnn._encoder import one_hot_encode
 
 class GeneDataset (Dataset) :
 
-	def __init__ (self, sequences : Dict[str, str], features : Dict[str, numpy.ndarray], targets : Dict[str, numpy.ndarray], expand_dims : int = None) -> None :
+	def __init__ (self, names : List[str], sequences : List[str], features : List[numpy.ndarray], targets : List[numpy.ndarray], expand_dims : int = None) -> None :
 		"""
 		Doc
 		"""
 
-		self.sequence = dict()
-		self.features = features
-		self.targets  = targets
-
-		self.keys = list(sequences.keys())
+		self.names     = names
+		self.sequences = sequences
+		self.features  = features
+		self.targets   = targets
 
 		self.mapping = generate_mapping(
 			nucleotide_order = 'ACGT',
-			ambiguous_value = 'zero'
+			ambiguous_value = 'fraction'
 		)
 
-		for key, value in sequences.items() :
-			self.sequence[key] = one_hot_encode(
-				sequence  = value,
-				mapping   = self.mapping,
-				default   = None,
-				transpose = True
-			)
+		expand = lambda x : numpy.expand_dims(x, axis = expand_dims)
+		encode = lambda x : one_hot_encode(
+			sequence  = x,
+			mapping   = self.mapping,
+			default   = None,
+			transpose = True
+		)
+
+		self.sequences = [encode(x) for x in self.sequences]
 
 		if expand_dims is not None and expand_dims >= 0 :
-			for key in self.sequence.keys() :
-				self.sequence[key] = numpy.expand_dims(self.sequence[key], axis = expand_dims)
+			self.sequences = [expand(x) for x in self.sequences]
 
 	def __getitem__ (self, index : int) -> Tuple[str, numpy.ndarray, numpy.ndarray, numpy.ndarray] :
 		"""
 		Doc
 		"""
 
-		key = self.keys[index]
-
 		return (
-			key,
-			self.sequence[key],
-			self.features[key],
-			self.targets[key]
+			self.names[index],
+			self.sequences[index],
+			self.features[index],
+			self.targets[index]
 		)
 
 	def __len__ (self) -> int :
@@ -61,38 +59,40 @@ class GeneDataset (Dataset) :
 		Doc
 		"""
 
-		return len(self.keys)
+		return len(self.targets)
 
-	def split_to_subsets (self, split_size : List[float], random_seed : int = None) -> List[Subset] :
-		"""
-		Doc
-		"""
+def generate_split_indices (targets : List[Any], test_split : float, valid_split : float, random_seed : int = None) -> Tuple[List, List, List] :
+	"""
+	Doc
+	"""
 
-		if random_seed is not None :
-			generator = Generator().manual_seed(random_seed)
-		else :
-			generator = Generator()
+	length = len(targets)
+	arange = numpy.arange(length)
 
-		return random_split(
-			dataset   = self,
-			lengths   = split_size,
-			generator = generator
-		)
+	s1, s3 = train_test_split(arange, random_state = random_seed, shuffle = True, stratify = None, test_size = test_split)
+	s1, s2 = train_test_split(s1,     random_state = random_seed, shuffle = True, stratify = None, test_size = valid_split)
 
-	def split_to_dataloader (self, split_size : List[float], batch_size : List[int], random_seed : int = None, **kwargs) -> List[DataLoader] :
-		"""
-		Doc
-		"""
+	train_split = 100 * len(s1) / length
+	valid_split = 100 * len(s2) / length
+	test_split  = 100 * len(s3) / length
 
-		subsets = self.split_to_subsets(split_size = split_size, random_seed = random_seed)
+	print(f'Train percentage : {train_split:5.2f}')
+	print(f'Valid percentage : {valid_split:5.2f}')
+	print(f' Test percentage : {test_split:5.2f}')
 
-		if len(batch_size) > len(subsets) :
-			batch_size = batch_size[:len(subsets)]
+	return s1, s2, s3
 
-		return [
-			DataLoader(dataset = subset, batch_size = size, **kwargs)
-			for subset, size in itertools.zip_longest(subsets, batch_size, fillvalue = batch_size[-1])
-		]
+def to_dataloader (dataset : Dataset, batch_size : int, indices : List[int]) -> DataLoader :
+	"""
+	Doc
+	"""
+
+	return DataLoader(
+		dataset    = dataset,
+		batch_size = batch_size,
+		sampler    = SubsetRandomSampler(indices = indices),
+		drop_last  = True
+	)
 
 def show_dataloader (dataloader : DataLoader, batch_size : int) -> None :
 	"""

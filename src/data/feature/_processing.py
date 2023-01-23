@@ -17,6 +17,13 @@ def boxcox1p (x : numpy.ndarray, eps : float = 1e-7) -> Tuple[numpy.ndarray, flo
 
 	return x, lmbda
 
+def boxcox1p_inv (x : numpy.ndarray, lmbda : float) -> numpy.ndarray :
+	"""
+	Doc
+	"""
+
+	return scipy.special.inv_boxcox1p(x, lmbda)
+
 def log1p (x : numpy.ndarray, base : Union[int, str] = 2) -> numpy.ndarray :
 	"""
 	Doc
@@ -31,7 +38,7 @@ def log1p (x : numpy.ndarray, base : Union[int, str] = 2) -> numpy.ndarray :
 		case '10' : return numpy.log10(x + 1)
 		case _    : raise ValueError()
 
-def expm1 (x : numpy.ndarray, base : Union[int, str] = 2) -> numpy.ndarray :
+def log1p_inv (x : numpy.ndarray, base : Union[int, str] = 2) -> numpy.ndarray :
 	"""
 	Doc
 	"""
@@ -45,6 +52,28 @@ def expm1 (x : numpy.ndarray, base : Union[int, str] = 2) -> numpy.ndarray :
 		case '10' : return numpy.power(10, x) - 1
 		case _    : raise ValueError()
 
+def normalize (x : numpy.ndarray) -> Tuple[numpy.ndarray, float, float] :
+	"""
+	Doc
+	"""
+
+	min_value = numpy.min(x, axis = None)
+	x = x - min_value
+	max_value = numpy.max(x, axis = None)
+	x = x / max_value
+
+	return x, min_value, max_value
+
+def normalize_inv (x : numpy.ndarray, min_value : float, max_value : float) -> numpy.ndarray :
+	"""
+	Doc
+	"""
+
+	x = x * max_value
+	x = x + min_value
+
+	return x
+
 def standardize (x : numpy.ndarray, axis : int = None) -> numpy.ndarray :
 	"""
 	Doc
@@ -52,16 +81,6 @@ def standardize (x : numpy.ndarray, axis : int = None) -> numpy.ndarray :
 
 	x = x - numpy.mean(x, axis = axis)
 	x = x / numpy.std(x, axis = axis)
-
-	return x
-
-def normalize (x : numpy.ndarray, axis : int = None) -> numpy.ndarray :
-	"""
-	Doc
-	"""
-
-	x = x - numpy.min(x, axis = axis)
-	x = x / numpy.max(x, axis = axis)
 
 	return x
 

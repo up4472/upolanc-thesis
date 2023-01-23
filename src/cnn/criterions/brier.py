@@ -12,7 +12,9 @@ class BrierScore (Module) :
 
 		super(BrierScore, self).__init__()
 
-	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor : #  # noqa : may be static
+		self.weights = None
+
+	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor :
 		"""
 		Doc
 		"""
@@ -22,7 +24,8 @@ class BrierScore (Module) :
 
 		score = brier_score_loss(
 			y_true = numpy_labels,
-			y_prob = numpy_inputs
+			y_prob = numpy_inputs,
+			sample_weight = self.weights
 		)
 
 		score = Tensor(score)

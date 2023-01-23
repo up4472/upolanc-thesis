@@ -154,7 +154,7 @@ def compute_log1p (data : AnnData, store_into : str, layer : str = None, base : 
 
 	return data
 
-def compute_boxcox1p (data : AnnData, store_into : str, layer : str = None) -> AnnData :
+def compute_boxcox1p (data : AnnData, store_into : str, eps : float = 1e-7, layer : str = None) -> AnnData :
 	"""
 	Doc
 	"""
@@ -165,10 +165,9 @@ def compute_boxcox1p (data : AnnData, store_into : str, layer : str = None) -> A
 		matrix = data.layers[layer]
 
 	matrix = matrix.copy()
-	matrix, lmbda = boxcox1p(x = matrix, eps = 1e-7)
+	matrix, lmbda = boxcox1p(x = matrix, eps = eps)
 
-	print(f'BoxCox eps    : 1e-7')
-	print(f'BoxCox lambda : {lmbda:.5f}')
+	print(f'boxcox1p lambda : {lmbda}')
 
 	data.layers[store_into] = matrix
 
@@ -191,7 +190,7 @@ def compute_standardized (data : AnnData, store_into : str, layer : str = None, 
 
 	return data
 
-def compute_normalized (data : AnnData, store_into : str, layer : str = None, axis : int = None) -> AnnData :
+def compute_normalized (data : AnnData, store_into : str, layer : str = None) -> AnnData :
 	"""
 	Doc
 	"""
@@ -202,7 +201,10 @@ def compute_normalized (data : AnnData, store_into : str, layer : str = None, ax
 		matrix = data.layers[layer]
 
 	matrix = matrix.copy()
-	matrix = normalize(x = matrix, axis = axis)
+	matrix, min_value, max_value = normalize(x = matrix)
+
+	print(f'normalize min_value : {min_value}')
+	print(f'normalize max_value : {max_value}')
 
 	data.layers[store_into] = matrix
 

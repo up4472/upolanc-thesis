@@ -62,7 +62,10 @@ def update_params (params : Dict[str, Any] = None) -> Dict[str, Any] :
 			'padding' : 2,
 		},
 		'fc1' : {
-			'features' : 64,
+			'features' : 128,
+		},
+		'fc2' : {
+			'features' : 64
 		}
 	}
 
@@ -166,6 +169,11 @@ class Zrimec2020 (Module) :
 			out_features = params['fc1']['features']
 		)
 
+		self.fc2 = Linear(
+			in_features  = params['fc1']['features'],
+			out_features = params['fc2']['features']
+		)
+
 		self.dropout = Dropout(params['other']['dropout'])
 		self.relu    = ReLU(inplace = False)
 
@@ -217,6 +225,10 @@ class Zrimec2020 (Module) :
 		x = self.relu(x)
 		x = self.dropout(x)
 
+		x = self.fc2(x)
+		x = self.relu(x)
+		x = self.dropout(x)
+
 		return x
 
 	def summary (self, batch_size : int, in_height : int, in_width : int, in_features : int, verbose : bool = False) -> ModelStatistics :
@@ -242,7 +254,7 @@ if __name__ == '__main__' :
 			'in_width'    : 2150,
 			'in_features' : 64
 		},
-		'fc1' : {
+		'fc2' : {
 			'features' : 64
 		}
 	})

@@ -22,7 +22,6 @@ def compute_metrics (metrics : Dict[str, FunctionType], outputs : Tensor, labels
 
 	for key, metric in metrics.items() :
 		data = metric(outputs, labels)
-		# data = data.mean(dim = 0)
 		data = data.detach().cpu().numpy()
 
 		if key not in report['metric'].keys() :

@@ -1,88 +1,202 @@
 from anndata import AnnData
 from pandas  import DataFrame
-from types   import FunctionType
+from typing  import Callable
 from typing  import Dict
 from typing  import List
 from typing  import Tuple
 
 from tqdm.notebook import tqdm
 
+import itertools
+import math
 import matplotlib
+import numpy
 import seaborn
 
-def extract_tpm_value (data : AnnData, groups : List[str], functions : List[FunctionType], layer : str = None) -> Tuple[Dict[str, Dict], Dict[str, List]] :
+from src.data.feature._processing import boxcox1p_inv
+from src.data.feature._processing import log1p_inv
+from src.data.feature._processing import normalize_inv
+
+def merge_dictionary (source : Dict, target : Dict) -> Dict :
 	"""
 	Doc
 	"""
 
-	labels = dict()
-	order  = dict()
+	for key, value in source.items() :
+		if isinstance(value, dict) :
+			merge_dictionary(
+				source = value,
+				target = target.setdefault(key, dict())
+			)
+		else :
+			target[key] = value
+
+	return target
+
+def extract_tpm_single (data : AnnData, group : str, function : Callable, name : str, layer : str = None) -> Tuple[Dict, List] :
+	"""
+	Doc
+	"""
 
 	if layer is not None :
 		matrix = data.layers[layer]
 	else :
 		matrix = data.X
 
-	samples = data.obs
 	genes   = data.var
+	samples = data.obs
 
-	for gene in tqdm(genes.index) :
-		labels[gene] = dict()
+	order = sorted(samples[group].unique())
 
-		cols = genes.index == gene
+	dataframe = DataFrame(
+		data    = numpy.zeros((len(genes), len(order))),
+		columns = order,
+		index   = genes.index
+	)
 
-		for group in groups :
-			tpkm = dict()
+	for item in order :
+		rows = samples[group] == item
+		data = matrix[rows, :]
 
-			for name in samples[group].unique() :
-				rows = samples[group] == name
+		dataframe[item] = function(x = data)
 
-				vector = matrix[rows, cols]
-				vector = vector.flatten()
-				vector = [function(vector) for function in functions]
+	name = group.lower() + '-' + name
 
-				tpkm[name] = vector
+	data = dataframe.transpose().to_dict(orient = 'list')
+	data = {
+		key : {name : item}
+		for key, item in data.items()
+	}
 
-			group = group.lower()
-			group_order = sorted(tpkm.keys())
+	return data, order
 
-			if group not in order.keys() :
-				order[group] = group_order
+def extract_tpm_multi (data : AnnData, groups : List[str], functions : List[Tuple[str, Callable]], layer : str = None) -> Tuple[Dict, Dict] :
+	"""
+	Doc
+	"""
 
-			for index, function in enumerate(functions) :
-				vals = [tpkm[key][index] for key in group_order]
-				name = group + '-' + function.__name__
+	values = dict()
+	order  = dict()
 
-				labels[gene][name] = vals
+	for group, function in itertools.product(groups, functions) :
+		result = extract_tpm_single(
+			data     = data,
+			layer    = layer,
+			group    = group,
+			function = function[1],
+			name     = function[0]
+		)
 
-	return labels, order
+		values = merge_dictionary(
+			source = result[0],
+			target = values
+		)
 
-def extract_tpm_level (data : Dict[str, Dict], bounds : List[Tuple[str, float]], return_names : bool = False) -> Dict[str, Dict] :
+		order[group.lower()] = result[1]
+
+	return values, order
+
+def compute_percentile_bounds (data : Dict[str, Dict], group : str, classes : int) -> List[Tuple[str, float, float]]:
+	"""
+	Doc
+	"""
+
+	matrix = numpy.array([
+		numpy.array(value[group])
+		for value in data.values()
+	])
+
+	bounds = list()
+	margin = 100 / classes
+
+	for index in range(classes) :
+		source = margin * index
+		target = margin + source
+
+		source = numpy.percentile(matrix, source)
+		target = numpy.percentile(matrix, target)
+
+		bounds.append((
+			f'level-{index}',
+			source,
+			target
+		))
+
+	return bounds
+
+def classify_tpm (data : Dict[str, Dict], classes : int = 5) -> Tuple[Dict[str, Dict], Dict[str, List]] :
 	"""
 	Doc
 	"""
 
 	labels = dict()
-	bounds = sorted(bounds, key = lambda x : x[1])
+	bounds = {
+		key : compute_percentile_bounds(
+			data    = data,
+			group   = key,
+			classes = classes
+		)
+		for key in data[list(data.keys())[0]].keys()
+		if not key.endswith('std')
+	}
 
 	for gene, table in tqdm(data.items()) :
 		labels[gene] = dict()
 
 		for key, value in table.items() :
-			if return_names :
-				array = ['unknown'] * len(value)
-			else :
-				array = [-1] * len(value)
+			if key not in bounds.keys() :
+				continue
 
-			for index, (name, threshold) in enumerate(bounds, start = 0) :
-				indices = [x >= threshold for x in value]
-				current = name if return_names else index
+			array = [numpy.nan] * len(value)
 
-				array = [current if flag else prev for prev, flag in zip(array, indices)]
+			for index, (name, low, high) in enumerate(bounds[key], start = 0) :
+				indices = [x >= low for x in value]
+
+				array = [
+					index
+					if flag else prev
+					for prev, flag in zip(array, indices)
+				]
 
 			labels[gene][key] = array
 
-	return labels
+	return labels, bounds
+
+def display_bounds_mapping (bounds : Dict[str, List], group : str, min_value : float, max_value : float, box_lambda : float) -> None :
+	"""
+	Doc
+	"""
+
+	min_value  = 0
+	max_value  = 4.700396577575031
+	box_lambda = 0.276804378358019
+
+	to_box = lambda x : normalize_inv(x,  min_value, max_value)
+	to_log = lambda x : boxcox1p_inv(x, box_lambda)
+	to_tpm = lambda x : log1p_inv(x, 2)
+
+	bounds_norm = bounds[group]
+	bounds_box  = [(name, to_box(x = low), to_box(x = high)) for name, low, high in bounds_norm]
+	bounds_log  = [(name, to_log(x = low), to_log(x = high)) for name, low, high in bounds_box]
+	bounds_tpm  = [(name, to_tpm(x = low), to_tpm(x = high)) for name, low, high in bounds_log]
+
+	s32 = '-' * 32
+	s21 = '-' * 21
+
+	print('{:>31s} | {:>19s} | {:>19s} | {:>19s}'.format('TPM', 'log1p', 'boxcox1p', 'norm'))
+	print('{}+{}+{}+{}'.format(s32, s21, s21, s21))
+
+	format0 = lambda x : '{:9,.1f} - {:9,.1f}'.format(x[1], x[2])
+	format1 = lambda x : '{:8.5f} - {:8.5f}'.format(x[1], x[2])
+
+	for items in zip(bounds_tpm, bounds_log, bounds_box, bounds_norm) :
+		print('{} : {} | {} | {} | {}'.format(
+			items[0][0],
+			format0(items[0]),
+			format1(items[1]),
+			format1(items[2]),
+			format1(items[3]),
+		))
 
 def distribution_group (data : Dict[str, Dict], genes : List[str], order : Dict[str, List], select : str = 'mean') -> Dict[str, Dict] :
 	"""
@@ -92,11 +206,14 @@ def distribution_group (data : Dict[str, Dict], genes : List[str], order : Dict[
 	dist = dict()
 	gene = list(data.keys())[0]
 
-	for group, items in data[gene].items() :
-		if not group.endswith(select) :
-			continue
+	groups = [
+		(key, len(value))
+		for key, value in data[gene].items()
+		if key.endswith(select)
+	]
 
-		for index in range(len(items)) :
+	for group, length in groups :
+		for index in range(length) :
 			gkey = group.split('-')[0]
 			tkey = order[gkey][index]
 
@@ -112,6 +229,20 @@ def distribution_group (data : Dict[str, Dict], genes : List[str], order : Dict[
 
 	return dist
 
+def compute_gridsize (n : int) -> Tuple[int, int, int] :
+	"""
+	Doc
+	"""
+
+	if n == 1 : return 1, 1, 1
+	if n == 2 : return 2, 1, 2
+	if n == 3 : return 3, 1, 3
+
+	nrows = math.ceil(math.sqrt(n))
+	ncols = math.ceil(n / nrows)
+
+	return n, nrows, ncols
+
 def distribution_histplot (data : Dict[str, Dict], groupby : str, discrete : bool = False, filename : str = None) -> None :
 	"""
 	Doc
@@ -121,45 +252,28 @@ def distribution_histplot (data : Dict[str, Dict], groupby : str, discrete : boo
 		if groupby != gkey :
 			continue
 
-		n = len(group)
-
-		match n :
-			case  1 : nrows, ncols, gridlike = 1, 1, False
-			case  2 : nrows, ncols, gridlike = 1, 2, False
-			case  3 : nrows, ncols, gridlike = 1, 3, False
-			case  4 : nrows, ncols, gridlike = 2, 2, True
-			case  5 : nrows, ncols, gridlike = 2, 3, True
-			case  6 : nrows, ncols, gridlike = 2, 3, True
-			case  7 : nrows, ncols, gridlike = 2, 4, True
-			case  8 : nrows, ncols, gridlike = 2, 4, True
-			case  9 : nrows, ncols, gridlike = 3, 3, True
-			case 10 : nrows, ncols, gridlike = 3, 4, True
-			case 11 : nrows, ncols, gridlike = 3, 4, True
-			case 12 : nrows, ncols, gridlike = 3, 4, True
-			case 13 : nrows, ncols, gridlike = 4, 4, True
-			case 14 : nrows, ncols, gridlike = 4, 4, True
-			case 15 : nrows, ncols, gridlike = 4, 4, True
-			case 16 : nrows, ncols, gridlike = 4, 4, True
-			case 17 : nrows, ncols, gridlike = 5, 4, True
-			case 18 : nrows, ncols, gridlike = 5, 4, True
-			case 19 : nrows, ncols, gridlike = 5, 4, True
-			case 20 : nrows, ncols, gridlike = 5, 4, True
-			case _  : nrows, ncols, gridlike = n, 1, False
+		n, nrows, ncols = compute_gridsize(
+			n = len(group)
+		)
 
 		kwargs = {
 			'sharex'  : True,
 			'sharey'  : True,
-			'figsize' : (16, 10)
+			'figsize' : (nrows * 16, ncols * 10)
 		}
 
-		if gridlike :
+		if ncols > 1 :
 			_, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
 		else :
 			_, ax = matplotlib.pyplot.subplots(ncols, **kwargs)
 
 		for index, (tkey, array) in enumerate(group.items()) :
 			dataframe = DataFrame.from_dict({'Data' : array})
-			axis = ax[index // ncols, index % ncols] if gridlike else ax[index]
+
+			if nrows == 1 or ncols == 1 :
+				axis = ax[index]
+			else :
+				axis = ax[index // ncols, index % ncols]
 
 			seaborn.histplot(
 				x         = 'Data',
@@ -174,8 +288,12 @@ def distribution_histplot (data : Dict[str, Dict], groupby : str, discrete : boo
 			axis.set_xlabel('')
 			axis.set_ylabel('')
 
-		for index in range(len(group), nrows * ncols) :
-			axis = ax[index // ncols, index % ncols] if gridlike else ax[index]
+		for index in range(n, nrows * ncols) :
+			if nrows == 1 or ncols == 1 :
+				axis = ax[index]
+			else :
+				axis = ax[index // ncols, index % ncols]
+
 			axis.axis('off')
 
 		if filename is not None :

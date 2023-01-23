@@ -1,9 +1,26 @@
 from typing import Dict
 from typing import List
+from typing import Tuple
 
+import math
 import matplotlib
 import numpy
+import scipy
 import seaborn
+
+def compute_gridsize (n : int) -> Tuple[int, int, int] :
+	"""
+	Doc
+	"""
+
+	if n == 1 : return 1, 1, 1
+	if n == 2 : return 2, 1, 2
+	if n == 3 : return 3, 1, 3
+
+	nrows = math.ceil(math.sqrt(n))
+	ncols = math.ceil(n / nrows)
+
+	return n, nrows, ncols
 
 def lineplot (values : List[numpy.ndarray | List], labels : List[str], xlabel : str, ylabel : str, title : str = None, filename : str = None) -> None :
 	"""
@@ -30,6 +47,209 @@ def lineplot (values : List[numpy.ndarray | List], labels : List[str], xlabel : 
 			format = 'png'
 		)
 
+def show_prediction_error_grid (report : Dict[str, Dict], order : List[str], filename : str = None) -> None :
+	"""
+	Doc
+	"""
+
+	data = report['eval']['ypred'] - report['eval']['ytrue']
+
+	n, nrows, ncols = compute_gridsize(
+		n = numpy.shape(data)[1]
+	)
+
+	kwargs = {
+		'sharex' : True,
+		'sharey' : True,
+		'figsize' : (16 * ncols, 10 * nrows)
+	}
+
+	if ncols > 1 :
+		_, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
+	else :
+		_, ax = matplotlib.pyplot.subplots(nrows, **kwargs)
+
+	for index in range(n) :
+		if nrows == 1 or ncols == 1 :
+			axis = ax[index]
+		else :
+			axis = ax[index // ncols, index % ncols]
+
+		seaborn.histplot(
+			x     = data[:, index],
+			ax    = axis,
+			alpha = 0.9
+		)
+
+		axis.axvline(x = 0, color = 'r', linewidth = 3)
+		axis.set_title(order[index].title())
+		axis.set_xlabel('Prediction Error')
+
+	for index in range(n, nrows * ncols) :
+		if nrows == 1 or ncols == 1 :
+			axis = ax[index]
+		else :
+			axis = ax[index // ncols, index % ncols]
+
+		axis.axis('off')
+
+	if filename is not None :
+		matplotlib.pyplot.savefig(
+			filename + '-prediction_error.png',
+			dpi    = 120,
+			format = 'png'
+		)
+
+def show_prediction_error (report : Dict[str, Dict], order : List[str], group : str, filename : str = None) -> None :
+	"""
+	Doc
+	"""
+
+	data = report['eval']['ypred'] - report['eval']['ytrue']
+
+	index = order.index(group)
+	data = data[:, index]
+
+	_, axis = matplotlib.pyplot.subplots(figsize = (16, 10))
+
+	seaborn.histplot(
+		x     = data,
+		ax    = axis,
+		alpha = 0.9
+	)
+
+	axis.axvline(x = 0, color = 'r', linewidth = 3)
+	axis.set_title(group.title())
+	axis.set_xlabel('Prediction Error')
+
+	if filename is not None :
+		matplotlib.pyplot.savefig(
+			filename + '-' + group + '-error.png',
+			dpi    = 120,
+			format = 'png'
+		)
+def show_linear_regression_grid (report : Dict[str, Dict], order : List[str], filename : str = None) -> None :
+	"""
+	Doc
+	"""
+
+	ypred = report['eval']['ypred']
+	ytrue = report['eval']['ytrue']
+
+	n, nrows, ncols = compute_gridsize(
+		n = numpy.shape(ytrue)[1]
+	)
+
+	kwargs = {
+		'sharex' : True,
+		'sharey' : True,
+		'figsize' : (10 * ncols, 10 * nrows)
+	}
+
+	if ncols > 1 :
+		_, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
+	else :
+		_, ax = matplotlib.pyplot.subplots(nrows, **kwargs)
+
+	for index in range(n) :
+		if nrows == 1 or ncols == 1 :
+			axis = ax[index]
+		else :
+			axis = ax[index // ncols, index % ncols]
+
+		x1 = ypred[:, index]
+		x2 = ytrue[:, index]
+
+		seaborn.scatterplot(
+			x     = x1,
+			y     = x2,
+			ax    = axis,
+			alpha = 0.9
+		)
+
+		res = scipy.stats.linregress(x1, x2)
+
+		axis.plot(x1, res.intercept + res.slope * x1,
+			color     = 'r',
+			linewidth = 2
+		)
+
+		xmin, xmax = axis.get_xlim()
+		ymin, ymax = axis.get_ylim()
+
+		gmin = min(xmin, ymin)
+		gmax = max(xmax, ymax)
+
+		axis.set_xlim([gmin, gmax])
+		axis.set_ylim([gmin, gmax])
+
+		axis.set_title(f'{order[index].title()} : k = {res.slope:.3f}; r = {res.rvalue:.3f}; p = {res.pvalue:.3e}')
+		axis.set_aspect('equal')
+
+	for index in range(n, nrows * ncols) :
+		if nrows == 1 or ncols == 1 :
+			axis = ax[index]
+		else :
+			axis = ax[index // ncols, index % ncols]
+
+		axis.axis('off')
+
+	if filename is not None :
+		matplotlib.pyplot.savefig(
+			filename + '-prediction_linefit.png',
+			dpi    = 120,
+			format = 'png'
+		)
+
+def show_linear_regression (report : Dict[str, Dict], order : List[str], group : str, filename : str = None) -> None :
+	"""
+	Doc
+	"""
+
+	index = order.index(group)
+
+	ypred = report['eval']['ypred'][:, index]
+	ytrue = report['eval']['ytrue'][:, index]
+
+	_, axis = matplotlib.pyplot.subplots(figsize = (16, 10))
+
+	seaborn.scatterplot(
+		x  = ypred,
+		y  = ytrue,
+		ax = axis
+	)
+
+	res = scipy.stats.linregress(ypred, ytrue)
+
+	axis.plot(
+		ypred,
+		res.intercept + res.slope * ypred,
+		color = 'r',
+		linewidth = 1
+	)
+
+	xmin, xmax = axis.get_xlim()
+	ymin, ymax = axis.get_ylim()
+
+	gmin = min(xmin, ymin)
+	gmax = max(xmax, ymax)
+
+	axis.set_xlim([gmin, gmax])
+	axis.set_ylim([gmin, gmax])
+
+	axis.set_aspect('equal')
+
+	axis.set_title(f'k = {res.slope:.3f}; r = {res.rvalue:.3f}; p = {res.pvalue:.3e}')
+	axis.set_xlabel('Predicted')
+	axis.set_ylabel('Actual')
+
+	if filename is not None :
+		matplotlib.pyplot.savefig(
+			filename + '-' + group + '-linefit.png',
+			dpi    = 120,
+			format = 'png'
+		)
+
 def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename : str = None) -> None :
 	"""
 	Doc
@@ -40,53 +260,37 @@ def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename :
 
 	for metric in metrics :
 		match metric.lower() :
-			case 'mae'        : names.append('MAE')
 			case 'mse'        : names.append('MSE')
-			case 'huber'      : names.append('Huber')
+			case 'mae'        : names.append('MAE')
 			case 'smooth-mae' : names.append('Smooth MAE')
-			case 'ce'         : names.append('Cross Entropy')
-			case 'cce'        : names.append('Categorical Cross Entropy')
-			case 'nll'        : names.append('Negative Log Likelihood')
-			case 'kl'         : names.append('Kullback-Leibler Divergence')
+			case 'huber'      : names.append('Huber')
 			case 'r2'         : names.append('R2 Score')
-			case 'acc'        : names.append('Accuracy')
+			case 'entropy'    : names.append('Cross Entropy')
+			case 'nll'        : names.append('Negative Log Likelihood')
+			case 'accuracy'   : names.append('Accuracy')
 			case _            : names.append('?')
 
-	n = len(names)
+	n, nrows, ncols = compute_gridsize(
+		n = len(names)
+	)
 
-	match n :
-		case 1  : nrows, ncols, gridlike = 1, 1, False
-		case 2  : nrows, ncols, gridlike = 1, 2, False
-		case 3  : nrows, ncols, gridlike = 1, 3, False
-		case 4  : nrows, ncols, gridlike = 2, 2, True
-		case 5  : nrows, ncols, gridlike = 2, 3, True
-		case 6  : nrows, ncols, gridlike = 2, 3, True
-		case 7  : nrows, ncols, gridlike = 2, 4, True
-		case 8  : nrows, ncols, gridlike = 2, 4, True
-		case 9  : nrows, ncols, gridlike = 3, 3, True
-		case 10 : nrows, ncols, gridlike = 3, 4, True
-		case 11 : nrows, ncols, gridlike = 3, 4, True
-		case 12 : nrows, ncols, gridlike = 3, 4, True
-		case 13 : nrows, ncols, gridlike = 4, 4, True
-		case 14 : nrows, ncols, gridlike = 4, 4, True
-		case 15 : nrows, ncols, gridlike = 4, 4, True
-		case 16 : nrows, ncols, gridlike = 4, 4, True
-		case 17 : nrows, ncols, gridlike = 5, 4, True
-		case 18 : nrows, ncols, gridlike = 5, 4, True
-		case 19 : nrows, ncols, gridlike = 5, 4, True
-		case 20 : nrows, ncols, gridlike = 5, 4, True
-		case _  : nrows, ncols, gridlike = n, 1, False
+	kwargs = {
+		'figsize' : (16 * ncols, 10 * nrows)
+	}
 
-	_, ax = matplotlib.pyplot.subplots(nrows, ncols, figsize = (16 * ncols, 10 * nrows))
+	if ncols > 1 :
+		_, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
+	else :
+		_, ax = matplotlib.pyplot.subplots(nrows, **kwargs)
 
 	for index, (metric, name) in enumerate(zip(metrics, names)):
 		metric = report[mode]['metric'][metric]
 		metric = numpy.array([x.mean() for x in metric])
 
-		if gridlike :
-			axis = ax[index // ncols, index % ncols]
-		else :
+		if nrows == 1 or ncols == 1 :
 			axis = ax[index]
+		else :
+			axis = ax[index // ncols, index % ncols]
 
 		seaborn.lineplot(x = numpy.arange(1, 1 + len(metric)), y = metric, ax = axis)
 
@@ -95,7 +299,11 @@ def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename :
 		axis.set_title(name)
 
 	for index in range(n, nrows * ncols) :
-		axis = ax[index // ncols, index % ncols] if gridlike else ax[index]
+		if nrows == 1 or ncols == 1 :
+			axis = ax[index]
+		else :
+			axis = ax[index // ncols, index % ncols]
+
 		axis.axis('off')
 
 	if filename is not None :
@@ -164,8 +372,8 @@ def show_accuracy (report : Dict[str, Dict], title : str = None, filename : str 
 	Doc
 	"""
 
-	train_acc = report['train']['metric']['acc']
-	valid_acc = report['valid']['metric']['acc']
+	train_acc = report['train']['metric']['accuracy']
+	valid_acc = report['valid']['metric']['accuracy']
 
 	train_acc = numpy.array([acc.mean() for acc in train_acc])
 	valid_acc = numpy.array([acc.mean() for acc in valid_acc])

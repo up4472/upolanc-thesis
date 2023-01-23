@@ -23,6 +23,7 @@ from typing                   import Union
 from torch.nn.init import calculate_gain
 from torch.nn.init import kaiming_normal_
 from torch.nn.init import kaiming_uniform_
+from torch.nn.init import ones_
 from torch.nn.init import xavier_normal_
 from torch.nn.init import xavier_uniform_
 from torch.nn.init import zeros_
@@ -30,7 +31,6 @@ from torch.nn.init import zeros_
 import numpy
 
 from src.cnn.criterions import Accuracy
-from src.cnn.criterions import BrierScore
 from src.cnn.criterions import R2Score
 
 from src.cnn._common import evaluate
@@ -60,13 +60,10 @@ def get_criterion (query : str, reduction : str = 'mean', return_name : bool = F
 		case 'entropy' :
 			func = CrossEntropyLoss(reduction = reduction, **kwargs)
 			name = 'Cross Entropy'
-		case 'brier' :
-			func = BrierScore()
-			name = 'Brier'
 		case 'nll' :
 			func = NLLLoss(reduction = reduction, **kwargs)
 			name = 'Negative Log Likelihood'
-		case 'acc' :
+		case 'accuracy' :
 			func = Accuracy(reduction = reduction)
 			name = 'Accuracy'
 		case _ :
@@ -85,7 +82,7 @@ def get_optimizer (query : str, model : Module, return_name : bool = False, **kw
 	match query.lower() :
 		case 'adam' :
 			func = Adam(model.parameters(), **kwargs)
-			name = 'ADAM'
+			name = 'Adam'
 		case 'sgd'  :
 			func = SGD(model.parameters(), **kwargs)
 			name = 'SGD'
@@ -164,6 +161,15 @@ def zero_bias (layer : Module) -> None :
 	if isinstance(layer, (Conv1d, Conv2d, Linear)) :
 		if layer.bias is not None :
 			zeros_(tensor = layer.bias)
+
+def one_bias (layer : Module) -> None :
+	"""
+	Doc
+	"""
+
+	if isinstance(layer, (Conv1d, Conv2d, Linear)) :
+		if layer.bias is not None :
+			ones_(tensor = layer.bias)
 
 def train_regressor (model : Module, params : Dict[str, Any]) -> Dict[str, Dict | numpy.ndarray] :
 	"""
