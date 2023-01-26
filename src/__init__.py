@@ -7,13 +7,13 @@ numpy.set_printoptions(
 	edgeitems = 25,
 	linewidth = 150,
 	formatter = {
-		'float_kind' : '{: 6,.2f}'.format
+		'float_kind' : '{: 7,.3f}'.format
 	}
 )
 
 pandas.set_option(
 	'display.float_format',
-	'{:.2f}'.format
+	'{:.3f}'.format
 )
 
 seaborn.set_theme()

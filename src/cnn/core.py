@@ -8,7 +8,7 @@ def lock_random (seed : int = None, generate_seed : bool = False) -> int :
 	"""
 
 	if seed is None and generate_seed :
-		seed = random.randint(1, 1_000_000_000_000)
+		seed = random.randint(1, 1_073_741_824)
 
 	if seed is not None :
 		torch.manual_seed(seed)

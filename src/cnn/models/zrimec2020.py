@@ -83,6 +83,15 @@ def update_params (params : Dict[str, Any] = None) -> Dict[str, Any] :
 			kernel  = config['kernel']
 			padding = config['padding']
 
+			if isinstance(padding, str) :
+				match padding.lower() :
+					case 'none'  : padding = 0
+					case 'same'  : padding = (kernel - 1) // 2
+					case 'valid' : padding = (kernel - 1) // 2
+					case _ : raise ValueError()
+
+				config['padding'] = padding
+
 			if padding != 0 and padding != (kernel - 1) // 2 :
 				print(f'Problem with padding in [{layer}] : [{padding}] : [{kernel}]')
 

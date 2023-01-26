@@ -101,6 +101,15 @@ def update_params (params : Dict[str, Any] = None) -> Dict[str, Any] :
 			kernel  = config['kernel']
 			padding = config['padding']
 
+			if isinstance(padding, str) :
+				match padding.lower() :
+					case 'none'  : padding = (0, 0)
+					case 'same'  : padding = ((kernel[0] - 1) // 2, (kernel[1] - 1) // 2)
+					case 'valid' : padding = ((kernel[0] - 1) // 2, (kernel[1] - 1) // 2)
+					case _ : raise ValueError()
+
+				config['padding'] = padding
+
 			p0, p1 = padding
 			k0, k1 = kernel
 

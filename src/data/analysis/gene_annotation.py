@@ -6,13 +6,13 @@ import numpy
 import scipy
 import seaborn
 
-def show (data : DataFrame, query : str = None, rows : int = 5, cols : int = 10) -> DataFrame :
+def show (data : DataFrame, query : str = None, query_by : str = None, rows : int = 5, cols : int = 10) -> DataFrame :
 	"""
 	Doc
 	"""
 
 	if query is not None :
-		data = data.loc[data['mRNA'].isin([query])]
+		data = data.loc[data[query_by].isin([query])]
 
 	print(f'Number of rows : {data.shape[0]}')
 	print(f'Number of cols : {data.shape[1]}')
@@ -50,9 +50,9 @@ def inspect_columns (data : DataFrame, columns : List[str] = None, items : int =
 		ucount.append(len(unique))
 
 		if len(unique) > items :
-			print(f' - {name:7s} : [{len(unique):7,d}] ' + ' '.join(str(val) for val in unique[:items]) + ' ...')
+			print(f' - {name:10s} : [{len(unique):7,d}] ' + ' '.join(str(val) for val in unique[:items]) + ' ...')
 		else :
-			print(f' - {name:7s} : [{len(unique):7,d}] ' + ' '.join(str(val) for val in unique[:items]))
+			print(f' - {name:10s} : [{len(unique):7,d}] ' + ' '.join(str(val) for val in unique[:items]))
 
 	return DataFrame(
 		data    = [dtypes, ncount, ucount],
@@ -103,37 +103,27 @@ def group_regions (data : DataFrame, groupby : str, regions : List[str] = None) 
 	entries = list()
 
 	for group, dataframe in data.groupby(groupby) :
-		chromo = dataframe['Seq'].iloc[0]
-		strand = dataframe['Strand'].iloc[0]
-		mrna   = dataframe['mRNA'].iloc[0]
-		gene   = dataframe['Gene'].iloc[0]
+		f0 = dataframe['Seq'].iloc[0]
+		f1 = dataframe['Strand'].iloc[0]
+		f3 = dataframe['Gene'].iloc[0]
+		f4 = dataframe['Transcript'].iloc[0]
 
 		for region in regions :
+			f2 = region
+			f5 = dataframe['Exon'].iloc[0]
+			f6 = dataframe['Parent'].iloc[0]
+
 			data = dataframe.loc[dataframe['Type'].isin([region])]
 
-			entry = [
-				chromo,
-				strand,
-				gene,
-				mrna,
-				region,
-				len(data)
-			]
+			f7 = -1 if len(data) == 0 else data['Start'].min()
+			f8 = -1 if len(data) == 0 else data['End'].max()
+			f9 =  0 if len(data) == 0 else data['Length'].sum()
 
-			if len(data) == 0 :
-				entry.append(-1)
-				entry.append(-1)
-				entry.append(0)
-			else :
-				entry.append(data['Start'].min())
-				entry.append(data['End'].max())
-				entry.append(data['Length'].sum())
-
-			entries.append(entry)
+			entries.append([f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, len(data)])
 
 	return DataFrame(
 		data     = entries,
-		columns = ['Seq', 'Strand', 'Gene', 'mRNA', 'Type', 'Regions', 'Start', 'End', 'Length']
+		columns = ['Seq', 'Strand', 'Type', 'Gene', 'Transcript', 'Exon', 'Parent', 'Start', 'End', 'Length', 'Regions']
 	)
 
 def length_statistics (data : DataFrame, regions : List[str] = None) -> DataFrame :

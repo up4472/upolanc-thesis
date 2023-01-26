@@ -91,7 +91,7 @@ def filter_genes (data : DataFrame, cutoff : Dict[str, Any] = None) -> Tuple[Dat
 
 	data = data.copy()
 
-	columns = data['mRNA'].tolist()
+	columns = data['Transcript'].tolist()
 
 	data = data.iloc[:, 1:].transpose()
 	data.columns = columns
@@ -109,7 +109,7 @@ def filter_genes_per_group (metadata : DataFrame, tpm : DataFrame, group : str =
 
 	for index, (group, dataframe) in enumerate(metadata.groupby(group)) :
 		samples = dataframe['Sample'].to_list()
-		samples.insert(0, 'mRNA')
+		samples.insert(0, 'Transcript')
 
 		_, items = filter_genes(
 			data   = tpm[samples],
@@ -149,7 +149,7 @@ def gene_lineplot (metadata : DataFrame, tpm : DataFrame, groupby : List[str], m
 	sindex = 0
 	eindex = 50
 
-	genes = tpm.columns[1 :eindex + 1].tolist()
+	genes = tpm.columns[1:eindex + 1].tolist()
 
 	for group in groupby :
 		fig, axis = matplotlib.pyplot.subplots(figsize = (16, 10))
@@ -170,13 +170,13 @@ def gene_lineplot (metadata : DataFrame, tpm : DataFrame, groupby : List[str], m
 			})
 
 			seaborn.lineplot(
-				data = dataframe,
-				x = 'gene',
-				y = method,
+				data      = dataframe,
+				x         = 'gene',
+				y         = method,
 				linewidth = 1.5,
-				alpha = 0.65,
-				ax = axis,
-				label = label
+				alpha     = 0.65,
+				ax        = axis,
+				label     = label
 			)
 
 		axis.set_xticks(genes)

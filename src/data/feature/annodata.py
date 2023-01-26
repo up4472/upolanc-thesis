@@ -6,7 +6,6 @@ from typing  import Tuple
 
 import matplotlib
 import numpy
-import scanpy
 import seaborn
 
 from src.data.feature._processing import boxcox1p
@@ -15,7 +14,7 @@ from src.data.feature._processing import normalize
 from src.data.feature._processing import pca
 from src.data.feature._processing import standardize
 
-def create_anndata (mat : DataFrame, obs : DataFrame, mat_id : str, obs_id : str, normalize_per_cell : bool = True) -> AnnData :
+def create_anndata (mat : DataFrame, obs : DataFrame) -> AnnData :
 	"""
 	Doc
 	"""
@@ -23,28 +22,20 @@ def create_anndata (mat : DataFrame, obs : DataFrame, mat_id : str, obs_id : str
 	mat = mat.copy()
 	obs = obs.copy()
 
-	columns = mat['mRNA'].tolist()
+	columns = mat['Transcript'].tolist()
 
 	mat = mat.iloc[:, 1:].transpose()
 	mat.columns = columns
 
-	mat = mat.reset_index(names = 'Sample')
-
-	mat = mat.sort_values(mat_id, ascending = True)
-	mat = mat.reset_index(drop = True)
-
-	obs = obs.sort_values(obs_id, ascending = True)
-	obs = obs.reset_index(drop = True)
+	obs = obs.set_index('Sample', drop = True)
+	obs.index.name = None
 
 	data = AnnData(
-		X   = mat.iloc[:, 1:],
-		obs = obs
+		X   = mat.sort_index(ascending = True),
+		obs = obs.sort_index(ascending = True)
 	)
 
 	data.X = data.X.astype(numpy.float64)
-
-	if normalize_per_cell :
-		scanpy.pp.normalize_total(data, target_sum = 1_000_000, key_added = 'Counts', inplace = True)
 
 	return data
 

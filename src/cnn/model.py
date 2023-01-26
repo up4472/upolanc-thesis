@@ -55,7 +55,7 @@ def get_criterion (query : str, reduction : str = 'mean', return_name : bool = F
 			func = HuberLoss(reduction = reduction, **kwargs)
 			name = 'Huber'
 		case 'r2' :
-			func = R2Score()
+			func = R2Score(reduction = reduction)
 			name = 'R2 Score'
 		case 'entropy' :
 			func = CrossEntropyLoss(reduction = reduction, **kwargs)

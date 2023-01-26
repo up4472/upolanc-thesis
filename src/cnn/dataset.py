@@ -72,14 +72,6 @@ def generate_split_indices (targets : List[Any], test_split : float, valid_split
 	s1, s3 = train_test_split(arange, random_state = random_seed, shuffle = True, stratify = None, test_size = test_split)
 	s1, s2 = train_test_split(s1,     random_state = random_seed, shuffle = True, stratify = None, test_size = valid_split)
 
-	train_split = 100 * len(s1) / length
-	valid_split = 100 * len(s2) / length
-	test_split  = 100 * len(s3) / length
-
-	print(f'Train percentage : {train_split:5.2f}')
-	print(f'Valid percentage : {valid_split:5.2f}')
-	print(f' Test percentage : {test_split:5.2f}')
-
 	return s1, s2, s3
 
 def to_dataloader (dataset : Dataset, batch_size : int, indices : List[int]) -> DataLoader :

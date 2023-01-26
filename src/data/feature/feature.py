@@ -52,13 +52,13 @@ def extract_longest_names (dataframe : DataFrame) -> DataFrame :
 	Doc
 	"""
 
-	data = DataFrame(columns = ['Gene', 'mRNA', 'Length', 'Index'])
+	data = DataFrame(columns = ['Gene', 'Transcript', 'Length', 'Index'])
 	mrna = dataframe[dataframe['Type'] == 'mRNA']
 
-	data['Gene']   = mrna['Gene']
-	data['mRNA']   = mrna['mRNA']
-	data['Length'] = numpy.absolute(mrna['Start'] - mrna['End'])
-	data['Index']  = data.index
+	data['Gene']       = mrna['Gene']
+	data['Transcript'] = mrna['Transcript']
+	data['Length']     = numpy.absolute(mrna['Start'] - mrna['End'])
+	data['Index']      = data.index
 
 	data = data.reset_index(drop = True)
 
@@ -70,7 +70,7 @@ def group_regions_list (dataframe : DataFrame, region : str) -> DataFrame :
 	"""
 
 	tmp = dataframe.assign(Limits = dataframe[dataframe['Type'] == region][['Start', 'End']].apply(lambda x : x.values, axis = 1))
-	out = tmp[tmp['Type'] == region].groupby('mRNA', as_index = False)['Limits'].agg(list)
+	out = tmp[tmp['Type'] == region].groupby('Transcript', as_index = False)['Limits'].agg(list)
 
 	return out
 
@@ -80,9 +80,9 @@ def group_regions_with_merge (dataframe : DataFrame, annotation : DataFrame, reg
 	"""
 
 	regions = group_regions_list(dataframe = annotation, region = region)
-	regions = regions.loc[regions['mRNA'].isin(dataframe['mRNA'])]
+	regions = regions.loc[regions['Transcript'].isin(dataframe['Transcript'])]
 
-	dataframe = pandas.merge(dataframe, regions, on = 'mRNA')
+	dataframe = pandas.merge(dataframe, regions, on = 'Transcript')
 	dataframe[region].update(dataframe['Limits'])
 	dataframe.drop(columns = ['Limits'], inplace = True)
 
@@ -98,20 +98,20 @@ def annotation_to_regions (annotation : DataFrame, lengths : Dict[str, Union[int
 	LEN_TERM      = lengths['term']
 	LEN_TERM_FULL = lengths['term_full']
 
-	annotation = annotation[annotation['Type'].isin(['Gene', 'mRNA', 'UTR5', 'Exon', 'CDS', 'UTR3'])].copy()
+	annotation = annotation[annotation['Type'].isin(['mRNA', 'UTR5', 'CDS', 'UTR3'])].copy()
 
 	select = extract_longest_names(dataframe = annotation)
-	dataframe = DataFrame(columns = ['Gene', 'mRNA', 'CDS', 'UTR5', 'UTR3', 'Start', 'End', 'Strand', 'Seq'])
+	dataframe = DataFrame(columns = ['Gene', 'Transcript', 'CDS', 'UTR5', 'UTR3', 'Start', 'End', 'Strand', 'Seq'])
 
-	annotation = annotation[annotation['mRNA'].isin(select['mRNA'])]
+	annotation = annotation[annotation['Transcript'].isin(select['Transcript'])]
 
 	dataframe['Start']  = annotation[annotation['Type'] == 'mRNA']['Start']
 	dataframe['End']    = annotation[annotation['Type'] == 'mRNA']['End']
 	dataframe['Strand'] = annotation[annotation['Type'] == 'mRNA']['Strand']
 	dataframe['Seq']    = annotation[annotation['Type'] == 'mRNA']['Seq']
 
-	dataframe['mRNA'] = annotation[annotation['Type'] == 'mRNA']['mRNA']
-	dataframe['Gene'] = select.set_index(['mRNA']).loc[dataframe['mRNA'].values]['Gene'].values
+	dataframe['Transcript'] = annotation[annotation['Type'] == 'mRNA']['Transcript']
+	dataframe['Gene']       = select.set_index(['Transcript']).loc[dataframe['Transcript'].values]['Gene'].values
 
 	dataframe = group_regions_with_merge(dataframe = dataframe, annotation = annotation, region = 'CDS')
 	dataframe = group_regions_with_merge(dataframe = dataframe, annotation = annotation, region = 'UTR5')
@@ -176,11 +176,11 @@ def annotation_to_regions (annotation : DataFrame, lengths : Dict[str, Union[int
 		(dataframe['UTR3_Length'] < 10_000)
 	].reset_index(drop = True)
 
-	print('Passed 1st assertion : ' + str(len(dataframe['mRNA'].unique()) == len(dataframe['mRNA'])))
+	print('Passed 1st assertion : ' + str(len(dataframe['Transcript'].unique()) == len(dataframe['Transcript'])))
 	print('Passed 2nd assertion : ' + str(not dataframe.isnull().values.any()))
 
 	return dataframe[[
-		'Seq', 'Strand', 'Gene', 'mRNA', 'Start', 'End',
+		'Seq', 'Strand', 'Gene', 'Transcript', 'Start', 'End',
 		'Prom_Full', 'Prom', 'UTR5', 'CDS', 'UTR3', 'Term', 'Term_Full',
 		'UTR5_Length', 'CDS_Length', 'UTR3_Length'
 	]]
@@ -292,8 +292,8 @@ def regions_to_features (faidx : Fasta, dataframe : DataFrame, lengths : Dict[st
 	dataframe = dataframe.copy(deep = True)
 	dataframe.reset_index(drop = True, inplace = True)
 
-	seqcols = ['Gene', 'mRNA', 'Prom_Full', 'Prom', 'UTR5', 'CDS', 'UTR3', 'Term', 'Term_Full']
-	varcols = ['Gene', 'mRNA', 'Frequency', 'Stability']
+	seqcols = ['Gene', 'Transcript', 'Prom_Full', 'Prom', 'UTR5', 'CDS', 'UTR3', 'Term', 'Term_Full']
+	varcols = ['Gene', 'Transcript', 'Frequency', 'Stability']
 
 	sequences = DataFrame(columns = seqcols)
 	variables = DataFrame(columns = varcols)
@@ -309,21 +309,21 @@ def regions_to_features (faidx : Fasta, dataframe : DataFrame, lengths : Dict[st
 			end   = int(dataframe.at[index, 'End'])
 
 			if start - LEN_PROM < 0 or end + LEN_TERM > len(faidx[seq]) :
-				print('[{:12s}]'.format(row['mRNA']) + ' : out of bounds at sequence start')
+				print('[{:12s}]'.format(row['Transcript']) + ' : out of bounds at sequence start')
 				continue
 		else :
 			start = int(dataframe.at[index, 'End'])
 			end   = int(dataframe.at[index, 'Start'])
 
 			if start + LEN_PROM > len(faidx[seq]) or end - LEN_TERM < 0 :
-				print('[{:12s}]'.format(row['mRNA']) + ' : out of bounds at sequence end')
+				print('[{:12s}]'.format(row['Transcript']) + ' : out of bounds at sequence end')
 				continue
 
 		sequences.at[index, 'Gene'] = row['Gene']
 		variables.at[index, 'Gene'] = row['Gene']
 
-		sequences.at[index, 'mRNA'] = row['mRNA']
-		variables.at[index, 'mRNA'] = row['mRNA']
+		sequences.at[index, 'Transcript'] = row['Transcript']
+		variables.at[index, 'Transcript'] = row['Transcript']
 
 		for name in ['Prom_Full', 'Prom', 'CDS', 'Term', 'Term_Full'] :
 			sequences.at[index, name] = extract_region_from_list(
@@ -340,7 +340,7 @@ def regions_to_features (faidx : Fasta, dataframe : DataFrame, lengths : Dict[st
 
 		variables.at[index, 'Frequency'] = codon_frequency(
 			sequence = sequences.at[index, 'CDS'],
-			mrna     = row['mRNA'],
+			mrna     = row['Transcript'],
 			relative = True
 		)
 
@@ -360,7 +360,7 @@ def regions_to_features (faidx : Fasta, dataframe : DataFrame, lengths : Dict[st
 		]
 
 	sequences = sequences.dropna().reset_index(drop = True)
-	variables = variables.dropna(subset = ['mRNA']).reset_index(drop = True)
+	variables = variables.dropna(subset = ['Transcript']).reset_index(drop = True)
 
 	return sequences, variables
 
@@ -375,7 +375,7 @@ def sequences_extend_kvpair (sequences : Dict[str, Dict], regions : DataFrame, h
 		if mrna not in data.keys() :
 			data[mrna] = dict()
 
-		region = regions.loc[regions['mRNA'] == mrna]
+		region = regions.loc[regions['Transcript'] == mrna]
 
 		strand = str(region['Strand'].iloc[0])
 		seqid  = str(region['Seq'].iloc[0])
@@ -403,14 +403,14 @@ def sequences_extend_kvpair (sequences : Dict[str, Dict], regions : DataFrame, h
 
 	return data
 
-def print_extracted_sequence (mrna : str, sequences : Dict[str, Dict], width : int = 10, columns : int = 10, space : bool = True) -> None :
+def print_extracted_sequence (transcript : str, sequences : Dict[str, Dict], width : int = 10, columns : int = 10, space : bool = True) -> None :
 	"""
 	Doc
 	"""
 
 	for r in ['Prom', 'UTR5', 'CDS', 'UTR3', 'Term'] :
-		key = sequences[mrna][r]['key']
-		seq = sequences[mrna][r]['seq']
+		key = sequences[transcript][r]['key']
+		seq = sequences[transcript][r]['seq']
 
 		print(key)
 
@@ -421,7 +421,7 @@ def print_extracted_sequence (mrna : str, sequences : Dict[str, Dict], width : i
 		print()
 		print()
 
-def print_padded_sequence (mrna : str, sequences : Dict[str, str], width : int = 10, columns : int = 10, space : bool = True) -> None :
+def print_padded_sequence (transcript : str, sequences : Dict[str, str], width : int = 10, columns : int = 10, space : bool = True) -> None :
 	"""
 	Doc
 	"""
@@ -431,7 +431,7 @@ def print_padded_sequence (mrna : str, sequences : Dict[str, str], width : int =
 		for key in sequences.keys()
 	}
 
-	key = mapping[mrna]
+	key = mapping[transcript]
 	seq = sequences[key]
 
 	print(key)

@@ -1,11 +1,11 @@
+from typing import Any
+
 from anndata import AnnData
 from pandas  import DataFrame
 from typing  import Callable
 from typing  import Dict
 from typing  import List
 from typing  import Tuple
-
-from tqdm.notebook import tqdm
 
 import itertools
 import math
@@ -140,7 +140,7 @@ def classify_tpm (data : Dict[str, Dict], classes : int = 5) -> Tuple[Dict[str, 
 		if not key.endswith('std')
 	}
 
-	for gene, table in tqdm(data.items()) :
+	for gene, table in data.items() :
 		labels[gene] = dict()
 
 		for key, value in table.items() :
@@ -162,41 +162,46 @@ def classify_tpm (data : Dict[str, Dict], classes : int = 5) -> Tuple[Dict[str, 
 
 	return labels, bounds
 
-def display_bounds_mapping (bounds : Dict[str, List], group : str, min_value : float, max_value : float, box_lambda : float) -> None :
+def display_bounds_mapping (bounds : List[Tuple[str, float, float]], start : str, values : Dict[str, Any], mapping : Dict[str, str]) -> None :
 	"""
 	Doc
 	"""
 
-	min_value  = 0
-	max_value  = 4.700396577575031
-	box_lambda = 0.276804378358019
+	min_value  = values['min_value']
+	max_value  = values['max_value']
+	box_lambda = values['box_lambda']
+	log_base   = values['log_base']
 
-	to_box = lambda x : normalize_inv(x,  min_value, max_value)
-	to_log = lambda x : boxcox1p_inv(x, box_lambda)
-	to_tpm = lambda x : log1p_inv(x, 2)
+	def compute_inverse (item : List[Tuple[str, float, float]], src : str) -> List[Tuple[str, Any, Any]] :
+		match src :
+			case 'boxcox1p' : func = lambda x : boxcox1p_inv(x = x, lmbda = box_lambda)
+			case 'log1p'    : func = lambda x : log1p_inv(x = x, base = log_base)
+			case 'normal'   : func = lambda x : normalize_inv(x = x, min_value = min_value, max_value = max_value)
+			case _ : raise ValueError()
 
-	bounds_norm = bounds[group]
-	bounds_box  = [(name, to_box(x = low), to_box(x = high)) for name, low, high in bounds_norm]
-	bounds_log  = [(name, to_log(x = low), to_log(x = high)) for name, low, high in bounds_box]
-	bounds_tpm  = [(name, to_tpm(x = low), to_tpm(x = high)) for name, low, high in bounds_log]
+		return [(x, func(low), func(high)) for x, low, high in item]
 
-	s32 = '-' * 32
-	s21 = '-' * 21
+	source = start
+	bounds = [bounds]
+	names  = [source]
 
-	print('{:>31s} | {:>19s} | {:>19s} | {:>19s}'.format('TPM', 'log1p', 'boxcox1p', 'norm'))
-	print('{}+{}+{}+{}'.format(s32, s21, s21, s21))
-
-	format0 = lambda x : '{:9,.1f} - {:9,.1f}'.format(x[1], x[2])
-	format1 = lambda x : '{:8.5f} - {:8.5f}'.format(x[1], x[2])
-
-	for items in zip(bounds_tpm, bounds_log, bounds_box, bounds_norm) :
-		print('{} : {} | {} | {} | {}'.format(
-			items[0][0],
-			format0(items[0]),
-			format1(items[1]),
-			format1(items[2]),
-			format1(items[3]),
+	while source is not None :
+		bounds.append(compute_inverse(
+			item = bounds[-1],
+			src  = source
 		))
+
+		source = mapping[source]
+		names.append(source if source is not None else 'tpm')
+
+	print(' ' * 8, end = '')
+	print(' | '.join('{:>29s}'.format(name) for name in names))
+
+	print('-' * 8 + '-' * (29 * len(names) + 3 * (len(names) - 1)))
+
+	for data in zip(*bounds) :
+		print('{:8s}'.format(data[0][0]), end = '')
+		print(' | '.join(['{:13,.5f} - {:13,.5f}'.format(item[1], item[2]) for item in data]))
 
 def distribution_group (data : Dict[str, Dict], genes : List[str], order : Dict[str, List], select : str = 'mean') -> Dict[str, Dict] :
 	"""
@@ -259,7 +264,7 @@ def distribution_histplot (data : Dict[str, Dict], groupby : str, discrete : boo
 		kwargs = {
 			'sharex'  : True,
 			'sharey'  : True,
-			'figsize' : (nrows * 16, ncols * 10)
+			'figsize' : (ncols * 16, nrows * 10)
 		}
 
 		if ncols > 1 :

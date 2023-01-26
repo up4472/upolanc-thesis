@@ -146,6 +146,13 @@ def show_linear_regression_grid (report : Dict[str, Dict], order : List[str], fi
 		'figsize' : (10 * ncols, 10 * nrows)
 	}
 
+	for index in range(n) :
+		variance = numpy.var(ypred[:, index], axis = None)
+
+		if variance < 1e-7 :
+			print('Variance in [{}] is almost zero ({:.2e}) : {:.8f}'.format(order[index], 1e-7, variance))
+			return
+
 	if ncols > 1 :
 		_, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
 	else :
@@ -210,6 +217,12 @@ def show_linear_regression (report : Dict[str, Dict], order : List[str], group :
 
 	ypred = report['eval']['ypred'][:, index]
 	ytrue = report['eval']['ytrue'][:, index]
+
+	variance = numpy.var(ypred, axis = None)
+
+	if variance < 1e-7 :
+		print('Variance in [{}] is almost zero ({:.2e}) : {:.8f}'.format(group, 1e-7, variance))
+		return
 
 	_, axis = matplotlib.pyplot.subplots(figsize = (16, 10))
 

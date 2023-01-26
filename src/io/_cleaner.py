@@ -14,7 +14,7 @@ def clean_annotation (dataframe : DataFrame) -> DataFrame :
 		'description',
 		'ensembl_end_phase',
 		'ensembl_phase',
-		'exon_id',
+		'ID',
 		'Is_circular',
 		'logic_name',
 		'Name',
@@ -22,19 +22,19 @@ def clean_annotation (dataframe : DataFrame) -> DataFrame :
 		'Phase',
 		'rank',
 		'Score',
-		'Source',
-		'transcript_id'
+		'Source'
 	])
 
 	dataframe = dataframe.rename(columns = {
-		'Seqid'   : 'Seq',
-		'gene_id' : 'Gene',
-		'ID'      : 'mRNA',
+		'Seqid'         : 'Seq',
+		'exon_id'       : 'Exon',
+		'gene_id'       : 'Gene',
+		'transcript_id' : 'Transcript'
 	})
 
 	dataframe = dataframe.astype({
 		'Start' : int,
-		'End' : int
+		'End'   : int
 	})
 
 	dataframe['Type'] = dataframe['Type'].str.replace('five_prime_UTR', 'UTR5')
@@ -42,24 +42,46 @@ def clean_annotation (dataframe : DataFrame) -> DataFrame :
 	dataframe['Type'] = dataframe['Type'].str.replace('exon', 'Exon')
 	dataframe['Type'] = dataframe['Type'].str.replace('gene', 'Gene')
 
-	dataframe = dataframe.loc[dataframe['Type'].isin(['Gene', 'mRNA', 'UTR3', 'Exon', 'CDS', 'UTR5'])].copy()
+	dataframe = dataframe.loc[dataframe['Type'].isin(['mRNA', 'UTR3', 'CDS', 'UTR5'])].copy()
 
-	dataframe['Parent'] = dataframe['Parent'].apply(lambda x : x.split(':')[1] if isinstance(x, str) else x)
-	dataframe['mRNA'] = dataframe['mRNA'].apply(lambda x : x.split(':')[1] if isinstance(x, str) else x)
+	dataframe['Parent'] = dataframe['Parent'].str.split(':').str[-1]
+	dataframe['Parent'] = dataframe['Parent'].str.upper()
 
-	dataframe['mRNA'].fillna(dataframe['Parent'], inplace = True)
-	dataframe['Gene'].fillna(dataframe['Parent'], inplace = True)
+	dataframe['Transcript'] = dataframe['Transcript'].fillna(dataframe['Parent'])
+	dataframe['Transcript'] = dataframe['Transcript'].str.split(':').str[-1]
+	dataframe['Transcript'] = dataframe['Transcript'].str.upper()
 
-	dataframe['Gene'] = dataframe['Gene'].apply(lambda x : x.split('.')[0] if isinstance(x, str) else x)
+	dataframe['Gene'] = dataframe['Gene'].fillna(dataframe['Transcript'])
+	dataframe['Gene'] = dataframe['Gene'].str.split('.').str[0]
+	dataframe['Gene'] = dataframe['Gene'].str.upper()
 
-	dataframe['Length'] = dataframe['End'] - dataframe['Start'] + 1
+	dataframe['Length'] = numpy.absolute(dataframe['End'] - dataframe['Start'])
 
-	dataframe.loc[dataframe['Type'] == 'Gene', 'mRNA'] = numpy.nan
+	return dataframe[['Seq', 'Strand', 'Type', 'Gene', 'Transcript', 'Exon', 'Parent', 'Start', 'End', 'Length']]
 
-	dataframe['mRNA'] = dataframe['mRNA'].apply(lambda x : x.upper() if isinstance(x, str) else x)
-	dataframe['Gene'] = dataframe['Gene'].apply(lambda x : x.upper() if isinstance(x, str) else x)
-
-	return dataframe[['Seq', 'Strand', 'Type', 'Gene', 'mRNA', 'Start', 'End', 'Length']]
+	# dataframe['Length'] = abs(dataframe['End'] - dataframe['Start']) + 1
+	#
+	# dataframe['Type'] = dataframe['Type'].str.replace('five_prime_UTR', 'UTR5')
+	# dataframe['Type'] = dataframe['Type'].str.replace('three_prime_UTR', 'UTR3')
+	# dataframe['Type'] = dataframe['Type'].str.replace('exon', 'Exon')
+	# dataframe['Type'] = dataframe['Type'].str.replace('gene', 'Gene')
+	#
+	# dataframe = dataframe.loc[dataframe['Type'].isin(['mRNA', 'UTR3', 'CDS', 'UTR5'])].copy()
+	#
+	# dataframe['Parent'] = dataframe['Parent'].apply(lambda x : x.split(':')[1] if isinstance(x, str) else x)
+	# dataframe['mRNA'] = dataframe['mRNA'].apply(lambda x : x.split(':')[1] if isinstance(x, str) else x)
+	#
+	# dataframe['mRNA'].fillna(dataframe['Parent'], inplace = True)
+	# dataframe['Gene'].fillna(dataframe['Parent'], inplace = True)
+	#
+	# dataframe['Gene'] = dataframe['Gene'].apply(lambda x : x.split('.')[0] if isinstance(x, str) else x)
+	#
+	# dataframe.loc[dataframe['Type'] == 'Gene', 'mRNA'] = numpy.nan
+	#
+	# dataframe['mRNA'] = dataframe['mRNA'].apply(lambda x : x.upper() if isinstance(x, str) else x)
+	# dataframe['Gene'] = dataframe['Gene'].apply(lambda x : x.upper() if isinstance(x, str) else x)
+	#
+	# return dataframe[['Seq', 'Strand', 'Type', 'Gene', 'mRNA', 'Start', 'End', 'Length']]
 
 def clean_metadata (dataframe : DataFrame) -> DataFrame :
 	"""
@@ -117,8 +139,8 @@ def clean_metadata (dataframe : DataFrame) -> DataFrame :
 	dataframe['Group']  = dataframe['Group'].str.replace('young_other tissue', 'young_other')
 
 	dataframe['Senescence'] = dataframe['Senescence'].fillna(value = 'no')
-
-	dataframe['Perturbation'] = dataframe['Perturbation'].apply(lambda x : x.split()[0] if isinstance(x, str) else x)
+	dataframe['Perturbation'] = dataframe['Perturbation'].str.split().str[0]
+	#dataframe['Perturbation'] = dataframe['Perturbation'].apply(lambda x : x.split()[0] if isinstance(x, str) else x)
 
 	return dataframe[['Sample', 'Study', 'Control', 'Senescence', 'Age', 'Tissue', 'Group', 'Perturbation']]
 
@@ -128,7 +150,7 @@ def clean_tpm (dataframe : DataFrame) -> DataFrame :
 	"""
 
 	dataframe = dataframe.rename(columns = {
-		'gene_id' : 'mRNA'
+		'gene_id' : 'Transcript'
 	})
 
 	dataframe.columns = [
