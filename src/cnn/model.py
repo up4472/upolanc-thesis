@@ -1,3 +1,4 @@
+from torch                    import Tensor
 from torch.nn                 import Conv1d
 from torch.nn                 import Conv2d
 from torch.nn                 import CrossEntropyLoss
@@ -17,7 +18,6 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.optim.lr_scheduler import StepLR
 from typing                   import Any
 from typing                   import Dict
-from typing                   import Tuple
 from typing                   import Union
 
 from torch.nn.init import calculate_gain
@@ -29,97 +29,66 @@ from torch.nn.init import xavier_uniform_
 from torch.nn.init import zeros_
 
 import numpy
+import torch
 
 from src.cnn.criterions import Accuracy
 from src.cnn.criterions import R2Score
+from src.cnn.criterions import WeightedCriterion
 
 from src.cnn._common import evaluate
 from src.cnn._common import train
 
-def get_criterion (query : str, reduction : str = 'mean', return_name : bool = False, **kwargs) -> Union[Module, Tuple[Module, str]] :
+def get_criterion (query : str, reduction : str = 'mean', weights : Union[numpy.ndarray, Tensor] = None, **kwargs) -> WeightedCriterion :
+	"""
+	Doc
+	"""
+
+	if isinstance(weights, numpy.ndarray) :
+		weights = torch.tensor(weights)
+
+	match query.lower() :
+		case 'mse'        : callable_criterion = MSELoss
+		case 'mae'        : callable_criterion = L1Loss
+		case 'smooth-mae' : callable_criterion = SmoothL1Loss
+		case 'huber'      : callable_criterion = HuberLoss
+		case 'r2'         : callable_criterion = R2Score
+		case 'entropy'    : callable_criterion = CrossEntropyLoss
+		case 'nll'        : callable_criterion = NLLLoss
+		case 'accuracy'   : callable_criterion = Accuracy
+		case _ : raise ValueError()
+
+	return WeightedCriterion(
+		criterion = callable_criterion,
+		reduction = reduction,
+		weights   = weights,
+		**kwargs
+	)
+
+def get_optimizer (query : str, model : Module, **kwargs) -> Optimizer :
 	"""
 	Doc
 	"""
 
 	match query.lower() :
-		case 'mse' :
-			func = MSELoss(reduction = reduction, **kwargs)
-			name = 'Mean Squared Error'
-		case 'mae' :
-			func = L1Loss(reduction = reduction, **kwargs)
-			name = 'Mean Absolute Error'
-		case 'smooth-mae' :
-			func = SmoothL1Loss(reduction = reduction, **kwargs)
-			name = 'Smooth Mean Absolute Error'
-		case 'huber' :
-			func = HuberLoss(reduction = reduction, **kwargs)
-			name = 'Huber'
-		case 'r2' :
-			func = R2Score(reduction = reduction)
-			name = 'R2 Score'
-		case 'entropy' :
-			func = CrossEntropyLoss(reduction = reduction, **kwargs)
-			name = 'Cross Entropy'
-		case 'nll' :
-			func = NLLLoss(reduction = reduction, **kwargs)
-			name = 'Negative Log Likelihood'
-		case 'accuracy' :
-			func = Accuracy(reduction = reduction)
-			name = 'Accuracy'
-		case _ :
-			raise ValueError()
+		case 'adam' : callable_optimizer = Adam
+		case 'sgd'  : callable_optimizer = SGD
+		case _ : raise ValueError()
 
-	if return_name :
-		return func, name
+	return callable_optimizer(model.parameters(), **kwargs)
 
-	return func
-
-def get_optimizer (query : str, model : Module, return_name : bool = False, **kwargs) -> Union[Optimizer, Tuple[Optimizer, str]] :
+def get_scheduler (query : str, optimizer : Optimizer, **kwargs) -> Any :
 	"""
 	Doc
 	"""
 
 	match query.lower() :
-		case 'adam' :
-			func = Adam(model.parameters(), **kwargs)
-			name = 'Adam'
-		case 'sgd'  :
-			func = SGD(model.parameters(), **kwargs)
-			name = 'SGD'
-		case _ :
-			raise ValueError()
+		case 'plateau'     : callable_scheduler = ReduceLROnPlateau
+		case 'exponential' : callable_scheduler = ExponentialLR
+		case 'step'        : callable_scheduler = StepLR
+		case 'conststant'  : callable_scheduler = ConstantLR
+		case _ : raise ValueError()
 
-	if return_name :
-		return func, name
-
-	return func
-
-def get_scheduler (query : str, optimizer : Optimizer, return_name : bool = False, **kwargs) -> Union[Any, Tuple[Any, str]] :
-	"""
-	Doc
-	"""
-
-	match query.lower() :
-		case 'plateau' :
-			func = ReduceLROnPlateau(optimizer = optimizer, **kwargs)
-			name = 'Reduce On Plateau'
-		case 'exponential' :
-			func = ExponentialLR(optimizer = optimizer, **kwargs)
-			name = 'Exponential'
-		case 'step' :
-			func = StepLR(optimizer = optimizer, **kwargs)
-			name = 'Step'
-		case 'conststant' :
-			func = ConstantLR(optimizer = optimizer, **kwargs)
-			name = 'Constant'
-		case _ :
-			func = None
-			name = 'None'
-
-	if return_name :
-		return func, name
-
-	return func
+	return callable_scheduler(optimizer = optimizer, **kwargs)
 
 def glorot_normal_weight (layer : Module, nonlinearity : str = 'relu') -> None :
 	"""

@@ -5,7 +5,7 @@ import torch
 
 class Accuracy (Module) :
 
-	def __init__ (self, reduction : str = 'mean') -> None :
+	def __init__ (self, reduction : str = 'mean', **kwargs) -> None : # noqa : unused kwargs
 		"""
 		Doc
 		"""

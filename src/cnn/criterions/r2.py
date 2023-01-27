@@ -4,10 +4,11 @@ from torch.nn import Module
 from sklearn.metrics import r2_score
 
 import numpy
+import torch
 
 class R2Score (Module) :
 
-	def __init__ (self, reduction : str = 'mean') -> None :
+	def __init__ (self, reduction : str = 'mean', **kwargs) -> None : # noqa : unused kwargs
 		"""
 		Doc
 		"""
@@ -38,10 +39,8 @@ class R2Score (Module) :
 
 		if self.reduction == 'sum' :
 			score = numpy.sum(score)
-		if self.reduction != 'none' :
-			score = numpy.expand_dims(score, axis = 0)
 
-		score = Tensor(score)
+		score = torch.tensor(score)
 		score = score.double()
 		score = score.to(inputs.device)
 

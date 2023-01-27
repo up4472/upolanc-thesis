@@ -236,7 +236,8 @@ def tune_method (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> 
 
 	criterion = get_criterion(
 		query     = 'mse',
-		reduction = 'mean'
+		reduction = 'mean',
+		weights   = None
 	)
 
 	optimizer = get_optimizer(
@@ -267,8 +268,8 @@ def tune_method (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> 
 		'valid_dataloader' : valid_dataloader,
 		'test_dataloader'  : test_dataloader,
 		'metrics' : {
-			'r2'  : get_criterion(reduction = 'mean', query = 'r2'),
-			'mae' : get_criterion(reduction = 'mean', query = 'mae')
+			'r2'  : get_criterion(reduction = 'mean', weights = None, query = 'r2'),
+			'mae' : get_criterion(reduction = 'mean', weights = None, query = 'mae')
 		}
 	}
 

@@ -22,6 +22,8 @@ This repository contains source files for my master's degree titled, 'Deep learn
 
 #### Notable References
 
+- [Article - HyperOpt - Bergstran et. al (2013)](https://arxiv.org/abs/1209.5111)
+- [Article - ASHA - Liam et. al (2018)](https://arxiv.org/abs/1810.05934)
 - [Article : Tune - Liaw et. al (2018)](https://arxiv.org/abs/1807.05118)
 - [Article : CNN - Washburn et. al (2019)](https://www.pnas.org/doi/10.1073/pnas.1814551116)
 - [Article : CNN - Zrimec et. al (2020)](https://www.nature.com/articles/s41467-020-19921-4)

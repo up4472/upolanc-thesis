@@ -59,30 +59,6 @@ def clean_annotation (dataframe : DataFrame) -> DataFrame :
 
 	return dataframe[['Seq', 'Strand', 'Type', 'Gene', 'Transcript', 'Exon', 'Parent', 'Start', 'End', 'Length']]
 
-	# dataframe['Length'] = abs(dataframe['End'] - dataframe['Start']) + 1
-	#
-	# dataframe['Type'] = dataframe['Type'].str.replace('five_prime_UTR', 'UTR5')
-	# dataframe['Type'] = dataframe['Type'].str.replace('three_prime_UTR', 'UTR3')
-	# dataframe['Type'] = dataframe['Type'].str.replace('exon', 'Exon')
-	# dataframe['Type'] = dataframe['Type'].str.replace('gene', 'Gene')
-	#
-	# dataframe = dataframe.loc[dataframe['Type'].isin(['mRNA', 'UTR3', 'CDS', 'UTR5'])].copy()
-	#
-	# dataframe['Parent'] = dataframe['Parent'].apply(lambda x : x.split(':')[1] if isinstance(x, str) else x)
-	# dataframe['mRNA'] = dataframe['mRNA'].apply(lambda x : x.split(':')[1] if isinstance(x, str) else x)
-	#
-	# dataframe['mRNA'].fillna(dataframe['Parent'], inplace = True)
-	# dataframe['Gene'].fillna(dataframe['Parent'], inplace = True)
-	#
-	# dataframe['Gene'] = dataframe['Gene'].apply(lambda x : x.split('.')[0] if isinstance(x, str) else x)
-	#
-	# dataframe.loc[dataframe['Type'] == 'Gene', 'mRNA'] = numpy.nan
-	#
-	# dataframe['mRNA'] = dataframe['mRNA'].apply(lambda x : x.upper() if isinstance(x, str) else x)
-	# dataframe['Gene'] = dataframe['Gene'].apply(lambda x : x.upper() if isinstance(x, str) else x)
-	#
-	# return dataframe[['Seq', 'Strand', 'Type', 'Gene', 'mRNA', 'Start', 'End', 'Length']]
-
 def clean_metadata (dataframe : DataFrame) -> DataFrame :
 	"""
 	Doc
@@ -140,7 +116,6 @@ def clean_metadata (dataframe : DataFrame) -> DataFrame :
 
 	dataframe['Senescence'] = dataframe['Senescence'].fillna(value = 'no')
 	dataframe['Perturbation'] = dataframe['Perturbation'].str.split().str[0]
-	#dataframe['Perturbation'] = dataframe['Perturbation'].apply(lambda x : x.split()[0] if isinstance(x, str) else x)
 
 	return dataframe[['Sample', 'Study', 'Control', 'Senescence', 'Age', 'Tissue', 'Group', 'Perturbation']]
 
