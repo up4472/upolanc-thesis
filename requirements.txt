@@ -1,8 +1,10 @@
 anndata==0.8.0
 biopython==1.80
 distinctipy==1.2.2
+hyperopt=0.2.7
 gff3-parser=0.0.5
 jupyterlab=3.5.2
+jupyterlab_execute_time=2.3.1
 matplotlib==3.6.3
 numpy==1.23.5
 openTSNE==0.6.2

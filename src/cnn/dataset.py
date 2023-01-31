@@ -2,6 +2,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 from torch.utils.data import SubsetRandomSampler
 from typing           import Any
+from typing           import Dict
 from typing           import List
 from typing           import Tuple
 
@@ -61,7 +62,33 @@ class GeneDataset (Dataset) :
 
 		return len(self.targets)
 
-def generate_split_indices (targets : List[Any], test_split : float, valid_split : float, random_seed : int = None) -> Tuple[List, List, List] :
+def to_dataset (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], expand_dims : int) -> GeneDataset :
+	"""
+	Doc
+	"""
+
+	names = sorted(list(sequences.keys()))
+
+	# AT1G21250.1         <-  default notation [Gene . Transcript]
+	# AT1G21250.1-M01.0   <- mutation notation [Gene . Transcript - MutationRate . Variant
+
+	f1 = lambda x : sequences[x]
+	f2 = lambda x : numpy.array(features[x])
+	f3 = lambda x : numpy.array(targets [x.split('-')[0]])
+
+	sequences = [f1(key) for key in names]
+	features  = [f2(key) for key in names]
+	targets   = [f3(key) for key in names]
+
+	return GeneDataset(
+		names       = names,
+		sequences   = sequences,
+		features    = features,
+		targets     = targets,
+		expand_dims = expand_dims
+	)
+
+def generate_split_indices (targets : List[Any], test_split : float, valid_split : float, random_seed : int = None) -> Tuple[List, List | None, List | None] :
 	"""
 	Doc
 	"""
@@ -69,10 +96,47 @@ def generate_split_indices (targets : List[Any], test_split : float, valid_split
 	length = len(targets)
 	arange = numpy.arange(length)
 
-	s1, s3 = train_test_split(arange, random_state = random_seed, shuffle = True, stratify = None, test_size = test_split)
-	s1, s2 = train_test_split(s1,     random_state = random_seed, shuffle = True, stratify = None, test_size = valid_split)
+	if test_split > 0 :
+		s1, s3 = train_test_split(arange, random_state = random_seed, shuffle = True, stratify = None, test_size = test_split)
+	else :
+		s1 = arange
+		s3 = None
+
+	if valid_split > 0 :
+		s1, s2 = train_test_split(s1, random_state = random_seed, shuffle = True, stratify = None, test_size = valid_split)
+	else :
+		s1 = s1
+		s2 = None
 
 	return s1, s2, s3
+
+def to_dataloaders (dataset : GeneDataset, split_size : Dict[str, float], batch_size : Dict[str, int], random_seed : int = None) -> List[DataLoader] :
+	"""
+	Doc
+	"""
+
+	train_idx, valid_idx, test_idx = generate_split_indices(
+		targets     = dataset.targets,
+		valid_split = split_size['valid'],
+		test_split  = split_size['test'],
+		random_seed = random_seed
+	)
+
+	dataloaders = [
+		to_dataloader(dataset = dataset, batch_size = batch_size['train'], indices = train_idx)
+	]
+
+	if valid_idx is not None :
+		dataloaders.append(
+			to_dataloader(dataset = dataset, batch_size = batch_size['valid'], indices = valid_idx)
+		)
+
+	if test_idx is not None :
+		dataloaders.append(
+			to_dataloader(dataset = dataset, batch_size = batch_size['test'], indices = test_idx)
+		)
+
+	return dataloaders
 
 def to_dataloader (dataset : Dataset, batch_size : int, indices : List[int]) -> DataLoader :
 	"""

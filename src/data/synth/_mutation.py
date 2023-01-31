@@ -51,13 +51,10 @@ def substitution (sequence : str, index : int, curr : List[str], prev : List[str
 
 	return mutation, curr, prev, index
 
-def mutate (sequence : str, mutations : Counter, template : str, spread_rate : float = None, spread_limit : int = None) -> Tuple[str, str] :
+def mutate_random (sequence : str, mutations : Counter, template : str, max_length : int) -> Tuple[str, str] :
 	"""
 	Doc
 	"""
-
-	if spread_limit is None :
-		spread_limit = len(sequence)
 
 	nucleotides = IUPACData.unambiguous_dna_letters
 
@@ -68,9 +65,9 @@ def mutate (sequence : str, mutations : Counter, template : str, spread_rate : f
 	prev = list()
 	curr = list()
 
-	spread_count = 0
+	max_length = random.randint(1, max_length)
 
-	while index < len(sequence) :
+	for _ in range(max_length) :
 		match mtype :
 			case 'Insertion'    : function = insertion
 			case 'Deletion'     : function = deletion
@@ -85,15 +82,50 @@ def mutate (sequence : str, mutations : Counter, template : str, spread_rate : f
 			letters  = nucleotides
 		)
 
-		spread_count = spread_count + 1
+		if index >= len(sequence) :
+			break
 
-		if spread_rate is None :
+	match mtype :
+		case 'Insertion'    : mutation = ''.join(curr)
+		case 'Deletion'     : mutation = ''.join(prev)
+		case 'Substitution' : mutation = ''.join(prev) + ' -> ' + ''.join(curr)
+		case _ : raise ValueError()
+
+	return sequence, template.format(mtype, start, mutation)
+
+def mutate_exponential (sequence : str, mutations : Counter, template : str, max_length : int, spread_rate : float) -> Tuple[str, str] :
+	"""
+	Doc
+	"""
+
+	nucleotides = IUPACData.unambiguous_dna_letters
+
+	mtype = random.choices(*zip(*mutations.items()), k = 1)[0]
+	start = random.randint(0, len(sequence) - 1)
+	index = start
+
+	prev = list()
+	curr = list()
+
+	for _ in range(max_length) :
+		match mtype :
+			case 'Insertion'    : function = insertion
+			case 'Deletion'     : function = deletion
+			case 'Substitution' : function = substitution
+			case _ : raise ValueError()
+
+		sequence, curr, prev, index = function(
+			sequence = sequence,
+			index    = index,
+			curr     = curr,
+			prev     = prev,
+			letters  = nucleotides
+		)
+
+		if index >= len(sequence) :
 			break
 
 		if spread_rate <= random.random() :
-			break
-
-		if spread_limit <= spread_count :
 			break
 
 	match mtype :

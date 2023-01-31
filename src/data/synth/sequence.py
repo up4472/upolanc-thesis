@@ -3,20 +3,82 @@ from typing      import Dict
 from typing      import List
 from typing      import Tuple
 
-from src.data.synth._mutation import mutate
+from tqdm.notebook import tqdm
 
-def mutate_sequence (sequence : str, mutation_rates : Dict[str, float]) -> Tuple[str, List] :
+import itertools
+
+from src.data.feature.feature import codon_frequency
+from src.data.synth._mutation import mutate_exponential
+from src.data.synth._mutation import mutate_random
+
+def mutate_sequences (sequences : Dict[str, Dict], rates : List[float], params : Dict[str, float], variants : int, method : str) -> Tuple[Dict, Dict] :
+	"""
+	Doc
+	"""
+
+	m_sequences = dict()
+	m_features  = dict()
+
+	transcripts = list(sequences.keys())
+	regions     = list(sequences[transcripts[0]].keys())
+
+	total = len(transcripts) * len(rates)
+
+	for transcript, rate in tqdm(itertools.product(transcripts, rates), total = total) :
+		params['mutation_rate'] = rate
+
+		# Keep orignal as well
+		baseline = transcript + '-M00.0'
+
+		m_sequences[baseline] = sequences[transcript]
+		m_features[baseline] = {
+			'Frequency' : codon_frequency(
+				sequence = m_sequences[baseline]['CDS']['seq'],
+				mrna     = baseline,
+				relative = True
+			),
+			'Stability' : [0]
+		}
+
+		for variant in range(variants) :
+			key = '{}-M{:02.0f}.{}'.format(transcript, 100 * rate, variant)
+
+			m_sequences[key] = dict()
+			m_features[key]  = dict()
+
+			for region in regions :
+				m_sequences[key][region] = {
+					'seq' : mutate_sequence(
+						sequence       = sequences[transcript][region]['seq'],
+						mutation_rates = params,
+						method         = method
+					)[0],
+					'key' : sequences[transcript][region]['key']
+				}
+
+			m_features[key] = {
+				'Frequency' : codon_frequency(
+					sequence = m_sequences[key]['CDS']['seq'],
+					mrna     = key,
+					relative = True
+				),
+				'Stability' : [0]
+			}
+
+	return m_sequences, m_features
+
+def mutate_sequence (sequence : str, mutation_rates : Dict[str, float], method : str = 'exponential') -> Tuple[str, List] :
 	"""
 	Doc
 	"""
 
 	RATES = {
 		'mutation_rate'     : 0.05,
-		'insertion_rate'    : 1,
-		'deletion_rate'     : 1,
-		'substitution_rate' : 4,
-		'spread_rate'       : None,
-		'spread_limit'      : None
+		'insertion_rate'    : 0.16,
+		'deletion_rate'     : 0.16,
+		'substitution_rate' : 0.68,
+		'spread_rate'       : 0.90,
+		'max_length'        : 9
 	}
 
 	RATES.update(mutation_rates)
@@ -38,15 +100,26 @@ def mutate_sequence (sequence : str, mutation_rates : Dict[str, float]) -> Tuple
 	template = '{:12s} @ {:' + str(len(str(len(sequence)))) + 'd} | {}'
 	changes  = list()
 
-	for _ in range(mutation_rate) :
-		sequence, change = mutate(
-			sequence     = sequence,
-			mutations    = probabilities,
-			template     = template,
-			spread_rate  = RATES['spread_rate'],
-			spread_limit = RATES['spread_limit']
-		)
+	match method.lower() :
+		case 'exponential' :
+			mutate_method = lambda x : mutate_exponential(
+				sequence     = x,
+				mutations    = probabilities,
+				template     = template,
+				max_length   = RATES['max_length'],
+				spread_rate  = RATES['spread_rate']
+			)
+		case 'random' :
+			mutate_method = lambda x : mutate_random(
+				sequence   = x,
+				mutations  = probabilities,
+				template   = template,
+				max_length = RATES['max_length']
+			)
+		case _ : raise ValueError()
 
+	for _ in range(mutation_rate) :
+		sequence, change = mutate_method(x = sequence)
 		changes.append(change)
 
 	return sequence, changes

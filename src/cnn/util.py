@@ -87,8 +87,8 @@ def display_regression_accuracy (report : Dict[str, Any], order : List[str], thr
 	Doc
 	"""
 
-	genes  = report['genes']
-	scores = report['metric']['mae']
+	genes  = report['eval']['genes']
+	scores = report['eval']['metric']['mae']
 
 	taccuracy = [score <= threshold[gene] for gene, score in zip(genes, scores)]
 	taccuracy = numpy.array(taccuracy, dtype = bool)
@@ -112,10 +112,10 @@ def display_classification_accuracy (report : Dict[str, Any], order : List[str])
 	Doc
 	"""
 
-	accuracy = report['metric']['accuracy']
+	accuracy = report['eval']['metric']['accuracy']
 
-	ypred = report['ypred']
-	ytrue = report['ytrue']
+	ypred = report['eval']['ypred']
+	ytrue = report['eval']['ytrue']
 
 	total = numpy.shape(accuracy)[0]
 	accuracy = accuracy.mean(axis = 0) * 100.0

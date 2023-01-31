@@ -371,7 +371,7 @@ def sequences_extend_kvpair (sequences : Dict[str, Dict], regions : DataFrame, h
 
 	data = dict()
 
-	for mrna, region_dict in sequences.items() :
+	for mrna, region_dict in tqdm(sequences.items()) :
 		if mrna not in data.keys() :
 			data[mrna] = dict()
 

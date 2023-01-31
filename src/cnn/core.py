@@ -1,4 +1,6 @@
+import multiprocessing
 import numpy
+import platform
 import random
 import torch
 
@@ -25,10 +27,26 @@ def get_device (only_cpu : bool = False) -> torch.device :
 	device = torch.device('cpu')
 
 	if not only_cpu and torch.cuda.is_available() :
-		print(f'Graphic devices : {torch.cuda.device_count()}')
-
 		device = torch.device('cuda')
 
-	print(f'Selected device : {device}')
-
 	return device
+
+def get_system_info () :
+	"""
+	Doc
+	"""
+
+	platform_system  = platform.system()
+	platform_release = platform.release()
+	platform_version = platform.version()
+
+	gpu_count = torch.cuda.device_count()
+	cpu_count = multiprocessing.cpu_count()
+
+	return {
+		'platform_system'  : platform_system,
+		'platform_release' : platform_release,
+		'platform_version' : platform_version,
+		'cpu_count'        : cpu_count,
+		'gpu_count'        : gpu_count
+	}
