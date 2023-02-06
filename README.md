@@ -11,8 +11,8 @@ This repository contains source files for my master's degree titled, 'Deep learn
 
 #### Original Resources
 
-- [HTTP EnsembleGenomes - gene annotation](https://ftp.ensemblgenomes.org/pub/plants/release-36/gff3/arabidopsis_thaliana/)
-- [HTTP EnsembleGenomes - gene assembly](https://ftp.ensemblgenomes.org/pub/plants/release-36/fasta/arabidopsis_thaliana/dna/)
+- [HTTP EnsemblGenomes - gene annotation](https://ftp.ensemblgenomes.org/pub/plants/release-36/gff3/arabidopsis_thaliana/)
+- [HTTP EnsemblGenomes - gene assembly](https://ftp.ensemblgenomes.org/pub/plants/release-36/fasta/arabidopsis_thaliana/dna/)
 
 #### Project Links
 
@@ -20,8 +20,15 @@ This repository contains source files for my master's degree titled, 'Deep learn
 - [OneDrive : extracted sequences](https://unilj-my.sharepoint.com/:u:/g/personal/up4472_student_uni-lj_si/EakWdR8gnABKmrFO7F5aSJ8BIA0Gdop7omRRSITf_plmdw?e=uIkU78)
 - [OneDrive : extracted features](https://unilj-my.sharepoint.com/:u:/g/personal/up4472_student_uni-lj_si/Ed7lfBxtoHBHm68r2iVF3hMBBe1JzRm87l5dex0yPNiX0w?e=rdQqMO)
 
+#### Notable Pages
+
+- [WebPage - EnsemblGenomes](https://ensemblgenomes.org/)
+- [WebPage - SLURM](https://slurm.schedmd.com)
+- [WebPage - SLING](https://www.sling.si/sling/en/)
+
 #### Notable References
 
+- [Article - SLURM - Yoo et. al (2003)](https://link.springer.com/chapter/10.1007/10968987_3)
 - [Article - HyperOpt - Bergstra et. al (2013)](https://arxiv.org/abs/1209.5111)
 - [Article - ASHA - Liam et. al (2018)](https://arxiv.org/abs/1810.05934)
 - [Article : Tune - Liaw et. al (2018)](https://arxiv.org/abs/1807.05118)

@@ -80,10 +80,10 @@ def update_params (params : Dict[str, Any] = None) -> Dict[str, Any] :
 			'padding' : (0, 1),
 		},
 		'fc1' : {
-			'features' : 128,
+			'features' : 256
 		},
 		'fc2' : {
-			'features' : 32,
+			'features' : 128,
 		}
 	}
 
@@ -102,11 +102,12 @@ def update_params (params : Dict[str, Any] = None) -> Dict[str, Any] :
 			padding = config['padding']
 
 			if isinstance(padding, str) :
-				match padding.lower() :
-					case 'none'  : padding = (0, 0)
-					case 'same'  : padding = ((kernel[0] - 1) // 2, (kernel[1] - 1) // 2)
-					case 'valid' : padding = ((kernel[0] - 1) // 2, (kernel[1] - 1) // 2)
-					case _ : raise ValueError()
+				padding = padding.lower()
+
+				if   padding == 'none'  : padding = (0, 0)
+				elif padding == 'same'  : padding = ((kernel[0] - 1) // 2, (kernel[1] - 1) // 2)
+				elif padding == 'valid' : padding = ((kernel[0] - 1) // 2, (kernel[1] - 1) // 2)
+				else : raise ValueError()
 
 				config['padding'] = padding
 

@@ -173,11 +173,10 @@ def display_bounds_mapping (bounds : List[Tuple[str, float, float]], start : str
 	log_base   = values['log_base']
 
 	def compute_inverse (item : List[Tuple[str, float, float]], src : str) -> List[Tuple[str, Any, Any]] :
-		match src :
-			case 'boxcox1p' : func = lambda x : boxcox1p_inv(x = x, lmbda = box_lambda)
-			case 'log1p'    : func = lambda x : log1p_inv(x = x, base = log_base)
-			case 'normal'   : func = lambda x : normalize_inv(x = x, min_value = min_value, max_value = max_value)
-			case _ : raise ValueError()
+		if   src == 'boxcox1p' : func = lambda x : boxcox1p_inv(x = x, lmbda = box_lambda)
+		elif src == 'log1p'    : func = lambda x : log1p_inv(x = x, base = log_base)
+		elif src == 'normal'   : func = lambda x : normalize_inv(x = x, min_value = min_value, max_value = max_value)
+		else : raise ValueError()
 
 		return [(x, func(low), func(high)) for x, low, high in item]
 

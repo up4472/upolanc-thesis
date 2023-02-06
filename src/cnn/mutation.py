@@ -101,7 +101,7 @@ def plot_mutation_regression (report : Dict[str, Dict], order : List[str], trans
 	ax.plot(ypred, linestyle = '-', linewidth = 3, color = 'g', alpha = 0.9)
 
 	for variant, label in zip(data['ypred'], data['label']) :
-		ax.plot(variant, linestyle = '--', linewidth = 1, color = 'b', alpha = 0.2)
+		ax.plot(variant, linestyle = '--', linewidth = 1, color = 'b', alpha = 0.3)
 
 	ax.set_title('{} with MR = {:.2f}'.format(transcript, int(mutation[1:]) / 100))
 	ax.set_xticks(range(len(order)))

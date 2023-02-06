@@ -1,8 +1,9 @@
-from torch    import Tensor
-from torch.nn import Module
-from types    import FunctionType
-from typing   import Any
-from typing   import Dict
+from torch                    import Tensor
+from torch.nn                 import Module
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from types                    import FunctionType
+from typing                   import Any
+from typing                   import Dict
 
 from tqdm.notebook import tqdm
 
@@ -234,7 +235,10 @@ def train (model : Module, params : Dict[str, Any]) -> Dict[str, Dict | numpy.nd
 			)
 
 		if scheduler is not None :
-			scheduler.step(valid_loss)
+			if isinstance(scheduler, ReduceLROnPlateau) :
+				scheduler.step(valid_loss)
+			else :
+				scheduler.step()
 
 		for metric in metrics.keys() :
 			report['train']['metric'][metric].append(train_report['metric'][metric])

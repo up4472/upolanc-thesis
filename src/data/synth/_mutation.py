@@ -68,11 +68,10 @@ def mutate_random (sequence : str, mutations : Counter, template : str, max_leng
 	max_length = random.randint(1, max_length)
 
 	for _ in range(max_length) :
-		match mtype :
-			case 'Insertion'    : function = insertion
-			case 'Deletion'     : function = deletion
-			case 'Substitution' : function = substitution
-			case _ : raise ValueError()
+		if   mtype == 'Insertion'    : function = insertion
+		elif mtype == 'Deletion'     : function = deletion
+		elif mtype == 'Substitution' : function = substitution
+		else : raise ValueError()
 
 		sequence, curr, prev, index = function(
 			sequence = sequence,
@@ -85,11 +84,10 @@ def mutate_random (sequence : str, mutations : Counter, template : str, max_leng
 		if index >= len(sequence) :
 			break
 
-	match mtype :
-		case 'Insertion'    : mutation = ''.join(curr)
-		case 'Deletion'     : mutation = ''.join(prev)
-		case 'Substitution' : mutation = ''.join(prev) + ' -> ' + ''.join(curr)
-		case _ : raise ValueError()
+	if   mtype == 'Insertion'    : mutation = ''.join(curr)
+	elif mtype == 'Deletion'     : mutation = ''.join(prev)
+	elif mtype == 'Substitution' : mutation = ''.join(prev) + ' -> ' + ''.join(curr)
+	else : raise ValueError()
 
 	return sequence, template.format(mtype, start, mutation)
 
@@ -108,11 +106,10 @@ def mutate_exponential (sequence : str, mutations : Counter, template : str, max
 	curr = list()
 
 	for _ in range(max_length) :
-		match mtype :
-			case 'Insertion'    : function = insertion
-			case 'Deletion'     : function = deletion
-			case 'Substitution' : function = substitution
-			case _ : raise ValueError()
+		if   mtype == 'Insertion'    : function = insertion
+		elif mtype == 'Deletion'     : function = deletion
+		elif mtype == 'Substitution' : function = substitution
+		else : raise ValueError()
 
 		sequence, curr, prev, index = function(
 			sequence = sequence,
@@ -128,10 +125,9 @@ def mutate_exponential (sequence : str, mutations : Counter, template : str, max
 		if spread_rate <= random.random() :
 			break
 
-	match mtype :
-		case 'Insertion'    : mutation = ''.join(curr)
-		case 'Deletion'     : mutation = ''.join(prev)
-		case 'Substitution' : mutation = ''.join(prev) + ' -> ' + ''.join(curr)
-		case _ : raise ValueError()
+	if   mtype == 'Insertion'    : mutation = ''.join(curr)
+	elif mtype == 'Deletion'     : mutation = ''.join(prev)
+	elif mtype == 'Substitution' : mutation = ''.join(prev) + ' -> ' + ''.join(curr)
+	else : raise ValueError()
 
 	return sequence, template.format(mtype, start, mutation)

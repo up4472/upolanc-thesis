@@ -272,16 +272,17 @@ def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename :
 	names   = list()
 
 	for metric in metrics :
-		match metric.lower() :
-			case 'mse'        : names.append('MSE')
-			case 'mae'        : names.append('MAE')
-			case 'smooth-mae' : names.append('Smooth MAE')
-			case 'huber'      : names.append('Huber')
-			case 'r2'         : names.append('R2 Score')
-			case 'entropy'    : names.append('Cross Entropy')
-			case 'nll'        : names.append('Negative Log Likelihood')
-			case 'accuracy'   : names.append('Accuracy')
-			case _            : names.append('?')
+		metric = metric.lower()
+
+		if   metric == 'mse'        : names.append('MSE')
+		elif metric == 'mae'        : names.append('MAE')
+		elif metric == 'smooth-mae' : names.append('Smooth MAE')
+		elif metric == 'huber'      : names.append('Huber')
+		elif metric == 'r2'         : names.append('R2 Score')
+		elif metric == 'entropy'    : names.append('Cross Entropy')
+		elif metric == 'nll'        : names.append('Negative Log Likelihood')
+		elif metric == 'accuracy'   : names.append('Accuracy')
+		else : names.append('?')
 
 	n, nrows, ncols = compute_gridsize(
 		n = len(names)

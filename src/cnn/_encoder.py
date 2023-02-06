@@ -25,11 +25,12 @@ def generate_mapping (nucleotide_order : Union[str, List[str]] = None, ambiguous
 		value = 1.0
 
 		if key not in udna :
-			match ambiguous_value.lower() :
-				case 'zero'     : value = 0.0
-				case 'one'      : value = 1.0
-				case 'fraction' : value = 1.0 / len(nucleotides)
-				case _          : value = 0.0
+			ambiguous_value = ambiguous_value.lower()
+
+			if   ambiguous_value == 'zero'     : value = 0.0
+			elif ambiguous_value == 'one'      : value = 1.0
+			elif ambiguous_value == 'fraction' : value = 1.0 / len(nucleotides)
+			else : value = 0.0
 
 		for nucleotide in nucleotides :
 			vector[udna.index(nucleotide)] = value

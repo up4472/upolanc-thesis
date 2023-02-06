@@ -32,11 +32,12 @@ def log1p (x : numpy.ndarray, base : Union[int, str] = 2) -> numpy.ndarray :
 	if isinstance(base, int) :
 		base = str(base)
 
-	match base.lower() :
-		case '2'  : return numpy.log2(x + 1)
-		case 'e'  : return numpy.log1p(x)
-		case '10' : return numpy.log10(x + 1)
-		case _    : raise ValueError()
+	base = base.lower()
+
+	if   base == '2'  : return numpy.log2(x + 1)
+	elif base == 'e'  : return numpy.log1p(x)
+	elif base == '10' : return numpy.log10(x + 1)
+	else : raise ValueError()
 
 def log1p_inv (x : numpy.ndarray, base : Union[int, str] = 2) -> numpy.ndarray :
 	"""
@@ -46,11 +47,12 @@ def log1p_inv (x : numpy.ndarray, base : Union[int, str] = 2) -> numpy.ndarray :
 	if isinstance(base, int) :
 		base = str(base)
 
-	match base.lower() :
-		case '2'  : return numpy.exp2(x) - 1
-		case 'e'  : return numpy.expm1(x)
-		case '10' : return numpy.power(10, x) - 1
-		case _    : raise ValueError()
+	base = base.lower()
+
+	if   base == '2'  : return numpy.exp2(x) - 1
+	elif base == 'e'  : return numpy.expm1(x)
+	elif base == '10' : return numpy.power(10, x) - 1
+	else : raise ValueError()
 
 def normalize (x : numpy.ndarray) -> Tuple[numpy.ndarray, float, float] :
 	"""

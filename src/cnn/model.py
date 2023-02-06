@@ -14,6 +14,7 @@ from torch.optim              import Optimizer
 from torch.optim              import SGD
 from torch.optim.lr_scheduler import ConstantLR
 from torch.optim.lr_scheduler import ExponentialLR
+from torch.optim.lr_scheduler import LinearLR
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.optim.lr_scheduler import StepLR
 from typing                   import Any
@@ -46,16 +47,17 @@ def get_criterion (query : str, reduction : str = 'mean', weights : Union[numpy.
 	if isinstance(weights, numpy.ndarray) :
 		weights = torch.tensor(weights)
 
-	match query.lower() :
-		case 'mse'        : callable_criterion = MSELoss
-		case 'mae'        : callable_criterion = L1Loss
-		case 'smooth-mae' : callable_criterion = SmoothL1Loss
-		case 'huber'      : callable_criterion = HuberLoss
-		case 'r2'         : callable_criterion = R2Score
-		case 'entropy'    : callable_criterion = CrossEntropyLoss
-		case 'nll'        : callable_criterion = NLLLoss
-		case 'accuracy'   : callable_criterion = Accuracy
-		case _ : raise ValueError()
+	query = query.lower()
+
+	if   query == 'mse'        : callable_criterion = MSELoss
+	elif query == 'mae'        : callable_criterion = L1Loss
+	elif query == 'smooth-mae' : callable_criterion = SmoothL1Loss
+	elif query == 'huber'      : callable_criterion = HuberLoss
+	elif query == 'r2'         : callable_criterion = R2Score
+	elif query == 'entropy'    : callable_criterion = CrossEntropyLoss
+	elif query == 'nll'        : callable_criterion = NLLLoss
+	elif query == 'accuracy'   : callable_criterion = Accuracy
+	else : raise ValueError()
 
 	return WeightedCriterion(
 		criterion = callable_criterion,
@@ -69,10 +71,11 @@ def get_optimizer (query : str, model : Module, **kwargs) -> Optimizer :
 	Doc
 	"""
 
-	match query.lower() :
-		case 'adam' : callable_optimizer = Adam
-		case 'sgd'  : callable_optimizer = SGD
-		case _ : raise ValueError()
+	query = query.lower()
+
+	if   query == 'adam' : callable_optimizer = Adam
+	elif query == 'sgd'  : callable_optimizer = SGD
+	else : raise ValueError()
 
 	return callable_optimizer(model.parameters(), **kwargs)
 
@@ -81,12 +84,14 @@ def get_scheduler (query : str, optimizer : Optimizer, **kwargs) -> Any :
 	Doc
 	"""
 
-	match query.lower() :
-		case 'plateau'     : callable_scheduler = ReduceLROnPlateau
-		case 'exponential' : callable_scheduler = ExponentialLR
-		case 'step'        : callable_scheduler = StepLR
-		case 'conststant'  : callable_scheduler = ConstantLR
-		case _ : raise ValueError()
+	query = query.lower()
+
+	if   query == 'plateau'     : callable_scheduler = ReduceLROnPlateau
+	elif query == 'exponential' : callable_scheduler = ExponentialLR
+	elif query == 'step'        : callable_scheduler = StepLR
+	elif query == 'linear'      : callable_scheduler = LinearLR
+	elif query == 'constant'    : callable_scheduler = ConstantLR
+	else : raise ValueError()
 
 	return callable_scheduler(optimizer = optimizer, **kwargs)
 

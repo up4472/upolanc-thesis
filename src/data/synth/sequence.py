@@ -100,23 +100,25 @@ def mutate_sequence (sequence : str, mutation_rates : Dict[str, float], method :
 	template = '{:12s} @ {:' + str(len(str(len(sequence)))) + 'd} | {}'
 	changes  = list()
 
-	match method.lower() :
-		case 'exponential' :
-			mutate_method = lambda x : mutate_exponential(
-				sequence     = x,
-				mutations    = probabilities,
-				template     = template,
-				max_length   = RATES['max_length'],
-				spread_rate  = RATES['spread_rate']
-			)
-		case 'random' :
-			mutate_method = lambda x : mutate_random(
-				sequence   = x,
-				mutations  = probabilities,
-				template   = template,
-				max_length = RATES['max_length']
-			)
-		case _ : raise ValueError()
+	method = method.lower()
+
+	if method == 'exponential' :
+		mutate_method = lambda x : mutate_exponential(
+			sequence = x,
+			mutations = probabilities,
+			template = template,
+			max_length = RATES['max_length'],
+			spread_rate = RATES['spread_rate']
+		)
+	elif method == 'random' :
+		mutate_method = lambda x : mutate_random(
+			sequence   = x,
+			mutations  = probabilities,
+			template   = template,
+			max_length = RATES['max_length']
+		)
+	else :
+		raise ValueError()
 
 	for _ in range(mutation_rate) :
 		sequence, change = mutate_method(x = sequence)

@@ -455,11 +455,12 @@ def pad_single (sequence : str, length : Union[int, List[int]], side : Union[int
 		pad_value = '-'
 
 	if isinstance(side, str) :
-		match side.lower() :
-			case 'left'  : side = -1
-			case 'none'  : side =  0
-			case 'right' : side =  1
-			case _       : raise ValueError()
+		side = side.lower()
+
+		if   side == 'left'  : side = -1
+		elif side == 'none'  : side =  0
+		elif side == 'right' : side =  1
+		else : raise ValueError()
 
 	diff = length - len(sequence)
 

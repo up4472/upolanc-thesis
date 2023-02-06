@@ -1,7 +1,9 @@
-from pandas   import DataFrame
-from torch.nn import Module
-from typing   import Any
-from typing   import Dict
+from pandas                   import DataFrame
+from torch.nn                 import Module
+from torch.optim              import Optimizer
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from typing                   import Any
+from typing                   import Dict
 
 from ray import tune
 
@@ -39,34 +41,40 @@ def get_washburn2019r (tune_config : Dict[str, Any], core_config : Dict[str, Any
 			'dropout'     : tune_config['model/dropout']
 		},
 		'conv1' : {
-			'filters' : tune_config['model/conv1/filters'],
-			'kernel'  : tune_config['model/conv1/kernel'],
-			'padding' : 'none'
+			'filters'  : tune_config['model/conv1/filters'],
+			'kernel'   : tune_config['model/conv1/kernel'],
+			'padding'  : tune_config['model/conv1/padding'],
+			'dilation' : tune_config['model/conv1/dilation']
 		},
 		'conv2' : {
-			'filters' : tune_config['model/conv2/filters'],
-			'kernel'  : tune_config['model/conv2/kernel'],
-			'padding' : tune_config['model/conv2/padding']
+			'filters'  : tune_config['model/conv2/filters'],
+			'kernel'   : tune_config['model/conv2/kernel'],
+			'padding'  : tune_config['model/conv2/padding'],
+			'dilation' : tune_config['model/conv2/dilation']
 		},
 		'conv3' : {
-			'filters' : tune_config['model/conv3/filters'],
-			'kernel'  : tune_config['model/conv3/kernel'],
-			'padding' : tune_config['model/conv3/padding']
+			'filters'  : tune_config['model/conv3/filters'],
+			'kernel'   : tune_config['model/conv3/kernel'],
+			'padding'  : tune_config['model/conv3/padding'],
+			'dilation' : tune_config['model/conv3/dilation']
 		},
 		'conv4' : {
-			'filters' : tune_config['model/conv4/filters'],
-			'kernel'  : tune_config['model/conv4/kernel'],
-			'padding' : tune_config['model/conv4/padding']
+			'filters'  : tune_config['model/conv4/filters'],
+			'kernel'   : tune_config['model/conv4/kernel'],
+			'padding'  : tune_config['model/conv4/padding'],
+			'dilation' : tune_config['model/conv4/dilation']
 		},
 		'conv5' : {
-			'filters' : tune_config['model/conv5/filters'],
-			'kernel'  : tune_config['model/conv5/kernel'],
-			'padding' : tune_config['model/conv5/padding']
+			'filters'  : tune_config['model/conv5/filters'],
+			'kernel'   : tune_config['model/conv5/kernel'],
+			'padding'  : tune_config['model/conv5/padding'],
+			'dilation' : tune_config['model/conv5/dilation']
 		},
 		'conv6' : {
-			'filters' : tune_config['model/conv6/filters'],
-			'kernel'  : tune_config['model/conv6/kernel'],
-			'padding' : tune_config['model/conv6/padding']
+			'filters'  : tune_config['model/conv6/filters'],
+			'kernel'   : tune_config['model/conv6/kernel'],
+			'padding'  : tune_config['model/conv6/padding'],
+			'dilation' : tune_config['model/conv6/dilation']
 		},
 		'maxpool1' : {
 			'kernel'  : tune_config['model/maxpool1/kernel'],
@@ -90,11 +98,6 @@ def get_washburn2019r (tune_config : Dict[str, Any], core_config : Dict[str, Any
 			'features' : core_config['output']['length']
 		}
 	})
-
-	model = model.double()
-	model = model.apply(he_uniform_weight)
-	model = model.apply(zero_bias)
-	model = model.to(core_config['device'])
 
 	return model
 
@@ -111,19 +114,22 @@ def get_zrimec2020r (tune_config : Dict[str, Any], core_config : Dict[str, Any])
 			'dropout'     : tune_config['model/dropout']
 		},
 		'conv1' : {
-			'filters' : tune_config['model/conv1/filters'],
-			'kernel'  : tune_config['model/conv1/kernel'],
-			'padding' : 'none'
+			'filters'  : tune_config['model/conv1/filters'],
+			'kernel'   : tune_config['model/conv1/kernel'],
+			'padding'  : tune_config['model/conv1/padding'],
+			'dilation' : tune_config['model/conv1/dilation']
 		},
 		'conv2' : {
-			'filters' : tune_config['model/conv2/filters'],
-			'kernel'  : tune_config['model/conv2/kernel'],
-			'padding' : tune_config['model/conv2/padding']
+			'filters'  : tune_config['model/conv2/filters'],
+			'kernel'   : tune_config['model/conv2/kernel'],
+			'padding'  : tune_config['model/conv2/padding'],
+			'dilation' : tune_config['model/conv2/dilation']
 		},
 		'conv3' : {
-			'filters' : tune_config['model/conv2/filters'],
-			'kernel'  : tune_config['model/conv2/kernel'],
-			'padding' : tune_config['model/conv2/padding']
+			'filters'  : tune_config['model/conv3/filters'],
+			'kernel'   : tune_config['model/conv3/kernel'],
+			'padding'  : tune_config['model/conv3/padding'],
+			'dilation' : tune_config['model/conv3/dilation']
 		},
 		'maxpool1' : {
 			'kernel'  : tune_config['model/maxpool1/kernel'],
@@ -148,12 +154,82 @@ def get_zrimec2020r (tune_config : Dict[str, Any], core_config : Dict[str, Any])
 		}
 	})
 
+	return model
+
+def get_tune_model (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> Module :
+	if   core_config['model_name'] == 'zrimec2020r'   : create_model = get_zrimec2020r
+	elif core_config['model_name'] == 'washburn2019r' : create_model = get_washburn2019r
+	else : raise ValueError()
+
+	model = create_model(
+		tune_config = tune_config,
+		core_config = core_config
+	)
+
 	model = model.double()
 	model = model.apply(he_uniform_weight)
 	model = model.apply(zero_bias)
 	model = model.to(core_config['device'])
 
 	return model
+
+def get_tune_optimizer (tune_config : Dict[str, Any], model : Module) -> Optimizer :
+	if   tune_config['optimizer/name'] == 'adam' :
+		kwargs = {
+			'betas' : (
+				tune_config['optimizer/momentum'],
+				0.999
+			)
+		}
+	elif tune_config['optimizer/name'] == 'sgd'  :
+		kwargs = {
+			'momentum' : tune_config['optimizer/momentum']
+		}
+	else : raise ValueError()
+
+	return get_optimizer(
+		query        = tune_config['optimizer/name'],
+		model        = model,
+		lr           = tune_config['optimizer/lr'],
+		weight_decay = tune_config['optimizer/decay'],
+		**kwargs
+	)
+
+def get_tune_scheduler (tune_config : Dict[str, Any], core_config : Dict[str, Any], optimizer : Optimizer) -> Any :
+	if   tune_config['scheduler/name'] == 'plateau' :
+		kwargs = {
+			'factor'   : tune_config['scheduler/plateau/factor'],
+			'patience' : tune_config['scheduler/plateau/patience'],
+			'mode'     : 'min',
+			'min_lr'   : 1e-8
+		}
+	elif tune_config['scheduler/name'] == 'linear' :
+		kwargs = {
+			'start_factor' : 1.0,
+			'end_factor'   : tune_config['scheduler/linear/factor'],
+			'total_iters'  : core_config['epochs']
+		}
+	elif tune_config['scheduler/name'] == 'step' :
+		kwargs = {
+			'gamma'     : tune_config['scheduler/step/factor'],
+			'step_size' : tune_config['scheduler/step/patience']
+		}
+	elif tune_config['scheduler/name'] == 'constant' :
+		kwargs = {
+			'factor'      : 1.0,
+			'total_iters' : core_config['epochs']
+		}
+	elif tune_config['scheduler/name'] == 'exponential' :
+		kwargs = {
+			'gamma'  : tune_config['scheduler/exponential/factor']
+		}
+	else : raise ValueError()
+
+	return get_scheduler(
+		query     = tune_config['scheduler/name'],
+		optimizer = optimizer,
+		**kwargs
+	)
 
 def tune_method (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 	"""
@@ -196,40 +272,26 @@ def tune_method (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> 
 	valid_dataloader = dataloaders[1]
 	test_dataloader  = dataloaders[2]
 
-	match core_config['model_name'] :
-		case 'zrimec2020r'   : model = get_zrimec2020r
-		case 'washburn2019r' : model = get_washburn2019r
-		case _ : raise ValueError()
-
-	model = model(
-		tune_config = tune_config,
-		core_config = core_config
-	)
-
 	criterion = get_criterion(
 		query     = 'mse',
 		reduction = 'mean',
 		weights   = None
 	)
 
-	optimizer = get_optimizer(
-		query        = 'adam',
-		model        = model,
-		betas        = (
-			tune_config['optimizer/momentum'],
-			0.999
-		),
-		lr           = tune_config['optimizer/lr'],
-		weight_decay = tune_config['optimizer/decay']
+	model = get_tune_model(
+		tune_config = tune_config,
+		core_config = core_config
 	)
 
-	scheduler = get_scheduler(
-		query     = 'plateau',
-		mode      = 'min',
-		optimizer = optimizer,
-		patience  = 5,
-		factor    = 0.5,
-		min_lr    = 1e-8
+	optimizer = get_tune_optimizer(
+		tune_config = tune_config,
+		model       = model
+	)
+
+	scheduler = get_tune_scheduler(
+		tune_config = tune_config,
+		core_config = core_config,
+		optimizer   = optimizer
 	)
 
 	params = {
@@ -258,7 +320,10 @@ def tune_method (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> 
 		valid_mae  = valid_report['metric']['mae']
 
 		if params['scheduler'] is not None :
-			params['scheduler'].step(valid_loss)
+			if isinstance(params['scheduler'], ReduceLROnPlateau) :
+				params['scheduler'].step(valid_loss)
+			else :
+				params['scheduler'].step()
 
 		with tune.checkpoint_dir(epoch) as checkpoint :
 			path = os.path.join(checkpoint, 'checkpoint')

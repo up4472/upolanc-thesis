@@ -15,13 +15,12 @@ class R2Score (Module) :
 
 		super(R2Score, self).__init__()
 
-		self.reduction = reduction
+		self.reduction = reduction.lower()
 
-		match reduction.lower() :
-			case 'none' : self.multioutput = 'raw_values'
-			case 'mean' : self.multioutput = 'uniform_average'
-			case 'sum'  : self.multioutput = 'raw_values'
-			case _ : raise ValueError()
+		if   self.reduction == 'none' : self.multioutput = 'raw_values'
+		elif self.reduction == 'mean' : self.multioutput = 'uniform_average'
+		elif self.reduction == 'sum'  : self.multioutput = 'raw_values'
+		else : raise ValueError()
 
 	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor :
 		"""
