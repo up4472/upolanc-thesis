@@ -311,6 +311,8 @@ def tune_method (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> 
 	}
 
 	for epoch in range(core_config['epochs']) :
+		current_lr = optimizer.param_groups[0]['lr']
+
 		train_report = train_epoch(model = model, params = params, desc = '')
 		valid_report = evaluate_epoch(model = model, params = params, desc = '', validation = True)
 
@@ -319,26 +321,67 @@ def tune_method (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> 
 		valid_r2   = valid_report['metric']['r2']
 		valid_mae  = valid_report['metric']['mae']
 
-		if params['scheduler'] is not None :
-			if isinstance(params['scheduler'], ReduceLROnPlateau) :
-				params['scheduler'].step(valid_loss)
+		if scheduler is not None :
+			if isinstance(scheduler, ReduceLROnPlateau) :
+				scheduler.step(valid_loss)
 			else :
-				params['scheduler'].step()
+				scheduler.step()
 
-		with tune.checkpoint_dir(epoch) as checkpoint :
-			path = os.path.join(checkpoint, 'checkpoint')
-			data = (
-				model.state_dict(),
-				optimizer.state_dict()
-			)
+		if core_config['checkpoint'] :
+			with tune.checkpoint_dir(epoch) as checkpoint :
+				path = os.path.join(checkpoint, 'checkpoint')
+				data = (
+					model.state_dict(),
+					optimizer.state_dict()
+				)
 
-			torch.save(data, path)
+				torch.save(data, path)
 
 		tune.report(
 			valid_loss = valid_loss,
 			valid_r2   = numpy.mean(valid_r2),
 			valid_mae  = numpy.mean(valid_mae),
-			train_loss = train_loss
+			train_loss = train_loss,
+			lr         = current_lr
+		)
+
+def plot_trials (dataframe : DataFrame, y : str, ylabel : str, ascending : bool, max_trials : int = 10, alpha : float = 0.9, filename : str = None) -> None :
+	"""
+	Doc
+	"""
+
+	dataframe = dataframe.copy()
+	dataframe = dataframe.sort_values(y, ascending = ascending)
+
+	_, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
+
+	for iteration, directory in zip(dataframe['training_iteration'], dataframe['logdir']) :
+		progress = load_csv(
+			filename = os.path.join(directory, 'progress.csv')
+		)
+
+		seaborn.lineplot(
+			data  = progress,
+			x     = 'training_iteration',
+			y     = y,
+			ax    = ax,
+			alpha = alpha,
+			label = progress['trial_id'].iloc[0]
+		)
+
+		max_trials = max_trials - 1
+
+		if max_trials <= 0 :
+			break
+
+	ax.set_xlabel('Epoch')
+	ax.set_ylabel(ylabel)
+
+	if filename is not None :
+		matplotlib.pyplot.savefig(
+			filename + '.png',
+			format = 'png',
+			dpi    = 120
 		)
 
 def plot_trials_loss (dataframe : DataFrame, max_trials : int = 10, alpha : float = 0.9, filename : str = None) -> None :
@@ -346,81 +389,54 @@ def plot_trials_loss (dataframe : DataFrame, max_trials : int = 10, alpha : floa
 	Doc
 	"""
 
-	dataframe = dataframe.copy()
-	dataframe = dataframe.sort_values('valid_loss', ascending = True)
-
-	_, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
-
-	for trial_id, training_iteration, directory in zip(dataframe['trial_id'], dataframe['training_iteration'], dataframe['logdir']) :
-		if training_iteration <= 1 :
-			continue
-
-		progress = load_csv(
-			filename = os.path.join(directory, 'progress.csv')
-		)
-
-		seaborn.lineplot(
-			data  = progress,
-			x     = 'training_iteration',
-			y     = 'valid_loss',
-			ax    = ax,
-			alpha = alpha,
-			label = progress['trial_id'].iloc[0]
-		)
-
-		max_trials = max_trials - 1
-
-		if max_trials <= 0 :
-			break
-
-	ax.set_xlabel('Epoch')
-	ax.set_ylabel('Valid Loss')
-
-	if filename is not None :
-		matplotlib.pyplot.savefig(
-			filename + '-loss.png',
-			format = 'png',
-			dpi    = 120
-		)
+	plot_trials(
+		dataframe = dataframe,
+		y          = 'valid_loss',
+		ylabel     = 'Valid Loss',
+		ascending  = True,
+		max_trials = max_trials,
+		alpha      = alpha,
+		filename   = filename + '-loss'
+	)
 
 def plot_trials_r2 (dataframe : DataFrame, max_trials : int = 10, alpha : float = 0.9, filename : str = None) -> None :
 	"""
 	Doc
 	"""
 
-	dataframe = dataframe.copy()
-	dataframe = dataframe.sort_values('valid_r2', ascending = False)
+	plot_trials(
+		dataframe = dataframe,
+		y          = 'valid_r2',
+		ylabel     = 'Valid R2',
+		ascending  = False,
+		max_trials = max_trials,
+		alpha      = alpha,
+		filename   = filename + '-r2'
+	)
+
+def plot_trial (dataframe : DataFrame, y : str, ylabel : str, alpha : float = 0.9, color : str = 'b', filename : str = None) -> None :
+	"""
+	Doc
+	"""
 
 	_, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
 
-	for trial_id, training_iteration, directory in zip(dataframe['trial_id'], dataframe['training_iteration'], dataframe['logdir']) :
-		if training_iteration <= 1 :
-			continue
-
-		progress = load_csv(
-			filename = os.path.join(directory, 'progress.csv')
-		)
-
-		seaborn.lineplot(
-			data  = progress,
-			x     = 'training_iteration',
-			y     = 'valid_r2',
-			ax    = ax,
-			alpha = alpha,
-			label = progress['trial_id'].iloc[0]
-		)
-
-		max_trials = max_trials - 1
-
-		if max_trials <= 0 :
-			break
+	seaborn.lineplot(
+		data  = dataframe,
+		x     = 'training_iteration',
+		y     = y,
+		ax    = ax,
+		alpha = alpha,
+		color = color,
+		label = dataframe['trial_id'].iloc[0]
+	)
 
 	ax.set_xlabel('Epoch')
-	ax.set_ylabel('Valid R2')
+	ax.set_ylabel(ylabel)
 
 	if filename is not None :
 		matplotlib.pyplot.savefig(
-			filename + '-r2.png',
+			filename + '.png',
 			format = 'png',
 			dpi    = 120
 		)
@@ -430,51 +446,39 @@ def plot_trial_loss (dataframe : DataFrame, alpha : float = 0.9, color : str = '
 	Doc
 	"""
 
-	_, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
-
-	seaborn.lineplot(
-		data  = dataframe,
-		x     = 'training_iteration',
-		y     = 'valid_loss',
-		ax    = ax,
-		alpha = alpha,
-		color = color,
-		label = dataframe['trial_id'].iloc[0]
+	plot_trial(
+		dataframe = dataframe,
+		y         = 'valid_loss',
+		ylabel    = 'Valid Loss',
+		alpha     = alpha,
+		color     = color,
+		filename  = filename + '-loss'
 	)
-
-	ax.set_xlabel('Epoch')
-	ax.set_ylabel('Valid Loss')
-
-	if filename is not None :
-		matplotlib.pyplot.savefig(
-			filename + '-loss.png',
-			format = 'png',
-			dpi    = 120
-		)
 
 def plot_trial_r2 (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None) -> None :
 	"""
 	Doc
 	"""
 
-	_, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
-
-	seaborn.lineplot(
-		data  = dataframe,
-		x     = 'training_iteration',
-		y     = 'valid_r2',
-		ax    = ax,
-		alpha = alpha,
-		color = color,
-		label = dataframe['trial_id'].iloc[0]
+	plot_trial(
+		dataframe = dataframe,
+		y         = 'valid_r2',
+		ylabel    = 'R2',
+		alpha     = alpha,
+		color     = color,
+		filename  = filename + '-r2'
 	)
 
-	ax.set_xlabel('Epoch')
-	ax.set_ylabel('Valid R2')
+def plot_trial_lr (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None) -> None :
+	"""
+	Doc
+	"""
 
-	if filename is not None :
-		matplotlib.pyplot.savefig(
-			filename + '-r2.png',
-			format = 'png',
-			dpi    = 120
-		)
+	plot_trial(
+		dataframe = dataframe,
+		y         = 'lr',
+		ylabel    = 'Learning Rate',
+		alpha     = alpha,
+		color     = color,
+		filename  = filename + '-lr'
+	)

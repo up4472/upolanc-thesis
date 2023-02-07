@@ -5,7 +5,7 @@ from types                    import FunctionType
 from typing                   import Any
 from typing                   import Dict
 
-from tqdm.notebook import tqdm
+from tqdm.auto import tqdm
 
 import numpy
 import torch

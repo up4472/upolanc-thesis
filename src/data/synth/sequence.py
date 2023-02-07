@@ -3,7 +3,7 @@ from typing      import Dict
 from typing      import List
 from typing      import Tuple
 
-from tqdm.notebook import tqdm
+from tqdm.auto import tqdm
 
 import itertools
 

@@ -57,7 +57,7 @@ def get_mutation_report (report : Dict[str, Dict]) -> Dict[str, Dict] :
 
 	return data
 
-def plot_mutation_classification (report : Dict[str, Dict], order : List[str], transcript : str = None, mutation : str = None, filename : str = None) -> None :
+def plot_mutation_classification (report : Dict[str, Dict], order : List[str], transcript : str = None, mutation : str = None, filename : str = None) -> None : # noqa : unused
 	"""
 	Doc
 	"""
