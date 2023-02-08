@@ -11,7 +11,12 @@
 
 # Custom
 bin/
+binary/
 env/
+enviorment/
 out/
+output/
 res/
+resources/
 tmp/
+temporary/
