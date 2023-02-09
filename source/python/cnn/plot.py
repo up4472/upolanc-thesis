@@ -1,6 +1,7 @@
 from typing import Dict
 from typing import List
 from typing import Tuple
+from typing import Union
 
 import math
 import matplotlib
@@ -22,7 +23,7 @@ def compute_gridsize (n : int) -> Tuple[int, int, int] :
 
 	return n, nrows, ncols
 
-def lineplot (values : List[numpy.ndarray | List], labels : List[str], xlabel : str, ylabel : str, title : str = None, filename : str = None) -> None :
+def lineplot (values : List[Union[List, numpy.ndarray]], labels : List[str], xlabel : str, ylabel : str, title : str = None, filename : str = None) -> None :
 	"""
 	Doc
 	"""

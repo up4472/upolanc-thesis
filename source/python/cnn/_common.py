@@ -180,7 +180,7 @@ def evaluate_epoch (model : Module, params : Dict[str, Any], desc : str = 'Progr
 
 	return batch_report
 
-def train (model : Module, params : Dict[str, Any], regression : bool = False) -> Dict[str, Dict | numpy.ndarray] :
+def train (model : Module, params : Dict[str, Any], regression : bool = False) -> Dict[str, Any] :
 	"""
 	Doc
 	"""

@@ -3,6 +3,7 @@ from pandas  import DataFrame
 from types   import FunctionType
 from typing  import List
 from typing  import Tuple
+from typing  import Union
 
 import matplotlib
 import numpy
@@ -128,7 +129,7 @@ def show_matrix (data : AnnData, layer : str = None, rows : int = 5, cols : int 
 	print()
 	print(matrix[:rows, :cols])
 
-def compute_log1p (data : AnnData, store_into : str, layer : str = None, base : int | str = 2) -> AnnData :
+def compute_log1p (data : AnnData, store_into : str, layer : str = None, base : Union[int, str] = 2) -> AnnData :
 	"""
 	Doc
 	"""
@@ -294,7 +295,7 @@ def tpm_histplot (data : AnnData, layer : str, function : FunctionType, filters 
 			format = 'png'
 		)
 
-def gene_boxplot (data : AnnData, groupby : str, layer : str = None, gene : int | str = 0, filename : str = None) -> None :
+def gene_boxplot (data : AnnData, groupby : str, layer : str = None, gene : Union[int, str] = 0, filename : str = None) -> None :
 	"""
 	Doc
 	"""

@@ -145,14 +145,14 @@ def one_bias (layer : Module) -> None :
 		if layer.bias is not None :
 			ones_(tensor = layer.bias)
 
-def train_regressor (model : Module, params : Dict[str, Any]) -> Dict[str, Dict | numpy.ndarray] :
+def train_regressor (model : Module, params : Dict[str, Any]) -> Dict[str, Any] :
 	"""
 	Doc
 	"""
 
 	return train(model = model, params = params, regression = True)
 
-def train_classifier (model : Module, params : Dict[str, Any]) -> Dict[str, Dict | numpy.ndarray] :
+def train_classifier (model : Module, params : Dict[str, Any]) -> Dict[str, Any] :
 	"""
 	Doc
 	"""

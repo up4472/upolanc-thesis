@@ -5,7 +5,6 @@ from pandas  import DataFrame
 from pyfaidx import Fasta
 from typing  import Any
 from typing  import Dict
-from typing  import List
 
 import anndata
 import gff3_parser
@@ -82,7 +81,7 @@ def load_json (filename : str) -> Dict[Any, Any] :
 
 	return data
 
-def load_npz (filename : str, to_dict : bool = True) -> Dict[str, numpy.ndarray] | Any :
+def load_npz (filename : str, to_dict : bool = True) -> Any :
 	"""
 	Doc
 	"""
@@ -101,7 +100,7 @@ def load_tsv (filename : str, low_memory : bool = True) -> DataFrame :
 
 	return pandas.read_csv(filename, low_memory = low_memory, sep = '\t')
 
-def load_resources (directory : str, plant : str, clean : bool = False) -> Dict[str, Dict | DataFrame] :
+def load_resources (directory : str, plant : str, clean : bool = False) -> Dict[str, Any] :
 	"""
 	Doc
 	"""
@@ -136,7 +135,7 @@ def load_resources (directory : str, plant : str, clean : bool = False) -> Dict[
 		'tissue_tpm'      : tissue_tpm
 	}
 
-def load_labels (filename : str, to_numpy : bool = False) -> Dict[str, Dict[str, List[float] | numpy.ndarray]] :
+def load_labels (filename : str, to_numpy : bool = False) -> Dict[str, Dict[str, Any]] :
 	"""
 	Doc
 	"""

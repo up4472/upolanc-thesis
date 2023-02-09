@@ -2,10 +2,10 @@ from torch     import Tensor
 from torch.nn  import Conv2d
 from torch.nn  import Dropout
 from torch.nn  import Flatten
+from torch.nn  import LeakyReLU
 from torch.nn  import Linear
 from torch.nn  import MaxPool2d
 from torch.nn  import Module
-from torch.nn  import ReLU
 from torchinfo import ModelStatistics
 from typing    import Any
 from typing    import Dict
@@ -26,7 +26,8 @@ def update_params (params : Dict[str, Any] = None) -> Dict[str, Any] :
 			'in_channels' : 1,
 			'in_width'    : 2150,
 			'in_height'   : 4,
-			'dropout'     : 0.25
+			'dropout'     : 0.25,
+			'leakyrelu'   : 0.00
 		},
 		'conv1' : {
 			'filters'  : 64,
@@ -229,8 +230,15 @@ class Washburn2019 (Module) :
 			out_features = params['fc2']['features']
 		)
 
-		self.dropout = Dropout(params['other']['dropout'])
-		self.relu = ReLU(inplace = False)
+		self.dropout = Dropout(
+			p       = params['other']['dropout'],
+			inplace = False
+		)
+
+		self.relu = LeakyReLU(
+			negative_slope = params['other']['leakyrelu'],
+			inplace        = False
+		)
 
 	@property
 	def __name__ (self) -> str :

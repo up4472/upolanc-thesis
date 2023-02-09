@@ -3,10 +3,10 @@ from torch.nn  import BatchNorm1d
 from torch.nn  import Conv1d
 from torch.nn  import Dropout
 from torch.nn  import Flatten
+from torch.nn  import LeakyReLU
 from torch.nn  import Linear
 from torch.nn  import MaxPool1d
 from torch.nn  import Module
-from torch.nn  import ReLU
 from torchinfo import ModelStatistics
 from typing    import Any
 from typing    import Dict
@@ -24,41 +24,42 @@ def update_params (params : Dict[str, Any] = None) -> Dict[str, Any] :
 	default = {
 		'other' : {
 			'in_features' : 64,
-			'in_width' : 2150,
-			'in_height' : 4,
-			'dropout' : 0.25
+			'in_width'    : 2150,
+			'in_height'   : 4,
+			'dropout'     : 0.25,
+			'leakyrelu'   : 0.00
 		},
 		'conv1' : {
-			'filters' : 32,
-			'kernel' : 11,
-			'padding' : 0,
+			'filters'  : 32,
+			'kernel'   : 11,
+			'padding'  : 0,
 			'dilation' : 1
 		},
 		'conv2' : {
-			'filters' : 64,
-			'kernel' : 11,
-			'padding' : 5,
+			'filters'  : 64,
+			'kernel'   : 11,
+			'padding'  : 5,
 			'dilation' : 1
 		},
 		'conv3' : {
-			'filters' : 128,
-			'kernel' : 11,
-			'padding' : 5,
+			'filters'  : 128,
+			'kernel'   : 11,
+			'padding'  : 5,
 			'dilation' : 1
 		},
 		'maxpool1' : {
-			'kernel' : 5,
-			'stride' : 5,
+			'kernel'  : 5,
+			'stride'  : 5,
 			'padding' : 2,
 		},
 		'maxpool2' : {
-			'kernel' : 5,
-			'stride' : 5,
+			'kernel'  : 5,
+			'stride'  : 5,
 			'padding' : 2,
 		},
 		'maxpool3' : {
-			'kernel' : 5,
-			'stride' : 5,
+			'kernel'  : 5,
+			'stride'  : 5,
 			'padding' : 2,
 		},
 		'fc1' : {
@@ -184,8 +185,15 @@ class Zrimec2020 (Module) :
 			out_features = params['fc2']['features']
 		)
 
-		self.dropout = Dropout(params['other']['dropout'])
-		self.relu    = ReLU(inplace = False)
+		self.dropout = Dropout(
+			p       = params['other']['dropout'],
+			inplace = False
+		)
+
+		self.relu = LeakyReLU(
+			negative_slope = params['other']['leakyrelu'],
+			inplace        = False
+		)
 
 	@property
 	def __name__ (self) -> str :

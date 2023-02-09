@@ -1,32 +1,15 @@
 #!/bin/bash
 
-cd /d/hpc/home/up4472/workspace/upolanc-thesis/lab
+# shellcheck disable=SC2231
+# shellcheck disable=SC2086
 
-echo "Converting nbp01-analysis.ipynb to python script ..."
-jupyter nbconvert --to script nbp01-analysis.ipynb    > /dev/null 2>&1
+# Define directory
+NOTEBOOK=/d/hpc/home/up4472/workspace/upolanc-thesis/notebook
 
-echo "Converting nbp02-anndata.ipynb to python script ..."
-jupyter nbconvert --to script nbp02-anndata.ipynb     > /dev/null 2>&1
+# Print status
+echo "Converting .ipynb files to .py files in [$NOTEBOOK]"
 
-echo "Converting nbp03-tsne.ipynb to python script ..."
-jupyter nbconvert --to script nbp03-tsne.ipynb        > /dev/null 2>&1
-
-echo "Converting nbp04-feature.ipynb to python script ..."
-jupyter nbconvert --to script nbp04-feature.ipynb     > /dev/null 2>&1
-
-echo "Converting nbp05-target.ipynb to python script ..."
-jupyter nbconvert --to script nbp05-target.ipynb      > /dev/null 2>&1
-
-echo "Converting nbp06-tuner.ipynb to python script ..."
-jupyter nbconvert --to script nbp06-tuner.ipynb       > /dev/null 2>&1
-
-echo "Converting nbp07-zrimec2020c.ipynb to python script ..."
-jupyter nbconvert --to script nbp07-zrimec2020c.ipynb > /dev/null 2>&1
-
-echo "Converting nbp07-zrimec2020r.ipynb to python script ..."
-jupyter nbconvert --to script nbp07-zrimec2020r.ipynb > /dev/null 2>&1
-
-echo "Converting nbp08-washburn.ipynb to python script ..."
-jupyter nbconvert --to script nbp08-washburn.ipynb    > /dev/null 2>&1
-
-cd /d/hpc/home/up4472/workspace/upolanc-thesis
+# Convert every .ipynb in directory to .py
+for filepath in $NOTEBOOK/*.ipynb; do
+	jupyter nbconvert --no-prompt --to script $filepath > /dev/null 2>&1
+done

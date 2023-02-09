@@ -4,6 +4,7 @@ from torch.utils.data import SubsetRandomSampler
 from typing           import Any
 from typing           import Dict
 from typing           import List
+from typing           import Optional
 from typing           import Tuple
 
 from sklearn.model_selection import train_test_split
@@ -88,7 +89,7 @@ def to_dataset (sequences : Dict[str, str], features : Dict[str, List], targets 
 		expand_dims = expand_dims
 	)
 
-def generate_split_indices (targets : List[Any], test_split : float, valid_split : float, random_seed : int = None) -> Tuple[List, List | None, List | None] :
+def generate_split_indices (targets : List[Any], test_split : float, valid_split : float, random_seed : int = None) -> Tuple[List, Optional[List], Optional[List]] :
 	"""
 	Doc
 	"""
