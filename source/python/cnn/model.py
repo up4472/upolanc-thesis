@@ -39,6 +39,106 @@ from source.python.cnn.criterions import WeightedCriterion
 from source.python.cnn._common import evaluate
 from source.python.cnn._common import train
 
+def _get_optimizer (model : Module, config : Dict[str, Any]) -> Optimizer :
+	"""
+	Doc
+	"""
+
+	if config['optimizer/name'] == 'adam' :
+		return get_optimizer(
+			model        = model,
+			query        = config['optimizer/name'],
+			lr           = config['optimizer/lr'],
+			weight_decay = config['optimizer/decay'],
+			betas        = (
+				config['optimizer/momentum'],
+				0.999
+			)
+		)
+
+	elif config['optimizer/name'] == 'sgd' :
+		return get_optimizer(
+			model        = model,
+			query        = config['optimizer/name'],
+			lr           = config['optimizer/lr'],
+			weight_decay = config['optimizer/decay'],
+			momentum     = config['optimizer/momentum'],
+		)
+
+	raise ValueError()
+
+def _get_scheduler (optimizer : Optimizer, config : Dict[str, Any], epochs : int) -> Any :
+	"""
+	Doc
+	"""
+
+	if config['scheduler/name'] == 'plateau' :
+		return get_scheduler(
+			optimizer = optimizer,
+			query     = config['scheduler/name'],
+			factor    = config['scheduler/plateau/factor'],
+			patience  = config['scheduler/plateau/patience'],
+			mode      = 'min',
+			min_lr    = 1e-8
+		)
+
+	elif config['scheduler/name'] == 'linear':
+		return get_scheduler(
+			optimizer    = optimizer,
+			query        = config['scheduler/name'],
+			start_factor = 1.0,
+			end_factor   = config['scheduler/linear/factor'],
+			total_iters  = epochs
+		)
+
+	elif config['scheduler/name'] == 'step' :
+		return get_scheduler(
+			optimizer = optimizer,
+			query     = config['scheduler/name'],
+			gamma     = config['scheduler/step/factor'],
+			step_size = config['scheduler/step/patience'],
+		)
+
+	elif config['scheduler/name'] == 'constant' :
+		return get_scheduler(
+			optimizer   = optimizer,
+			query       = config['scheduler/name'],
+			factor      = 1.0,
+			total_iters = epochs,
+		)
+
+	elif config['scheduler/name'] == 'exponential' :
+		return get_scheduler(
+			optimizer = optimizer,
+			query     = config['scheduler/name'],
+			gamma     = config['scheduler/exponential/factor']
+		)
+
+	elif config['scheduler/name'] == 'none' :
+		return None
+
+	raise ValueError()
+
+def get_model_trainers (model : Module, config : Dict[str, Any], epochs : int) -> Dict[str, Any] :
+	"""
+	Doc
+	"""
+
+	criterion = get_criterion(
+		query     = config['criterion/name'],
+		reduction = config['criterion/reduction'],
+		weights   = None
+	)
+
+	optimizer = _get_optimizer(model = model, config = config)
+	scheduler = _get_scheduler(optimizer = optimizer, config = config, epochs = epochs)
+
+	return {
+		'criterion' : criterion,
+		'optimizer' : optimizer,
+		'scheduler' : scheduler
+	}
+
 def get_criterion (query : str, reduction : str = 'mean', weights : Union[numpy.ndarray, Tensor] = None, **kwargs) -> WeightedCriterion :
 	"""
 	Doc

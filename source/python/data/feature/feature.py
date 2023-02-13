@@ -349,14 +349,14 @@ def regions_to_features (faidx : Fasta, dataframe : DataFrame, lengths : Dict[st
 		gc_cds  = gc_count(sequence = sequences.at[index, 'CDS'])
 
 		variables.at[index, 'Stability'] = [
-			row['UTR5_Length'],
-			row['UTR3_Length'],
-			row['CDS_Length'],
-			1000 * gc_utr5,
-			1000 * gc_utr3,
-			1000 * gc_cds[0],
-			1000 * gc_cds[1],
-			1000 * gc_cds[2]
+			row['UTR5_Length'] / float(LEN_UTR5),
+			row['UTR3_Length'] / float(LEN_UTR3),
+			row['CDS_Length']  / float(1500),
+			gc_utr5,
+			gc_utr3,
+			gc_cds[0],
+			gc_cds[1],
+			gc_cds[2]
 		]
 
 	sequences = sequences.dropna().reset_index(drop = True)

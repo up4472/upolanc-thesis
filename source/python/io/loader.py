@@ -12,6 +12,7 @@ import json
 import numpy
 import os
 import pandas
+import pickle
 import torch
 
 from source.python.io._cleaner import clean_annotation
@@ -90,6 +91,23 @@ def load_npz (filename : str, to_dict : bool = True) -> Any :
 
 	if to_dict :
 		data = dict(data.items())
+
+	return data
+
+def load_parquet (filename : str) -> DataFrame :
+	"""
+	Doc
+	"""
+
+	return pandas.read_parquet(path = filename)
+
+def load_pickle (filename : str) -> Any :
+	"""
+	Doc
+	"""
+
+	with open(filename, mode = 'rb') as handle :
+		data = pickle.load(handle)
 
 	return data
 

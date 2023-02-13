@@ -29,10 +29,10 @@ class Washburn2019c (Module) :
 
 		self.heads = ModuleList([
 			Linear(
-				in_features  = params['fc2']['features'],
-				out_features = params['fc3']['features']
+				in_features  = params['model/fc2/features'],
+				out_features = params['model/fc3/features']
 			)
-			for _ in range(params['fc3']['heads'])
+			for _ in range(params['model/fc3/heads'])
 		])
 
 	@property
@@ -81,16 +81,12 @@ class Washburn2019c (Module) :
 
 if __name__ == '__main__' :
 	model = Washburn2019c(params = {
-		'other' : {
-			'in_channels' : 1,
-			'in_height'   : 4,
-			'in_width'    : 2150,
-			'in_features' : 64
-		},
-		'fc3' : {
-			'heads'    : 8,
-			'features' : 5
-		}
+		'model/input/channels' : 1,
+		'model/input/height'   : 4,
+		'model/input/width'    : 2150,
+		'model/input/features' : 64,
+		'model/fc3/features'   : 5,
+		'model/fc3/heads'      : 8
 	})
 
 	model.summary(batch_size = 64, in_channels = 1, in_height = 4, in_width = 2150, in_features = 64)

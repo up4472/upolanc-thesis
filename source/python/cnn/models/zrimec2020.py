@@ -22,80 +22,67 @@ def update_params (params : Dict[str, Any] = None) -> Dict[str, Any] :
 	"""
 
 	default = {
-		'other' : {
-			'in_features' : 64,
-			'in_width'    : 2150,
-			'in_height'   : 4,
-			'dropout'     : 0.25,
-			'leakyrelu'   : 0.00
-		},
-		'conv1' : {
-			'filters'  : 32,
-			'kernel'   : 11,
-			'padding'  : 0,
-			'dilation' : 1
-		},
-		'conv2' : {
-			'filters'  : 64,
-			'kernel'   : 11,
-			'padding'  : 5,
-			'dilation' : 1
-		},
-		'conv3' : {
-			'filters'  : 128,
-			'kernel'   : 11,
-			'padding'  : 5,
-			'dilation' : 1
-		},
-		'maxpool1' : {
-			'kernel'  : 5,
-			'stride'  : 5,
-			'padding' : 2,
-		},
-		'maxpool2' : {
-			'kernel'  : 5,
-			'stride'  : 5,
-			'padding' : 2,
-		},
-		'maxpool3' : {
-			'kernel'  : 5,
-			'stride'  : 5,
-			'padding' : 2,
-		},
-		'fc1' : {
-			'features' : 128,
-		},
-		'fc2' : {
-			'features' : 64
-		}
+		'model/input/channels' : 1,
+		'model/input/height'   : 4,
+		'model/input/width'    : 2150,
+		'model/input/features' : 64,
+
+		'model/dropout'   : 0.1,
+		'model/leakyrelu' : 0.0,
+
+		'model/conv1/filters'  : 64,
+		'model/conv1/kernel'   : 21,
+		'model/conv1/padding'  : 'none',
+		'model/conv1/dilation' : 1,
+		'model/conv2/filters'  : 64,
+		'model/conv2/kernel'   : 31,
+		'model/conv2/padding'  : 'none',
+		'model/conv2/dilation' : 1,
+		'model/conv3/filters'  : 128,
+		'model/conv3/kernel'   : 5,
+		'model/conv3/padding'  : 'same',
+		'model/conv3/dilation' : 1,
+
+		'model/maxpool1/kernel'  : 5,
+		'model/maxpool1/stride'  : 5,
+		'model/maxpool1/padding' : 'same',
+		'model/maxpool2/kernel'  : 5,
+		'model/maxpool2/stride'  : 5,
+		'model/maxpool2/padding' : 'same',
+		'model/maxpool3/kernel'  : 5,
+		'model/maxpool3/stride'  : 5,
+		'model/maxpool3/padding' : 'same',
+
+		'model/fc1/features' : 128,
+		'model/fc2/features' : 256,
 	}
 
 	if params is None :
 		return default
 
 	for key, value in params.items() :
-		if key in default.keys() :
-			default[key].update(value)
-		else :
+		if key.startswith('model') :
 			default[key] = value
 
-	for layer, config in default.items() :
-		if 'kernel' in config.keys() :
-			kernel  = config['kernel']
-			padding = config['padding']
+	for key in default.keys() :
+		if not key.endswith('padding') :
+			continue
 
-			if isinstance(padding, str) :
-				padding = padding.lower()
+		padding = default[key]
+		kernel  = default[key.replace('padding', 'kernel')]
 
-				if   padding == 'none'  : padding = 0
-				elif padding == 'same'  : padding = (kernel - 1) // 2
-				elif padding == 'valid' : padding = (kernel - 1) // 2
-				else : raise ValueError()
+		if isinstance(padding, str) :
+			padding = padding.lower()
 
-				config['padding'] = padding
+			if   padding == 'none'  : padding = 0
+			elif padding == 'same'  : padding = (kernel - 1) // 2
+			elif padding == 'valid' : padding = (kernel - 1) // 2
+			else : raise ValueError()
 
-			if padding != 0 and padding != (kernel - 1) // 2 :
-				print(f'Problem with padding in [{layer}] : [{padding}] : [{kernel}]')
+			default[key] = padding
+
+		if padding != 0 and padding != (kernel - 1) // 2 :
+			print(f'Problem with padding in [{key}] : [{padding}] : [{kernel}]')
 
 	return default
 
@@ -117,54 +104,54 @@ class Zrimec2020 (Module) :
 		)
 
 		self.conv1 = Conv1d(
-			in_channels  = params['other']['in_height'],
-			out_channels = params['conv1']['filters'],
-			kernel_size  = params['conv1']['kernel'],
-			padding      = params['conv1']['padding'],
-			dilation     = params['conv1']['dilation']
+			in_channels  = params['model/input/height'],
+			out_channels = params['model/conv1/filters'],
+			kernel_size  = params['model/conv1/kernel'],
+			padding      = params['model/conv1/padding'],
+			dilation     = params['model/conv1/dilation']
 		)
 
 		self.conv2 = Conv1d(
-			in_channels  = params['conv1']['filters'],
-			out_channels = params['conv2']['filters'],
-			kernel_size  = params['conv2']['kernel'],
-			padding      = params['conv2']['padding'],
-			dilation     = params['conv2']['dilation']
+			in_channels  = params['model/conv1/filters'],
+			out_channels = params['model/conv2/filters'],
+			kernel_size  = params['model/conv2/kernel'],
+			padding      = params['model/conv2/padding'],
+			dilation     = params['model/conv2/dilation']
 		)
 
 		self.conv3 = Conv1d(
-			in_channels  = params['conv2']['filters'],
-			out_channels = params['conv3']['filters'],
-			kernel_size  = params['conv3']['kernel'],
-			padding      = params['conv3']['padding'],
-			dilation     = params['conv3']['dilation']
+			in_channels  = params['model/conv2/filters'],
+			out_channels = params['model/conv3/filters'],
+			kernel_size  = params['model/conv3/kernel'],
+			padding      = params['model/conv3/padding'],
+			dilation     = params['model/conv3/dilation']
 		)
 
-		self.bn1 = BatchNorm1d(num_features = params['conv1']['filters'])
-		self.bn2 = BatchNorm1d(num_features = params['conv2']['filters'])
-		self.bn3 = BatchNorm1d(num_features = params['conv3']['filters'])
+		self.bn1 = BatchNorm1d(num_features = params['model/conv1/filters'])
+		self.bn2 = BatchNorm1d(num_features = params['model/conv2/filters'])
+		self.bn3 = BatchNorm1d(num_features = params['model/conv3/filters'])
 
 		self.maxpool1 = MaxPool1d(
-			kernel_size = params['maxpool1']['kernel'],
-			stride      = params['maxpool1']['stride'],
-			padding     = params['maxpool1']['padding']
+			kernel_size = params['model/maxpool1/kernel'],
+			stride      = params['model/maxpool1/stride'],
+			padding     = params['model/maxpool1/padding']
 		)
 
 		self.maxpool2 = MaxPool1d(
-			kernel_size = params['maxpool1']['kernel'],
-			stride      = params['maxpool1']['stride'],
-			padding     = params['maxpool1']['padding']
+			kernel_size = params['model/maxpool2/kernel'],
+			stride      = params['model/maxpool2/stride'],
+			padding     = params['model/maxpool2/padding']
 		)
 
 		self.maxpool3 = MaxPool1d(
-			kernel_size = params['maxpool1']['kernel'],
-			stride      = params['maxpool1']['stride'],
-			padding     = params['maxpool1']['padding']
+			kernel_size = params['model/maxpool3/kernel'],
+			stride      = params['model/maxpool3/stride'],
+			padding     = params['model/maxpool3/padding']
 		)
 
 		self.flatten = Flatten()
 
-		size = params['other']['in_width']
+		size = params['model/input/width']
 		size = compute1d(size = size, module = self.conv1)
 		size = compute1d(size = size, module = self.maxpool1)
 		size = compute1d(size = size, module = self.conv2)
@@ -172,26 +159,26 @@ class Zrimec2020 (Module) :
 		size = compute1d(size = size, module = self.conv3)
 		size = compute1d(size = size, module = self.maxpool3)
 
-		size = size * params['conv3']['filters']     # flatten (channels)
-		size = size + params['other']['in_features'] # injects (hstack)
+		size = size * params['model/conv3/filters']  # flatten (channels)
+		size = size + params['model/input/features'] # injects (hstack)
 
 		self.fc1 = Linear(
 			in_features  = size,
-			out_features = params['fc1']['features']
+			out_features = params['model/fc1/features']
 		)
 
 		self.fc2 = Linear(
-			in_features  = params['fc1']['features'],
-			out_features = params['fc2']['features']
+			in_features  = params['model/fc1/features'],
+			out_features = params['model/fc2/features']
 		)
 
 		self.dropout = Dropout(
-			p       = params['other']['dropout'],
+			p       = params['model/dropout'],
 			inplace = False
 		)
 
 		self.relu = LeakyReLU(
-			negative_slope = params['other']['leakyrelu'],
+			negative_slope = params['model/leakyrelu'],
 			inplace        = False
 		)
 
@@ -267,14 +254,10 @@ class Zrimec2020 (Module) :
 
 if __name__ == '__main__' :
 	model = Zrimec2020(params = {
-		'other' : {
-			'in_height'   : 4,
-			'in_width'    : 2150,
-			'in_features' : 64
-		},
-		'fc2' : {
-			'features' : 64
-		}
+		'model/input/height'   : 4,
+		'model/input/width'    : 2150,
+		'model/input/features' : 64,
+		'model/fc2/features'   : 64
 	})
 
 	model.summary(batch_size = 64, in_height = 4, in_width = 2150, in_features = 64)

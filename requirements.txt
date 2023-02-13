@@ -1,8 +1,9 @@
 anndata==0.8.0
 biopython==1.80
 distinctipy==1.2.2
-hyperopt=0.2.7
+fastparquet==2023.2.0
 gff3-parser=0.0.5
+hyperopt=0.2.7
 jupyterlab=3.5.2
 jupyterlab_execute_time=2.3.1
 matplotlib==3.6.3
@@ -10,6 +11,7 @@ numpy==1.23.5
 openTSNE==0.6.2
 pandas==1.5.2
 psutil==5.9.4
+pyarrow==11.0.0
 pyfaidx==0.7.1
 ray==2.2.0
 scanpy==1.9.1

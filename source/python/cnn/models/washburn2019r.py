@@ -1,7 +1,6 @@
 from torch     import Tensor
 from torch.nn  import Linear
 from torch.nn  import Module
-from torch.nn  import ReLU
 from torchinfo import ModelStatistics
 from typing    import Any
 from typing    import Dict
@@ -27,11 +26,9 @@ class Washburn2019r (Module) :
 		)
 
 		self.fc3 = Linear(
-			in_features  = params['fc2']['features'],
-			out_features = params['fc3']['features']
+			in_features  = params['model/fc2/features'],
+			out_features = params['model/fc3/features']
 		)
-
-		self.relu = ReLU(inplace = False)
 
 	@property
 	def __name__ (self) -> str :
@@ -56,7 +53,6 @@ class Washburn2019r (Module) :
 
 		x = self.backbone(x, v)
 		x = self.fc3(x)
-		x = self.relu(x)
 
 		return x
 
@@ -77,15 +73,11 @@ class Washburn2019r (Module) :
 
 if __name__ == '__main__' :
 	model = Washburn2019r(params = {
-		'other' : {
-			'in_channels' : 1,
-			'in_height'   : 4,
-			'in_width'    : 2150,
-			'in_features' : 64
-		},
-		'fc3' : {
-			'features' : 8
-		}
+		'model/input/channels' : 1,
+		'model/input/height'   : 4,
+		'model/input/width'    : 2150,
+		'model/input/features' : 64,
+		'model/fc3/features'   : 8
 	})
 
 	model.summary(batch_size = 64, in_channels = 1, in_height = 4, in_width = 2150, in_features = 64)

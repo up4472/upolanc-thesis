@@ -53,6 +53,16 @@ def show_prediction_error_grid (report : Dict[str, Dict], order : List[str], fil
 	Doc
 	"""
 
+	if len(order) == 1 :
+		show_prediction_error(
+			report   = report,
+			order    = order,
+			group    = order[0],
+			filename = filename
+		)
+
+		return
+
 	data = report['eval']['ypred'] - report['eval']['ytrue']
 
 	n, nrows, ncols = compute_gridsize(
@@ -133,6 +143,16 @@ def show_linear_regression_grid (report : Dict[str, Dict], order : List[str], fi
 	"""
 	Doc
 	"""
+
+	if len(order) == 1 :
+		show_linear_regression(
+			report   = report,
+			order    = order,
+			group    = order[0],
+			filename = filename
+		)
+
+		return
 
 	ypred = report['eval']['ypred']
 	ytrue = report['eval']['ytrue']

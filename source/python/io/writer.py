@@ -7,6 +7,7 @@ from typing  import Dict
 
 import json
 import numpy
+import pickle
 
 def write_csv (data : DataFrame, filename : str, write_index : bool = False) -> None :
 	"""
@@ -49,6 +50,21 @@ def write_npz (data : Dict[Any, Any], filename : str) -> None :
 	"""
 
 	numpy.savez(filename, **data)
+
+def write_parquet (data : DataFrame, filename : str) -> None :
+	"""
+	Doc
+	"""
+
+	data.to_parquet(path = filename)
+
+def write_pickle (data : Any, filename : str) -> None :
+	"""
+	Doc
+	"""
+
+	with open(filename, mode = 'wb') as handle :
+		pickle.dump(data, handle)
 
 def write_tsv (data : DataFrame, filename : str, write_index : bool = False) -> None :
 	"""

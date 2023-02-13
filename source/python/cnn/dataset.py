@@ -151,25 +151,32 @@ def to_dataloader (dataset : Dataset, batch_size : int, indices : List[int]) -> 
 		drop_last  = True
 	)
 
-def show_dataloader (dataloader : DataLoader, batch_size : int) -> None :
+def show_dataloader (dataloader : DataLoader, verbose : bool = True) -> None :
 	"""
 	Doc
 	"""
 
-	nbatches = len(dataloader)
-	nsamples = nbatches * batch_size
+	if not verbose :
+		return
 
-	print(f'Dataloader  batch  size : {batch_size:6,d}')
-	print(f'Dataloader  batch count : {nbatches:6,d}')
-	print(f'Dataloader sample count : {nsamples:6,d}')
-	print()
+	batch_size = 0
 
 	for batch in dataloader :
 		t_keys, t_sequences, t_features, t_targets = batch
 
-		print(f'     Key shape : {numpy.shape(t_keys)}')
-		print(f'Sequence shape : {numpy.shape(t_sequences)}')
-		print(f' Feature shape : {numpy.shape(t_features)}')
-		print(f'  Target shape : {numpy.shape(t_targets)}')
+		batch_size = numpy.shape(t_keys)[0]
+
+		print(f'     Key Shape : {numpy.shape(t_keys)}')
+		print(f'Sequence Shape : {numpy.shape(t_sequences)}')
+		print(f' Feature Shape : {numpy.shape(t_features)}')
+		print(f'  Target Shape : {numpy.shape(t_targets)}')
 
 		break
+
+	nbatches = len(dataloader)
+	nsamples = nbatches * batch_size
+
+	print()
+	print(f' Batch Size  : {batch_size:6,d}')
+	print(f' Batch Count : {nbatches:6,d}')
+	print(f'Sample Count : {nsamples:6,d}')

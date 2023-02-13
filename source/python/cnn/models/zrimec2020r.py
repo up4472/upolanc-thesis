@@ -1,8 +1,8 @@
 from torch     import Tensor
 from torch.nn  import Linear
 from torch.nn  import Module
-from torch.nn  import ReLU
 from torchinfo import ModelStatistics
+from typing    import Any
 from typing    import Dict
 
 import torchinfo
@@ -12,7 +12,7 @@ from source.python.cnn.models.zrimec2020 import update_params
 
 class Zrimec2020r (Module) :
 
-	def __init__ (self, params : Dict[str, Dict] = None) -> None :
+	def __init__ (self, params : Dict[str, Any] = None) -> None :
 		"""
 		Doc
 		"""
@@ -26,11 +26,9 @@ class Zrimec2020r (Module) :
 		)
 
 		self.fc3 = Linear(
-			in_features  = params['fc2']['features'],
-			out_features = params['fc3']['features']
+			in_features  = params['model/fc2/features'],
+			out_features = params['model/fc3/features']
 		)
-
-		self.relu = ReLU(inplace = False)
 
 	@property
 	def __name__ (self) -> str :
@@ -76,14 +74,10 @@ class Zrimec2020r (Module) :
 
 if __name__ == '__main__' :
 	model = Zrimec2020r(params = {
-		'other' : {
-			'in_height'   : 4,
-			'in_width'    : 2150,
-			'in_features' : 64
-		},
-		'fc3' : {
-			'features' : 8
-		}
+		'model/input/height'   : 4,
+		'model/input/width'    : 2150,
+		'model/input/features' : 64,
+		'model/fc3/features'   : 64
 	})
 
 	model.summary(batch_size = 64, in_height = 4, in_width = 2150, in_features = 64)

@@ -8,12 +8,12 @@ import re
 import subprocess
 import torch
 
-def lock_random (seed : int = None, generate_seed : bool = False) -> int :
+def lock_random (seed : int = None, generate : bool = False) -> int :
 	"""
 	Doc
 	"""
 
-	if seed is None and generate_seed :
+	if seed is None and generate :
 		seed = random.randint(1, 1_073_741_824)
 
 	if seed is not None :
@@ -67,23 +67,23 @@ def get_system_info () :
 
 		cpu_count = len(os.sched_getaffinity(0))
 
-	cuda_available = torch.cuda.is_available()
-	cuda_devices   = torch.cuda.device_count()
-	cuda_name      = 'N/A'
+	gpu_available = torch.cuda.is_available()
+	gpu_count     = torch.cuda.device_count()
+	gpu_name      = 'N/A'
 
-	if cuda_available :
-		cuda_name = torch.cuda.get_device_name()
+	if gpu_available :
+		gpu_name = torch.cuda.get_device_name()
 
 	return {
-		'platform_python'  : platform_python,
-		'platform_system'  : platform_system,
-		'platform_release' : platform_release,
-		'platform_version' : platform_version,
-		'cpu_name'         : cpu_name,
-		'cpu_count'        : cpu_count,
-		'cuda_name'        : cuda_name,
-		'cuda_available'   : cuda_available,
-		'cuda_devices'     : cuda_devices,
-		'memory_total'     : memory_total,
-		'memory_available' : memory_available
+		'platform/python'           : platform_python,
+		'platform/system'           : platform_system,
+		'platform/release'          : platform_release,
+		'platform/version'          : platform_version,
+		'platform/cpu/name'         : cpu_name,
+		'platform/cpu/count'        : cpu_count,
+		'platform/gpu/name'         : gpu_name,
+		'platform/gpu/available'    : gpu_available,
+		'platform/gpu/count'        : gpu_count,
+		'platform/memory/total'     : memory_total,
+		'platform/memory/available' : memory_available
 	}
