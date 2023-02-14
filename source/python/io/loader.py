@@ -165,3 +165,37 @@ def load_labels (filename : str, to_numpy : bool = False) -> Dict[str, Dict[str,
 			data[key] = {k : numpy.array(v) for k, v in value.items()}
 
 	return data
+
+def load_feature_targets (group : str, filename : str, explode : bool = False, filters : Dict[str, Any] = None) -> DataFrame :
+	"""
+	Doc
+	"""
+
+	dataframe = load_pickle(filename = filename)
+	dataframe = dataframe[group].set_index('ID')
+
+	dataframe.index.name = None
+
+	if explode or not filters is None :
+		array = ['TPM_Value', 'TPM_Label']
+
+		if 'Tissue'       in dataframe.columns : array.append('Tissue')
+		if 'Age'          in dataframe.columns : array.append('Age')
+		if 'Perturbation' in dataframe.columns : array.append('Perturbation')
+		if 'Group'        in dataframe.columns : array.append('Group')
+
+		dataframe = dataframe.explode(array)
+
+		if filters is None :
+			return dataframe
+
+		for key, value in filters.items() :
+			if value is None :
+				continue
+
+			dataframe = dataframe.loc[dataframe[key.capitalize()] == filters[key]]
+
+		for key in array:
+			dataframe[key] = dataframe[key].apply(lambda x : [x])
+
+	return dataframe

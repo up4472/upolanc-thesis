@@ -37,7 +37,7 @@ def mutate_sequences (sequences : Dict[str, Dict], rates : List[float], params :
 				mrna     = baseline,
 				relative = True
 			),
-			'Stability' : [0]
+			'Stability' : [0] * 8
 		}
 
 		for variant in range(variants) :
@@ -62,7 +62,7 @@ def mutate_sequences (sequences : Dict[str, Dict], rates : List[float], params :
 					mrna     = key,
 					relative = True
 				),
-				'Stability' : [0]
+				'Stability' : [0] * 8
 			}
 
 	return m_sequences, m_features

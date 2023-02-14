@@ -19,7 +19,6 @@ from source.python.cnn._common import evaluate_epoch
 from source.python.cnn._common import train_epoch
 from source.python.cnn.core    import lock_random
 from source.python.cnn.dataset import to_dataloaders
-from source.python.cnn.dataset import to_dataset
 from source.python.cnn.model   import get_criterion
 from source.python.cnn.model   import get_model_trainers
 from source.python.cnn.model   import he_uniform_weight
@@ -60,30 +59,10 @@ def regression_tune (tune_config : Dict[str, Any], core_config : Dict[str, Any])
 	Doc
 	"""
 
-	lock_random(
-		seed = core_config['core/random']
-	)
-
-	gene_sequences = core_config['files']['sequences']()
-	gene_frequency = core_config['files']['frequency']()
-
-	values = core_config['files']['values']()
-	group  = core_config['model/output/target'] + '-' + core_config['model/output/type']
-
-	gene_targets = {
-		key : value[group]
-		for key, value in values.items()
-	}
-
-	dataset = to_dataset(
-		sequences   = gene_sequences,
-		features    = gene_frequency,
-		targets     = gene_targets,
-		expand_dims = core_config['dataset/expanddim']
-	)
+	lock_random(seed = core_config['core/random'])
 
 	dataloaders = to_dataloaders(
-		dataset     = dataset,
+		dataset     = torch.load(core_config['dataset/filepath']),
 		random_seed = core_config['core/random'],
 		split_size  = {
 			'valid' : core_config['dataset/split/valid'],
