@@ -1,6 +1,7 @@
 from anndata import AnnData
 from pandas  import DataFrame
 from types   import FunctionType
+from typing  import Dict
 from typing  import List
 from typing  import Tuple
 from typing  import Union
@@ -146,7 +147,7 @@ def compute_log1p (data : AnnData, store_into : str, layer : str = None, base : 
 
 	return data
 
-def compute_boxcox1p (data : AnnData, store_into : str, eps : float = 1e-7, layer : str = None) -> AnnData :
+def compute_boxcox1p (data : AnnData, store_into : str, eps : float = 1e-7, layer : str = None) -> Tuple[AnnData, Dict] :
 	"""
 	Doc
 	"""
@@ -159,13 +160,16 @@ def compute_boxcox1p (data : AnnData, store_into : str, eps : float = 1e-7, laye
 	matrix = matrix.copy()
 	matrix, lmbda = boxcox1p(x = matrix, eps = eps)
 
-	print(f'boxcox1p lambda : {lmbda}')
-
 	data.layers[store_into] = matrix
 
-	return data
+	factors = {
+		'lambda' : lmbda,
+		'eps'    : eps,
+	}
 
-def compute_standardized (data : AnnData, store_into : str, layer : str = None, axis : int = None) -> AnnData :
+	return data, factors
+
+def compute_standardized (data : AnnData, store_into : str, layer : str = None, axis : int = None) -> Tuple[AnnData, Dict] :
 	"""
 	Doc
 	"""
@@ -176,13 +180,19 @@ def compute_standardized (data : AnnData, store_into : str, layer : str = None, 
 		matrix = data.layers[layer]
 
 	matrix = matrix.copy()
-	matrix = standardize(x = matrix, axis = axis)
+	matrix, avg_value, std_value = standardize(x = matrix, axis = axis)
 
 	data.layers[store_into] = matrix
 
-	return data
+	factors = {
+		'std'        : std_value.tolist() if isinstance(std_value, numpy.ndarray) else std_value,
+		'mean'       : avg_value.tolist() if isinstance(avg_value, numpy.ndarray) else avg_value,
+		'transcript' : data.var.index.to_list()
+	}
 
-def compute_normalized (data : AnnData, store_into : str, layer : str = None) -> AnnData :
+	return data, factors
+
+def compute_normalized (data : AnnData, store_into : str, layer : str = None) -> Tuple[AnnData, Dict] :
 	"""
 	Doc
 	"""
@@ -195,12 +205,14 @@ def compute_normalized (data : AnnData, store_into : str, layer : str = None) ->
 	matrix = matrix.copy()
 	matrix, min_value, max_value = normalize(x = matrix)
 
-	print(f'normalize min_value : {min_value}')
-	print(f'normalize max_value : {max_value}')
-
 	data.layers[store_into] = matrix
 
-	return data
+	factors = {
+		'min' : min_value,
+		'max' : max_value,
+	}
+
+	return data, factors
 
 def compute_pca (data : AnnData, store_into : str, layer : str = None, components : int = 50) -> AnnData :
 	"""

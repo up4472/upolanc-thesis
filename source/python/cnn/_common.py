@@ -118,16 +118,16 @@ def evaluate_epoch (model : Module, params : Dict[str, Any], desc : str = 'Progr
 	verbose = params['verbose']
 
 	batch_loss = 0.0
-	batch_genes = list()
+	batch_keys  = list()
 	batch_ypred = list()
 	batch_ytrue = list()
 
 	batch_report = {
 		'metric' : dict(),
-		'loss' : numpy.nan,
-		'genes' : list(),
-		'ypred' : list(),
-		'ytrue' : list()
+		'loss'   : numpy.nan,
+		'keys'   : list(),
+		'ypred'  : list(),
+		'ytrue'  : list()
 	}
 
 	for metric in metrics.keys() :
@@ -162,7 +162,7 @@ def evaluate_epoch (model : Module, params : Dict[str, Any], desc : str = 'Progr
 			)
 
 			if not validation :
-				batch_genes.extend(ids)
+				batch_keys.extend(ids)
 				batch_ypred.extend(outputs.detach().cpu().numpy())
 				batch_ytrue.extend(labels.detach().cpu().numpy())
 
@@ -173,7 +173,7 @@ def evaluate_epoch (model : Module, params : Dict[str, Any], desc : str = 'Progr
 				desc = f'{desc} | Loss = {print_loss: 8.5f}'
 			)
 
-		batch_report['genes'] = numpy.array(batch_genes)
+		batch_report['keys'] = numpy.array(batch_keys)
 		batch_report['ypred'] = numpy.array(batch_ypred)
 		batch_report['ytrue'] = numpy.array(batch_ytrue)
 		batch_report['loss'] = batch_loss / len(dataloader)

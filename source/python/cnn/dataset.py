@@ -16,7 +16,7 @@ from source.python.cnn._encoder import one_hot_encode
 
 class GeneDataset (Dataset) :
 
-	def __init__ (self, names : List[str], sequences : List[str], features : List[numpy.ndarray], targets : List[numpy.ndarray], expand_dims : int = None) -> None :
+	def __init__ (self, names : List[str], sequences : Dict[str, str], features : Dict[str, numpy.ndarray], targets : Dict[str, numpy.ndarray], expand_dims : int = None) -> None :
 		"""
 		Doc
 		"""
@@ -28,7 +28,7 @@ class GeneDataset (Dataset) :
 
 		self.mapping = generate_mapping(
 			nucleotide_order = 'ACGT',
-			ambiguous_value = 'fraction'
+			ambiguous_value  = 'fraction'
 		)
 
 		expand = lambda x : numpy.expand_dims(x, axis = expand_dims)
@@ -39,21 +39,41 @@ class GeneDataset (Dataset) :
 			transpose = True
 		)
 
-		self.sequences = [encode(x) for x in self.sequences]
+		self.sequences = {
+			key : encode(value)
+			for key, value in self.sequences.items()
+		}
 
 		if expand_dims is not None and expand_dims >= 0 :
-			self.sequences = [expand(x) for x in self.sequences]
+			self.sequences = {
+				key : expand(value)
+				for key, value in self.sequences.items()
+			}
 
 	def __getitem__ (self, index : int) -> Tuple[str, numpy.ndarray, numpy.ndarray, numpy.ndarray] :
 		"""
 		Doc
 		"""
 
+		key = self.names[index]
+
+		#      AT1G21250.1         <-  default notation [        Gene . Transcript                         ]
+		# root?AT1G21250.1         <-    group notation [Group ? Gene . Transcript                         ]
+		# root?AT1G21250.1-M01.0   <- mutation notation [Group ? Gene . Transcript - MutationRate . Variant]
+
+		# features = deafult  || sequences = deafult  || targets = deafult
+		# features = group    || sequences = deafult  || targets = group
+		# features = mutation || sequences = mutation || targets = group
+		#                     ||  without group        || without mutation
+
+		key_without_group    = key.split('?')[-1]
+		key_without_mutation = key.split('-')[ 0]
+
 		return (
-			self.names[index],
-			self.sequences[index],
-			self.features[index],
-			self.targets[index]
+			key,
+			self.sequences[key_without_group],
+			self.features [key],
+			self.targets  [key_without_mutation]
 		)
 
 	def __len__ (self) -> int :
@@ -68,24 +88,13 @@ def to_dataset (sequences : Dict[str, str], features : Dict[str, List], targets 
 	Doc
 	"""
 
-	names = sorted(list(sequences.keys()))
-
-	# AT1G21250.1         <-  default notation [Gene . Transcript]
-	# AT1G21250.1-M01.0   <- mutation notation [Gene . Transcript - MutationRate . Variant
-
-	f1 = lambda x : sequences[x]
-	f2 = lambda x : numpy.array(features[x])
-	f3 = lambda x : numpy.array(targets [x.split('-')[0]])
-
-	sequences = [f1(key) for key in names]
-	features  = [f2(key) for key in names]
-	targets   = [f3(key) for key in names]
+	names = sorted(list(features.keys()))
 
 	return GeneDataset(
 		names       = names,
 		sequences   = sequences,
-		features    = features,
-		targets     = targets,
+		features    = {k : numpy.array(v) for k, v in features.items()},
+		targets     = {k : numpy.array(v) for k, v in targets.items()},
 		expand_dims = expand_dims
 	)
 
@@ -117,7 +126,7 @@ def to_dataloaders (dataset : GeneDataset, split_size : Dict[str, float], batch_
 	"""
 
 	train_idx, valid_idx, test_idx = generate_split_indices(
-		targets     = dataset.targets,
+		targets     = dataset.names,
 		valid_split = split_size['valid'],
 		test_split  = split_size['test'],
 		random_seed = random_seed

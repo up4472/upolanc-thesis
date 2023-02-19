@@ -32,15 +32,15 @@ def get_mutation_report (report : Dict[str, Dict]) -> Dict[str, Dict] :
 	Doc
 	"""
 
-	label = report['eval']['genes']
+	keys  = report['eval']['keys']
 	ypred = report['eval']['ypred']
 	ytrue = report['eval']['ytrue']
 
 	data = dict()
 
-	for index, transcript in enumerate(label) :
-		b0 = transcript.split('-')[0]
-		b1 = transcript.split('-')[1].split('.')[0]
+	for index, key in enumerate(keys) :
+		b0 = key.split('-')[0]
+		b1 = key.split('-')[1].split('.')[0]
 
 		if b0 not in data.keys() :
 			data[b0] = dict()
@@ -53,7 +53,7 @@ def get_mutation_report (report : Dict[str, Dict]) -> Dict[str, Dict] :
 			}
 
 		data[b0][b1]['ypred'].append(ypred[index, :])
-		data[b0][b1]['label'].append(transcript)
+		data[b0][b1]['label'].append(key)
 
 	return data
 

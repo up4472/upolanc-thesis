@@ -10,28 +10,28 @@ def display_regression_predictions (report : Dict[str, Any], n : int = 5) -> Non
 	Doc
 	"""
 
-	eval_mae = report['eval']['metric']['mae']
-	eval_mse = report['eval']['metric']['mse']
-	eval_r2  = report['eval']['metric']['r2']
-	eval_genes = report['eval']['genes']
+	eval_mae   = report['eval']['metric']['mae']
+	eval_mse   = report['eval']['metric']['mse']
+	eval_r2    = report['eval']['metric']['r2']
+	eval_keys  = report['eval']['keys']
 	eval_ytrue = report['eval']['ytrue']
 	eval_ypred = report['eval']['ypred']
 
 	if len(eval_ytrue) > 0 and len(eval_ypred) > 0 :
-		items = zip(eval_genes, eval_mae, eval_mse, eval_r2, eval_ytrue, eval_ypred)
+		items = zip(eval_keys, eval_mae, eval_mse, eval_r2, eval_ytrue, eval_ypred)
 	else :
-		items = zip(eval_genes, eval_mae, eval_mse, eval_r2)
+		items = zip(eval_keys, eval_mae, eval_mse, eval_r2)
 
 	for index, item in enumerate(items) :
 		if index >= n :
 			break
 
-		gene = item[0]
-		mae  = item[1]
-		mse  = item[2]
-		r2   = item[3]
+		key = item[0]
+		mae = item[1]
+		mse = item[2]
+		r2  = item[3]
 
-		print(f'Gene : {gene}')
+		print(f' Key : {key}')
 
 		if len(item) == 6 :
 			ytrue = item[4]
@@ -42,7 +42,7 @@ def display_regression_predictions (report : Dict[str, Any], n : int = 5) -> Non
 
 		print(f' MAE : [' + '   '.join('{: .5f}'.format(x) for x in mae) + ']')
 		print(f' MSE : [' + '   '.join('{: .5f}'.format(x) for x in mse) + ']')
-		print(f' R2  : [' + '   '.join('{: .5f}'.format(x) for x in r2)  + ']')
+		print(f'  R2 : [' + '   '.join('{: .5f}'.format(x) for x in r2)  + ']')
 		print()
 
 def display_classification_predictions (report : Dict[str, Any], n : int = 5) -> None :
@@ -52,33 +52,33 @@ def display_classification_predictions (report : Dict[str, Any], n : int = 5) ->
 
 	eval_entropy  = report['eval']['metric']['entropy']
 	eval_accuracy = report['eval']['metric']['accuracy']
-	eval_genes = report['eval']['genes']
-	eval_ytrue = report['eval']['ytrue']
-	eval_ypred = report['eval']['ypred']
+	eval_keys     = report['eval']['keys']
+	eval_ytrue    = report['eval']['ytrue']
+	eval_ypred    = report['eval']['ypred']
 
 	if len(eval_ytrue) > 0 and len(eval_ypred) > 0 :
-		items = zip(eval_genes, eval_entropy, eval_accuracy, eval_ytrue, eval_ypred)
+		items = zip(eval_keys, eval_entropy, eval_accuracy, eval_ytrue, eval_ypred)
 	else :
-		items = zip(eval_genes, eval_entropy, eval_accuracy)
+		items = zip(eval_keys, eval_entropy, eval_accuracy)
 
 	for index, item in enumerate(items) :
 		if index >= n :
 			break
 
-		gene     = item[0]
+		key      = item[0]
 		entropy  = item[1]
 		accuracy = item[2]
 
-		print(f'Gene     : {gene}')
+		print(f'    Key : {key}')
 
 		if len(item) == 5 :
 			ytrue = item[3]
 			ypred = item[4].argmax(axis = 0)
 
-			print(f'True     : [' + ' '.join('{:}'.format(x) for x in ytrue) + ']')
-			print(f'Pred     : [' + ' '.join('{:}'.format(x) for x in ypred) + ']')
+			print(f'    True : [' + ' '.join('{:}'.format(x) for x in ytrue) + ']')
+			print(f'    Pred : [' + ' '.join('{:}'.format(x) for x in ypred) + ']')
 
-		print(f'Entropy  : [' + '   '.join('{:.5f}'.format(x) for x in entropy)  + ']')
+		print(f' Entropy : [' + '   '.join('{:.5f}'.format(x) for x in entropy)  + ']')
 		print(f'Accuracy : [' + '   '.join('{:.5f}'.format(x) for x in accuracy) + ']')
 		print()
 
@@ -87,10 +87,10 @@ def display_regression_accuracy (report : Dict[str, Any], order : List[str], thr
 	Doc
 	"""
 
-	genes  = report['eval']['genes']
+	keys   = report['eval']['keys']
 	scores = report['eval']['metric']['mae']
 
-	taccuracy = [score <= threshold[gene] for gene, score in zip(genes, scores)]
+	taccuracy = [score <= threshold[key] for key, score in zip(keys, scores)]
 	taccuracy = numpy.array(taccuracy, dtype = bool)
 
 	count = numpy.sum(taccuracy, axis = 0)

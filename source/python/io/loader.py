@@ -1,3 +1,6 @@
+from typing import List
+from typing import Tuple
+
 from Bio import SeqIO
 
 from anndata import AnnData
@@ -14,10 +17,12 @@ import os
 import pandas
 import pickle
 import torch
+from sklearn.preprocessing import LabelBinarizer
 
 from source.python.io._cleaner import clean_annotation
 from source.python.io._cleaner import clean_metadata
 from source.python.io._cleaner import clean_tpm
+from source.python.io.writer import write_pickle
 
 def load_torch (filename : str) -> Dict[str, Any] :
 	"""
@@ -166,17 +171,17 @@ def load_labels (filename : str, to_numpy : bool = False) -> Dict[str, Dict[str,
 
 	return data
 
-def load_feature_targets (group : str, filename : str, explode : bool = False, filters : Dict[str, Any] = None) -> DataFrame :
+def load_feature_targets (group : str, directory : str, filename : str, explode : bool = False, filters : Dict[str, Any] = None) -> Tuple[DataFrame, Dict, List] :
 	"""
 	Doc
 	"""
 
-	dataframe = load_pickle(filename = filename)
+	dataframe = load_pickle(filename = os.path.join(directory, filename))
 	dataframe = dataframe[group].set_index('ID')
 
 	dataframe.index.name = None
 
-	if explode or not filters is None :
+	if explode :
 		array = ['TPM_Value', 'TPM_Label']
 
 		if 'Tissue'       in dataframe.columns : array.append('Tissue')
@@ -186,16 +191,56 @@ def load_feature_targets (group : str, filename : str, explode : bool = False, f
 
 		dataframe = dataframe.explode(array)
 
-		if filters is None :
-			return dataframe
+		dataframe.index = [
+			'{}?{}'.format(g, i)
+			for g, i in zip(
+				dataframe[group.split('-')[0].capitalize()],
+				dataframe.index
+			)
+		]
 
-		for key, value in filters.items() :
-			if value is None :
-				continue
-
-			dataframe = dataframe.loc[dataframe[key.capitalize()] == filters[key]]
-
-		for key in array:
+		for key in array :
 			dataframe[key] = dataframe[key].apply(lambda x : [x])
 
-	return dataframe
+	target_value = dataframe['TPM_Value'].to_dict()
+	target_order = dataframe[group.split('-')[0].capitalize()].iloc[0]
+
+	if len(target_order) == 1 :
+		features_ext = dict()
+
+		if filters[group.split('-')[0]] is None :
+			target_order = ['mixed']
+
+		for column in dataframe.columns :
+			if column not in ['Tissue', 'Group', 'Age', 'Perturbation'] :
+				continue
+
+			labels = [x[0] for x in dataframe[column]]
+			binarizer = LabelBinarizer()
+			binarizer = binarizer.fit(labels)
+			encode = binarizer.transform(labels) # noqa
+
+			for x, index in enumerate(dataframe.index) :
+				group        = dataframe[column].iloc[x][0]
+				group_filter = filters[column.lower()]
+
+				if group_filter is None or group.lower() in group_filter :
+					if index in features_ext.keys() :
+						features_ext[index] = numpy.concatenate((features_ext[index], encode[x, :]))
+					else :
+						features_ext[index] = encode[x, :]
+
+			write_pickle(
+				data = binarizer,
+				filename = os.path.join(directory, 'binarizer-{}.pkl'.format(column.lower()))
+			)
+
+		index = dataframe.index
+		keys  = list(features_ext.keys())
+
+		dataframe = dataframe.loc[index.isin(keys)].copy() # noqa
+
+		features  = DataFrame.from_dict({k : [v] for k, v in features_ext.items()}, orient = 'index', columns = ['Feature'])
+		dataframe = dataframe.merge(features, left_index = True, right_index = True)
+
+	return dataframe, target_value, target_order

@@ -94,6 +94,16 @@ def regression_tune (tune_config : Dict[str, Any], core_config : Dict[str, Any])
 	optimizer = model_trainers['optimizer']
 	scheduler = model_trainers['scheduler']
 
+	metrics = {
+		'r2'  : get_criterion(reduction = 'mean', weights = None, query = 'r2', output_size = core_config['model/output/size']),
+		'mae' : get_criterion(reduction = 'mean', weights = None, query = 'mae')
+	}
+
+	metrics = {
+		k : v.to(core_config['core/device'])
+		for k, v in metrics.items()
+	}
+
 	model_params = {
 		'model'     : model,
 		'criterion' : criterion,
@@ -101,13 +111,10 @@ def regression_tune (tune_config : Dict[str, Any], core_config : Dict[str, Any])
 		'scheduler' : scheduler,
 		'device'    : core_config['core/device'],
 		'verbose'   : False,
+		'metrics'   : metrics,
 		'train_dataloader' : train_dataloader,
 		'valid_dataloader' : valid_dataloader,
-		'test_dataloader'  : test_dataloader,
-		'metrics' : {
-			'r2'  : get_criterion(reduction = 'mean', weights = None, query = 'r2'),
-			'mae' : get_criterion(reduction = 'mean', weights = None, query = 'mae')
-		}
+		'test_dataloader'  : test_dataloader
 	}
 
 	for epoch in range(core_config['model/epochs']) :
@@ -230,6 +237,22 @@ def plot_trial (dataframe : DataFrame, y : str, ylabel : str, alpha : float = 0.
 		color = color,
 		label = dataframe['trial_id'].iloc[0]
 	)
+
+	ycomp = None
+
+	if y == 'valid_loss' : ycomp = 'train_loss'
+	if y == 'train_loss' : ycomp = 'valid_loss'
+
+	if ycomp is not None :
+		seaborn.lineplot(
+			data   = dataframe,
+			x      = 'training_iteration',
+			y      = ycomp,
+			ax     = ax,
+			alpha  = 0.5,
+			color  = 'k',
+			label  = dataframe['trial_id'].iloc[0] + '-' + ycomp.split('_')[0]
+		)
 
 	ax.set_xlabel('Epoch')
 	ax.set_ylabel(ylabel)
