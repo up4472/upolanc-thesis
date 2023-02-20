@@ -9,7 +9,11 @@
 .idea/
 .ipynb_checkpoints/
 
-# Custom
+# Custom Extensions
+**/*.rar
+**/*.zip
+
+# Custom Folders
 bin/
 binary/
 env/

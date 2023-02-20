@@ -1,6 +1,3 @@
-from typing import List
-from typing import Tuple
-
 from Bio import SeqIO
 
 from anndata import AnnData
@@ -8,6 +5,8 @@ from pandas  import DataFrame
 from pyfaidx import Fasta
 from typing  import Any
 from typing  import Dict
+from typing  import List
+from typing  import Tuple
 
 import anndata
 import gff3_parser
@@ -17,12 +16,13 @@ import os
 import pandas
 import pickle
 import torch
+
 from sklearn.preprocessing import LabelBinarizer
 
 from source.python.io._cleaner import clean_annotation
 from source.python.io._cleaner import clean_metadata
 from source.python.io._cleaner import clean_tpm
-from source.python.io.writer import write_pickle
+from source.python.io.writer   import write_pickle
 
 def load_torch (filename : str) -> Dict[str, Any] :
 	"""
@@ -202,7 +202,9 @@ def load_feature_targets (group : str, directory : str, filename : str, explode 
 		for key in array :
 			dataframe[key] = dataframe[key].apply(lambda x : [x])
 
-	target_value = dataframe['TPM_Value'].to_dict()
+	# ['t0', 't1', 't2'] ::  multi output :: keep target order
+	# ['t0']             :: single output :: find target order
+
 	target_order = dataframe[group.split('-')[0].capitalize()].iloc[0]
 
 	if len(target_order) == 1 :
@@ -210,6 +212,8 @@ def load_feature_targets (group : str, directory : str, filename : str, explode 
 
 		if filters[group.split('-')[0]] is None :
 			target_order = ['mixed']
+		else :
+			target_order = filters[group.split('-')[0]]
 
 		for column in dataframe.columns :
 			if column not in ['Tissue', 'Group', 'Age', 'Perturbation'] :
@@ -242,5 +246,7 @@ def load_feature_targets (group : str, directory : str, filename : str, explode 
 
 		features  = DataFrame.from_dict({k : [v] for k, v in features_ext.items()}, orient = 'index', columns = ['Feature'])
 		dataframe = dataframe.merge(features, left_index = True, right_index = True)
+
+	target_value = dataframe['TPM_Value'].to_dict()
 
 	return dataframe, target_value, target_order
