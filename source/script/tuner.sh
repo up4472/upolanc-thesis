@@ -1,15 +1,15 @@
 #!/bin/bash
 
-#SBATCH --job-name=up4472-tuner
-#SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/tuner-stdout.txt
-#SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/tuner-stderr.txt
+#SBATCH --job-name=tuner-%j
+#SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/tuner-%j.out
+#SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/tuner-%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 #SBATCH --mem-per-gpu=64G
-#SBATCH --cpus-per-gpu=6
-#SBATCH --time=1-12:00:00
+#SBATCH --cpus-per-gpu=12
+#SBATCH --time=4-00:00:00
 
 # Activate conda enviorment
 source activate /d/hpc/home/up4472/anaconda3

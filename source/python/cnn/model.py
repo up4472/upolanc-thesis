@@ -88,7 +88,7 @@ def _get_scheduler (optimizer : Optimizer, config : Dict[str, Any], epochs : int
 			query        = config['scheduler/name'],
 			start_factor = 1.0,
 			end_factor   = config['scheduler/linear/factor'],
-			total_iters  = epochs
+			total_iters  = 500
 		)
 
 	elif config['scheduler/name'] == 'step' :

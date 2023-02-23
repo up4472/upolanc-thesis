@@ -1,15 +1,15 @@
 #!/bin/bash
 
-#SBATCH --job-name=up4472-washburn2019r
-#SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/washburn2019r-stdout.txt
-#SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/washburn2019r-stderr.txt
+#SBATCH --job-name=washburn-%j
+#SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/washburn-%j.out
+#SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/washburn-%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 #SBATCH --mem-per-gpu=64G
 #SBATCH --cpus-per-gpu=6
-#SBATCH --time=0-06:00:00
+#SBATCH --time=0-18:00:00
 
 # Activate conda enviorment
 source activate /d/hpc/home/up4472/anaconda3

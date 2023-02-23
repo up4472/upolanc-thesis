@@ -1,15 +1,15 @@
 #!/bin/bash
 
-#SBATCH --job-name=up4472-zrimec2020r
-#SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/zrimec2020r-stdout.txt
-#SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/zrimec2020r-stderr.txt
+#SBATCH --job-name=zrimec-%j
+#SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/zrimec-%j.out
+#SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/zrimec-%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 #SBATCH --mem-per-gpu=64G
 #SBATCH --cpus-per-gpu=6
-#SBATCH --time=0-06:00:00
+#SBATCH --time=0-12:00:00
 
 # Activate conda enviorment
 source activate /d/hpc/home/up4472/anaconda3

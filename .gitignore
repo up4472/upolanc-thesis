@@ -12,6 +12,7 @@
 # Custom Extensions
 **/*.rar
 **/*.zip
+**/*.tar.gz
 
 # Custom Folders
 bin/
@@ -20,6 +21,8 @@ env/
 enviorment/
 out/
 output/
+rep/
+reports/
 res/
 resources/
 tmp/

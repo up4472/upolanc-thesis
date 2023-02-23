@@ -6,15 +6,16 @@ import torchmetrics
 
 class R2Score (Module) :
 
-	def __init__ (self, reduction : str = 'mean', output_size : int = 1, **kwargs) -> None : # noqa : unused argument **kwargs
+	def __init__ (self, reduction : str = 'mean', output_size : int = 1, force_finite : bool = False, **kwargs) -> None : # noqa : unused argument **kwargs
 		"""
 		Doc
 		"""
 
 		super(R2Score, self).__init__()
 
-		self.reduction   = reduction.lower()
-		self.multioutput = None
+		self.reduction    = reduction.lower()
+		self.multioutput  = None
+		self.force_finite = force_finite
 
 		if   self.reduction == 'none' : self.multioutput = 'raw_values'
 		elif self.reduction == 'mean' : self.multioutput = 'uniform_average'
@@ -41,11 +42,12 @@ class R2Score (Module) :
 
 		score = self.r2(inputs, labels)
 
-		score = torch.nan_to_num(
-			input  = score,
-			nan    = 1.0,
-			posinf = None,
-			neginf = 0.0
-		)
+		if self.force_finite :
+			score = torch.nan_to_num(
+				input  = score,
+				nan    = None,
+				posinf = None,
+				neginf = None
+			)
 
 		return score
