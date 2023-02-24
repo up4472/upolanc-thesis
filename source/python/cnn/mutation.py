@@ -5,10 +5,10 @@ from typing           import List
 import matplotlib
 import numpy
 
-from source.python.cnn.dataset import to_dataloaders
+from source.python.cnn.dataset import to_dataloader
 from source.python.cnn.dataset import to_dataset
 
-def create_dataloader (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], expand_dims : int = None, random_seed : int = None) -> DataLoader :
+def create_dataloader (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], expand_dims : int = None) -> DataLoader :
 	"""
 	Doc
 	"""
@@ -20,12 +20,11 @@ def create_dataloader (sequences : Dict[str, str], features : Dict[str, List], t
 		expand_dims = expand_dims
 	)
 
-	return to_dataloaders(
+	return to_dataloader(
 		dataset     = dataset,
-		random_seed = random_seed,
-		split_size  = { 'valid' : 0, 'test' : 0 },
-		batch_size  = { 'train' : 1 }
-	)[0]
+		batch_size  = 1,
+		indices     = [i for i in range(len(dataset))]
+	)
 
 def get_mutation_report (report : Dict[str, Dict]) -> Dict[str, Dict] :
 	"""
@@ -76,7 +75,7 @@ def plot_mutation_classification (report : Dict[str, Dict], order : List[str], t
 	print('TODO - to be implemented')
 	return
 
-def plot_mutation_regression (report : Dict[str, Dict], order : List[str], transcript : str = None, mutation : str = None, filename : str = None) -> None :
+def plot_mutation_regression (report, order, transcript, mutation, filename = None) :
 	"""
 	Doc
 	"""
@@ -88,6 +87,7 @@ def plot_mutation_regression (report : Dict[str, Dict], order : List[str], trans
 
 	data = report[transcript][mutation]
 	ndim = numpy.ndim(data['ypred'][0])
+	nmut = len(data['ypred'])
 
 	if ndim > 1 :
 		return
@@ -97,15 +97,31 @@ def plot_mutation_regression (report : Dict[str, Dict], order : List[str], trans
 	ytrue = report[transcript]['M00']['ytrue']
 	ypred = report[transcript]['M00']['ypred'][0]
 
-	ax.plot(ytrue, linestyle = '-', linewidth = 3, color = 'r', alpha = 0.9)
-	ax.plot(ypred, linestyle = '-', linewidth = 3, color = 'g', alpha = 0.9)
+	if ypred.size == 1 :
+		y = [numpy.array(ypred).flatten() - ytrue] * nmut
+		x = numpy.arange(nmut)
 
-	for variant, label in zip(data['ypred'], data['label']) :
-		ax.plot(variant, linestyle = '--', linewidth = 1, color = 'b', alpha = 0.3)
+		ax.plot(x, y, linestyle = '-', linewidth = 3, color = 'g', alpha = 0.9)
+
+		y = numpy.array(data['ypred']).flatten() - ytrue
+		ax.plot(x, y, linestyle = '-', linewidth = 1, color = 'b', alpha = 0.4)
+
+		ax.set_xticks(range(nmut))
+		ax.set_xlabel('Variant')
+		ax.set_ylabel('MAE(TPM)')
+	else :
+		ax.plot(ytrue, linestyle = '-', linewidth = 3, color = 'r', alpha = 0.9)
+		ax.plot(ypred, linestyle = '-', linewidth = 3, color = 'g', alpha = 0.9)
+
+		for y, label in zip(data['ypred'], data['label']) :
+			ax.plot(y, linestyle = '-', linewidth = 1, color = 'b', alpha = 0.4)
+
+		ax.set_xticks(range(len(order)))
+		ax.set_xticklabels(order)
+		ax.set_xlabel('Group')
+		ax.set_ylabel('TPM')
 
 	ax.set_title('{} with MR = {:.2f}'.format(transcript, int(mutation[1:]) / 100))
-	ax.set_xticks(range(len(order)))
-	ax.set_xticklabels(order)
 	ax.legend(['Ground Truth', 'Predicted (Pure)', 'Predicted (Variant)'])
 
 	if filename is not None :

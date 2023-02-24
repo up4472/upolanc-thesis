@@ -16,6 +16,42 @@ import torchinfo
 
 from source.python.cnn.models._util import compute1d
 
+def _ensure_stride (params : Dict[str, Any]) -> Dict[str, Any] :
+	"""
+	Doc
+	"""
+
+	for key, value in params.items() :
+		if key.endswith('stride') :
+			params[key] = params[key.replace('stride', 'kernel')]
+
+	return params
+
+def _ensure_padding (params : Dict[str, Any]) -> Dict[str, Any] :
+	"""
+	Doc
+	"""
+
+	for key, value in params.items() :
+		if key.endswith('padding') :
+			padding = value
+			kernel  = params[key.replace('padding', 'kernel')]
+
+			if isinstance(padding, str) :
+				padding = padding.lower()
+
+				if   padding == 'none'  : padding = 0
+				elif padding == 'same'  : padding = (kernel - 1) // 2
+				elif padding == 'valid' : padding = (kernel - 1) // 2
+				else : raise ValueError()
+
+				params[key] = padding
+
+			if padding != 0 and padding != (kernel - 1) // 2 :
+				print(f'Problem with padding in [{key}] : [{padding}] : [{kernel}]')
+
+	return params
+
 def update_params (params : Dict[str, Any] = None) -> Dict[str, Any] :
 	"""
 	Doc
@@ -27,19 +63,19 @@ def update_params (params : Dict[str, Any] = None) -> Dict[str, Any] :
 		'model/input/width'    : 2150,
 		'model/input/features' : 64,
 
-		'model/dropout'   : 0.1,
-		'model/leakyrelu' : 0.0,
+		'model/dropout'   : 0.10,
+		'model/leakyrelu' : 0.00,
 
 		'model/conv1/filters'  : 64,
-		'model/conv1/kernel'   : 21,
+		'model/conv1/kernel'   : 11,
 		'model/conv1/padding'  : 'none',
 		'model/conv1/dilation' : 1,
 		'model/conv2/filters'  : 64,
-		'model/conv2/kernel'   : 31,
+		'model/conv2/kernel'   : 11,
 		'model/conv2/padding'  : 'none',
 		'model/conv2/dilation' : 1,
 		'model/conv3/filters'  : 128,
-		'model/conv3/kernel'   : 5,
+		'model/conv3/kernel'   : 11,
 		'model/conv3/padding'  : 'same',
 		'model/conv3/dilation' : 1,
 
@@ -64,25 +100,8 @@ def update_params (params : Dict[str, Any] = None) -> Dict[str, Any] :
 		if key.startswith('model') :
 			default[key] = value
 
-	for key in default.keys() :
-		if not key.endswith('padding') :
-			continue
-
-		padding = default[key]
-		kernel  = default[key.replace('padding', 'kernel')]
-
-		if isinstance(padding, str) :
-			padding = padding.lower()
-
-			if   padding == 'none'  : padding = 0
-			elif padding == 'same'  : padding = (kernel - 1) // 2
-			elif padding == 'valid' : padding = (kernel - 1) // 2
-			else : raise ValueError()
-
-			default[key] = padding
-
-		if padding != 0 and padding != (kernel - 1) // 2 :
-			print(f'Problem with padding in [{key}] : [{padding}] : [{kernel}]')
+	default = _ensure_stride(params = default)
+	default = _ensure_padding(params = default)
 
 	return default
 

@@ -274,7 +274,9 @@ def distribution_histplot (data : Dict[str, Dict], groupby : str, discrete : boo
 		for index, (tkey, array) in enumerate(group.items()) :
 			dataframe = DataFrame.from_dict({'Data' : array})
 
-			if nrows == 1 or ncols == 1 :
+			if nrows == 1 and ncols == 1 :
+				axis = ax
+			elif nrows == 1 or ncols == 1 :
 				axis = ax[index]
 			else :
 				axis = ax[index // ncols, index % ncols]

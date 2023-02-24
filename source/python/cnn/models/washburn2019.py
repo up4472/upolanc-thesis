@@ -16,6 +16,63 @@ import torchinfo
 
 from source.python.cnn.models._util import compute2d
 
+def _ensure_kernel (params : Dict[str, Any]) -> Dict[str, Any] :
+	"""
+	Doc
+	"""
+
+	for key, value in params.items() :
+		if key.endswith('kernel') and isinstance(value, int) :
+			if key == 'model/conv1/kernel' :
+				params[key] = [4, value]
+			else :
+				params[key] = [1, value]
+		if key.endswith('stride') and isinstance(value, int) :
+			params[key] = [1, value]
+
+	return params
+
+def _ensure_stride (params : Dict[str, Any]) -> Dict[str, Any] :
+	"""
+	Doc
+	"""
+
+	for key, value in params.items() :
+		if key.endswith('stride') :
+			params[key] = params[key.replace('stride', 'kernel')]
+
+	return params
+
+def _ensure_padding (params : Dict[str, Any]) -> Dict[str, Any] :
+	"""
+	Doc
+	"""
+
+	for key, value in params.items() :
+		if key.endswith('padding') :
+			padding = value
+			kernel  = params[key.replace('padding', 'kernel')]
+
+			if isinstance(padding, str) :
+				padding = padding.lower()
+
+				if   padding == 'none'  : padding = [0, 0]
+				elif padding == 'same'  : padding = [(kernel[0] - 1) // 2, (kernel[1] - 1) // 2]
+				elif padding == 'valid' : padding = [(kernel[0] - 1) // 2, (kernel[1] - 1) // 2]
+				else : raise ValueError()
+
+				params[key] = padding
+
+			p0, p1 = padding
+			k0, k1 = kernel
+
+			if p0 != 0 and p0 != (k0 - 1) // 2 :
+				print(f'Problem with padding in [{key}] : [{p0}-{p1}] : [{k0}-{k1}]')
+			if p1 != 0 and p1 != (k1 - 1) // 2 :
+				print(f'Problem with padding in [{key}] : [{p0}-{p1}] : [{k0}-{k1}]')
+
+	return params
+
 def update_params (params : Dict[str, Any] = None) -> Dict[str, Any] :
 	"""
 	Doc
@@ -27,43 +84,43 @@ def update_params (params : Dict[str, Any] = None) -> Dict[str, Any] :
 		'model/input/width'    : 2150,
 		'model/input/features' : 64,
 
-		'model/dropout'   : 0.1,
-		'model/leakyrelu' : 0.0,
+		'model/dropout'   : 0.10,
+		'model/leakyrelu' : 0.00,
 
 		'model/conv1/filters'  : 64,
-		'model/conv1/kernel'   : (1, 9),
-		'model/conv1/padding'  : (0, 0),
+		'model/conv1/kernel'   : [4, 9],
+		'model/conv1/padding'  : 'same',
 		'model/conv1/dilation' : 1,
 		'model/conv2/filters'  : 64,
-		'model/conv2/kernel'   : (1, 9),
-		'model/conv2/padding'  : (0, 4),
+		'model/conv2/kernel'   : [1, 9],
+		'model/conv2/padding'  : 'same',
 		'model/conv2/dilation' : 1,
 		'model/conv3/filters'  : 128,
-		'model/conv3/kernel'   : (1, 9),
-		'model/conv3/padding'  : (0, 4),
+		'model/conv3/kernel'   : [1, 9],
+		'model/conv3/padding'  : 'same',
 		'model/conv3/dilation' : 1,
 		'model/conv4/filters'  : 128,
-		'model/conv4/kernel'   : (1, 9),
-		'model/conv4/padding'  : (0, 4),
+		'model/conv4/kernel'   : [1, 9],
+		'model/conv4/padding'  : 'same',
 		'model/conv4/dilation' : 1,
 		'model/conv5/filters'  : 64,
-		'model/conv5/kernel'   : (1, 9),
-		'model/conv5/padding'  : (0, 4),
+		'model/conv5/kernel'   : [1, 9],
+		'model/conv5/padding'  : 'same',
 		'model/conv5/dilation' : 1,
 		'model/conv6/filters'  : 64,
-		'model/conv6/kernel'   : (1, 9),
-		'model/conv6/padding'  : (0, 4),
+		'model/conv6/kernel'   : [1, 9],
+		'model/conv6/padding'  : 'same',
 		'model/conv6/dilation' : 1,
 
-		'model/maxpool1/kernel'  : (1, 3),
-		'model/maxpool1/stride'  : (1, 3),
-		'model/maxpool1/padding' : (0, 1),
-		'model/maxpool2/kernel'  : (1, 3),
-		'model/maxpool2/stride'  : (1, 3),
-		'model/maxpool2/padding' : (0, 1),
-		'model/maxpool3/kernel'  : (1, 3),
-		'model/maxpool3/stride'  : (1, 3),
-		'model/maxpool3/padding' : (0, 1),
+		'model/maxpool1/kernel'  : [1, 3],
+		'model/maxpool1/stride'  : [1, 3],
+		'model/maxpool1/padding' : 'same',
+		'model/maxpool2/kernel'  : [1, 3],
+		'model/maxpool2/stride'  : [1, 3],
+		'model/maxpool2/padding' : 'same',
+		'model/maxpool3/kernel'  : [1, 3],
+		'model/maxpool3/stride'  : [1, 3],
+		'model/maxpool3/padding' : 'same',
 
 		'model/fc1/features' : 256,
 		'model/fc2/features' : 128,
@@ -76,30 +133,9 @@ def update_params (params : Dict[str, Any] = None) -> Dict[str, Any] :
 		if key.startswith('model') :
 			default[key] = value
 
-	for key in default.keys() :
-		if not key.endswith('padding') :
-			continue
-
-		padding = default[key]
-		kernel  = default[key.replace('padding', 'kernel')]
-
-		if isinstance(padding, str) :
-			padding = padding.lower()
-
-			if   padding == 'none'  : padding = (0, 0)
-			elif padding == 'same'  : padding = ((kernel[0] - 1) // 2, (kernel[1] - 1) // 2)
-			elif padding == 'valid' : padding = ((kernel[0] - 1) // 2, (kernel[1] - 1) // 2)
-			else : raise ValueError()
-
-			default[key] = padding
-
-		p0, p1 = padding
-		k0, k1 = kernel
-
-		if p0 != 0 and p0 != (k0 - 1) // 2 :
-			print(f'Problem with padding in [{key}] : [{p0}-{p1}] : [{k0}-{k1}]')
-		if p1 != 0 and p1 != (k1 - 1) // 2 :
-			print(f'Problem with padding in [{key}] : [{p0}-{p1}] : [{k0}-{k1}]')
+	default = _ensure_kernel(params = default)
+	default = _ensure_stride(params = default)
+	default = _ensure_padding(params = default)
 
 	return default
 

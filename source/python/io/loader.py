@@ -188,6 +188,7 @@ def load_feature_targets (group : str, directory : str, filename : str, explode 
 		if 'Age'          in dataframe.columns : array.append('Age')
 		if 'Perturbation' in dataframe.columns : array.append('Perturbation')
 		if 'Group'        in dataframe.columns : array.append('Group')
+		if 'Global'       in dataframe.columns : array.append('Global')
 
 		dataframe = dataframe.explode(array)
 
@@ -207,7 +208,7 @@ def load_feature_targets (group : str, directory : str, filename : str, explode 
 
 	target_order = dataframe[group.split('-')[0].capitalize()].iloc[0]
 
-	if len(target_order) == 1 :
+	if explode and len(target_order) == 1 :
 		features_ext = dict()
 
 		if filters[group.split('-')[0]] is None :

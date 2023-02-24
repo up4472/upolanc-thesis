@@ -1,13 +1,14 @@
-from torch.utils.data import DataLoader
-from torch.utils.data import Dataset
-from torch.utils.data import SubsetRandomSampler
-from typing           import Any
-from typing           import Dict
-from typing           import List
-from typing           import Optional
-from typing           import Tuple
-
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GroupShuffleSplit
+from sklearn.model_selection import ShuffleSplit
+from sklearn.model_selection import StratifiedShuffleSplit
+from torch.utils.data        import DataLoader
+from torch.utils.data        import Dataset
+from torch.utils.data        import SubsetRandomSampler
+from typing                  import Any
+from typing                  import Callable
+from typing                  import Dict
+from typing                  import List
+from typing                  import Tuple
 
 import numpy
 
@@ -16,7 +17,7 @@ from source.python.cnn._encoder import one_hot_encode
 
 class GeneDataset (Dataset) :
 
-	def __init__ (self, names : List[str], sequences : Dict[str, str], features : Dict[str, numpy.ndarray], targets : Dict[str, numpy.ndarray], expand_dims : int = None) -> None :
+	def __init__ (self, names : List[str], sequences : Dict[str, str], features : Dict[str, numpy.ndarray], targets : Dict[str, numpy.ndarray], groups : List[Any] = None, expand_dims : int = None) -> None :
 		"""
 		Doc
 		"""
@@ -25,6 +26,7 @@ class GeneDataset (Dataset) :
 		self.sequences = sequences
 		self.features  = features
 		self.targets   = targets
+		self.groups    = groups
 
 		self.mapping = generate_mapping(
 			nucleotide_order = 'ACGT',
@@ -81,74 +83,138 @@ class GeneDataset (Dataset) :
 		Doc
 		"""
 
-		return len(self.targets)
+		return len(self.features)
 
-def to_dataset (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], expand_dims : int) -> GeneDataset :
+def to_dataset (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], expand_dims : int, groups : Dict[str, int] = None) -> GeneDataset :
 	"""
 	Doc
 	"""
 
 	names = sorted(list(features.keys()))
 
+	transcript_key = lambda x : x.split('?')[-1].split('-')[0]
+
+	if groups is None :
+		groups = [transcript_key(x) for x in names]
+	else :
+		groups = [groups[transcript_key(x)] for x in names]
+
 	return GeneDataset(
 		names       = names,
 		sequences   = sequences,
 		features    = {k : numpy.array(v) for k, v in features.items()},
 		targets     = {k : numpy.array(v) for k, v in targets.items()},
+		groups      = groups,
 		expand_dims = expand_dims
 	)
 
-def generate_split_indices (targets : List[Any], test_split : float, valid_split : float, random_seed : int = None) -> Tuple[List, Optional[List], Optional[List]] :
+def generate_stratified_shuffle_split (dataset : GeneDataset, split_size : Dict[str, float], random_seed : int = None) -> Any :
 	"""
 	Doc
 	"""
 
-	length = len(targets)
-	arange = numpy.arange(length)
+	tt = StratifiedShuffleSplit(test_size = split_size['test'],  n_splits = 10, random_state = random_seed)
+	tv = StratifiedShuffleSplit(test_size = split_size['valid'], n_splits =  1, random_state = random_seed)
 
-	if test_split > 0 :
-		s1, s3 = train_test_split(arange, random_state = random_seed, shuffle = True, stratify = None, test_size = test_split)
+	groups = dataset.groups
+
+	if split_size['test'] == 0.0 :
+		yield numpy.arange(len(groups)), None, None
+
 	else :
-		s1 = arange
-		s3 = None
+		for train_valid_index, test_index in tt.split(X = groups, y = groups) :
+			if split_size['valid'] == 0.0 :
+				yield train_valid_index, None, test_index
 
-	if valid_split > 0 :
-		s1, s2 = train_test_split(s1, random_state = random_seed, shuffle = True, stratify = None, test_size = valid_split)
-	else :
-		s1 = s1
-		s2 = None
+			else :
+				igroups = [groups[x] for x in train_valid_index]
 
-	return s1, s2, s3
+				train_index , valid_index = next(tv.split(X = igroups, y = igroups))
 
-def to_dataloaders (dataset : GeneDataset, split_size : Dict[str, float], batch_size : Dict[str, int], random_seed : int = None) -> List[DataLoader] :
+				train_index = train_valid_index[train_index]
+				valid_index = train_valid_index[valid_index]
+
+				yield train_index, valid_index, test_index
+
+def generate_group_shuffle_split (dataset : GeneDataset, split_size : Dict[str, float], random_seed : int = None) -> Any :
 	"""
 	Doc
 	"""
 
-	train_idx, valid_idx, test_idx = generate_split_indices(
-		targets     = dataset.names,
-		valid_split = split_size['valid'],
-		test_split  = split_size['test'],
+	tt = GroupShuffleSplit(test_size = split_size['test'],  n_splits = 10, random_state = random_seed)
+	tv = GroupShuffleSplit(test_size = split_size['valid'], n_splits =  1, random_state = random_seed)
+
+	groups = dataset.groups
+
+	if split_size['test'] == 0.0 :
+		yield numpy.arange(len(groups)), None, None
+
+	else :
+		for train_valid_index, test_index in tt.split(X = groups, groups = groups) :
+			if split_size['valid'] == 0.0 :
+				yield train_valid_index, None, test_index
+
+			else :
+				igroups = [groups[x] for x in train_valid_index]
+
+				train_index , valid_index = next(tv.split(X = igroups, groups = igroups))
+
+				train_index = train_valid_index[train_index]
+				valid_index = train_valid_index[valid_index]
+
+				yield train_index, valid_index, test_index
+
+def generate_shuffle_split (dataset : GeneDataset, split_size : Dict[str, float], random_seed : int = None) -> Any :
+	"""
+	Doc
+	"""
+
+	tt = ShuffleSplit(test_size = split_size['test'],  n_splits = 10, random_state = random_seed)
+	tv = ShuffleSplit(test_size = split_size['valid'], n_splits =  1, random_state = random_seed)
+
+	groups = dataset.groups
+
+	if split_size['test'] == 0.0 :
+		yield numpy.arange(len(groups)), None, None
+
+	else :
+		for train_valid_index, test_index in tt.split(X = groups) :
+			if split_size['valid'] == 0.0 :
+				yield train_valid_index, None, test_index
+
+			else :
+				igroups = [groups[x] for x in train_valid_index]
+
+				train_index , valid_index = next(tv.split(X = igroups))
+
+				train_index = train_valid_index[train_index]
+				valid_index = train_valid_index[valid_index]
+
+				yield train_index, valid_index, test_index
+
+def to_dataloaders (dataset : GeneDataset, generator : Callable, split_size : Dict[str, float], batch_size : Dict[str, int], random_seed : int = None) -> List[DataLoader] :
+	"""
+	Doc
+	"""
+
+	generator = generator(
+		dataset     = dataset,
+		split_size  = split_size,
 		random_seed = random_seed
 	)
 
-	dataloaders = [
-		to_dataloader(dataset = dataset, batch_size = batch_size['train'], indices = train_idx)
-	]
+	indices = next(generator)
 
-	if valid_idx is not None :
-		dataloaders.append(
-			to_dataloader(dataset = dataset, batch_size = batch_size['valid'], indices = valid_idx)
-		)
+	train_dataloader = to_dataloader(dataset = dataset, batch_size = batch_size['train'], indices = indices[0])
+	valid_dataloader = None
+	test_dataloader  = None
 
-	if test_idx is not None :
-		dataloaders.append(
-			to_dataloader(dataset = dataset, batch_size = batch_size['test'], indices = test_idx)
-		)
+	if indices[1] is not None : valid_dataloader = to_dataloader(dataset = dataset, batch_size = batch_size['valid'], indices = indices[1])
+	if indices[2] is not None :  test_dataloader = to_dataloader(dataset = dataset, batch_size = batch_size['test'],  indices = indices[2])
 
-	return dataloaders
+	return [train_dataloader, valid_dataloader, test_dataloader]
 
-def to_dataloader (dataset : Dataset, batch_size : int, indices : List[int]) -> DataLoader :
+def to_dataloader (dataset : GeneDataset, batch_size : int, indices : List[int]) -> DataLoader :
 	"""
 	Doc
 	"""

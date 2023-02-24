@@ -18,6 +18,7 @@ from source.python.cnn.models  import Zrimec2020r
 from source.python.cnn._common import evaluate_epoch
 from source.python.cnn._common import train_epoch
 from source.python.cnn.core    import lock_random
+from source.python.cnn.dataset import generate_group_shuffle_split
 from source.python.cnn.dataset import to_dataloaders
 from source.python.cnn.model   import get_criterion
 from source.python.cnn.model   import get_model_trainers
@@ -63,6 +64,7 @@ def regression_tune (tune_config : Dict[str, Any], core_config : Dict[str, Any])
 
 	dataloaders = to_dataloaders(
 		dataset     = torch.load(core_config['dataset/filepath']),
+		generator   = generate_group_shuffle_split,
 		random_seed = core_config['core/random'],
 		split_size  = {
 			'valid' : core_config['dataset/split/valid'],
