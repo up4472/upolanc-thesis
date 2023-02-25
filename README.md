@@ -25,14 +25,17 @@ This repository contains source files for my master's degree titled, 'Deep learn
 - [WebPage - EnsemblGenomes](https://ensemblgenomes.org/)
 - [WebPage - SLURM](https://slurm.schedmd.com)
 - [WebPage - SLING](https://www.sling.si/sling/en/)
-- [WebPage - Tune](https://docs.ray.io/en/latest/tune/index.html)
+- [WebPage - RayTune](https://docs.ray.io/en/latest/tune/index.html)
 
 #### Notable References
 
 - [Article - SLURM - Yoo et. al (2003)](https://link.springer.com/chapter/10.1007/10968987_3)
 - [Article - HyperOpt - Bergstra et. al (2013)](https://arxiv.org/abs/1209.5111)
+- [Article - Bert - Vaswani et. al (2017)](https://arxiv.org/abs/1706.03762)
 - [Article - ASHA - Liam et. al (2018)](https://arxiv.org/abs/1810.05934)
-- [Article : Tune - Liaw et. al (2018)](https://arxiv.org/abs/1807.05118)
+- [Article : RayTune - Liaw et. al (2018)](https://arxiv.org/abs/1807.05118)
 - [Article : CNN - Washburn et. al (2019)](https://www.pnas.org/doi/10.1073/pnas.1814551116)
 - [Article : CNN - Zrimec et. al (2020)](https://www.nature.com/articles/s41467-020-19921-4)
 - [Article : tSNE - Poličar et. al (2021)](https://link.springer.com/article/10.1007/s10994-021-06043-1)
+- [Article : DNABert - Ji et. al (2021)](https://academic.oup.com/bioinformatics/article/37/15/2112/6128680)
+- [Article : FloraBert - Levy et. al (2022)](https://europepmc.org/article/ppr/ppr537980)

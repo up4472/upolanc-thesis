@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=washburn-%j
+#SBATCH --job-name=cnn-washburn
 #SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/washburn-%j.out
 #SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/washburn-%j.err
 #SBATCH --nodes=1
@@ -28,4 +28,10 @@ if [[ ":$PATH:" != *":$ROOT:"* ]]; then
 fi
 
 # Run script
-python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp08-washburn2019r.py
+python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp08-washburn2019r.py \
+--target_group tissue \
+--target_type mean \
+--target_explode false \
+--target_filter none \
+--model_epochs 10 \
+--model_params 0
