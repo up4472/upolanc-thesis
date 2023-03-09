@@ -20,6 +20,10 @@ This repository contains source files for my master's degree titled, 'Deep learn
 - [OneDrive : extracted sequences](https://unilj-my.sharepoint.com/:u:/g/personal/up4472_student_uni-lj_si/EakWdR8gnABKmrFO7F5aSJ8BIA0Gdop7omRRSITf_plmdw?e=uIkU78)
 - [OneDrive : extracted features](https://unilj-my.sharepoint.com/:u:/g/personal/up4472_student_uni-lj_si/Ed7lfBxtoHBHm68r2iVF3hMBBe1JzRm87l5dex0yPNiX0w?e=rdQqMO)
 
+#### Downloaded Libraries
+
+- [GitHub : DNABert](https://github.com/jerryji1993/DNABERT)
+
 #### Notable Pages
 
 - [WebPage - EnsemblGenomes](https://ensemblgenomes.org/)
@@ -36,6 +40,7 @@ This repository contains source files for my master's degree titled, 'Deep learn
 - [Article : RayTune - Liaw et. al (2018)](https://arxiv.org/abs/1807.05118)
 - [Article : CNN - Washburn et. al (2019)](https://www.pnas.org/doi/10.1073/pnas.1814551116)
 - [Article : CNN - Zrimec et. al (2020)](https://www.nature.com/articles/s41467-020-19921-4)
+- [Article : Transformers - Wolf et. al (2020)](https://aclanthology.org/2020.emnlp-demos.6/)
 - [Article : tSNE - Poličar et. al (2021)](https://link.springer.com/article/10.1007/s10994-021-06043-1)
 - [Article : DNABert - Ji et. al (2021)](https://academic.oup.com/bioinformatics/article/37/15/2112/6128680)
 - [Article : FloraBert - Levy et. al (2022)](https://europepmc.org/article/ppr/ppr537980)

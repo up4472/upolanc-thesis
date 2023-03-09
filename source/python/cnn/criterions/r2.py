@@ -45,9 +45,9 @@ class R2Score (Module) :
 		if self.force_finite :
 			score = torch.nan_to_num(
 				input  = score,
-				nan    = None,
-				posinf = None,
-				neginf = None
+				nan    = 1.0,
+				posinf = 0.0,
+				neginf = 0.0
 			)
 
 		return score

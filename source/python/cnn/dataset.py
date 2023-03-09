@@ -17,7 +17,7 @@ from source.python.cnn._encoder import one_hot_encode
 
 class GeneDataset (Dataset) :
 
-	def __init__ (self, names : List[str], sequences : Dict[str, str], features : Dict[str, numpy.ndarray], targets : Dict[str, numpy.ndarray], groups : List[Any] = None, expand_dims : int = None) -> None :
+	def __init__ (self, names : List[str], sequences : Dict[str, str], features : Dict[str, numpy.ndarray], targets : Dict[str, numpy.ndarray], groups : List[Any] = None, expand_dims : int = None, onehot : bool = True) -> None :
 		"""
 		Doc
 		"""
@@ -41,18 +41,19 @@ class GeneDataset (Dataset) :
 			transpose = True
 		)
 
-		self.sequences = {
-			key : encode(value)
-			for key, value in self.sequences.items()
-		}
-
-		if expand_dims is not None and expand_dims >= 0 :
+		if onehot :
 			self.sequences = {
-				key : expand(value)
+				key : encode(value)
 				for key, value in self.sequences.items()
 			}
 
-	def __getitem__ (self, index : int) -> Tuple[str, numpy.ndarray, numpy.ndarray, numpy.ndarray] :
+			if expand_dims is not None and expand_dims >= 0 :
+				self.sequences = {
+					key : expand(value)
+					for key, value in self.sequences.items()
+				}
+
+	def __getitem__ (self, index : int) -> Tuple[str, Any, numpy.ndarray, numpy.ndarray] :
 		"""
 		Doc
 		"""
@@ -85,7 +86,7 @@ class GeneDataset (Dataset) :
 
 		return len(self.features)
 
-def to_dataset (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], expand_dims : int, groups : Dict[str, int] = None) -> GeneDataset :
+def to_dataset (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], expand_dims : int = None, groups : Dict[str, int] = None, onehot : bool = True) -> GeneDataset :
 	"""
 	Doc
 	"""
@@ -105,7 +106,8 @@ def to_dataset (sequences : Dict[str, str], features : Dict[str, List], targets 
 		features    = {k : numpy.array(v) for k, v in features.items()},
 		targets     = {k : numpy.array(v) for k, v in targets.items()},
 		groups      = groups,
-		expand_dims = expand_dims
+		expand_dims = expand_dims,
+		onehot      = onehot
 	)
 
 def generate_stratified_shuffle_split (dataset : GeneDataset, split_size : Dict[str, float], random_seed : int = None) -> Any :
