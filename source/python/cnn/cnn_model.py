@@ -32,12 +32,12 @@ from torch.nn.init import zeros_
 import numpy
 import torch
 
-from source.python.cnn.criterions import Accuracy
-from source.python.cnn.criterions import R2Score
-from source.python.cnn.criterions import WeightedCriterion
+from source.python.cnn.metric import Metric_Accuracy
+from source.python.cnn.metric import Metric_R2
+from source.python.cnn.metric import Metric_Weighted
 
-from source.python.cnn._common import evaluate
-from source.python.cnn._common import train
+from source.python.cnn.cnn_trainer import evaluate
+from source.python.cnn.cnn_trainer import train
 
 def _get_optimizer (model : Module, config : Dict[str, Any]) -> Optimizer :
 	"""
@@ -45,24 +45,37 @@ def _get_optimizer (model : Module, config : Dict[str, Any]) -> Optimizer :
 	"""
 
 	if config['optimizer/name'] == 'adam' :
+		beta1 = 0.900
+		beta2 = 0.999
+
+		if   'optimizer/beta1'    in config.keys() : beta1 = config['optimizer/beta1']
+		elif 'optimizer/momentum' in config.keys() : beta1 = config['optimizer/momentum']
+		else : print('Using default beta1 : {}'.format(beta1))
+
+		if   'optimizer/beta2'    in config.keys() : beta2 = config['optimizer/beta2']
+		else : print('Using default beta2 : {}'.format(beta2))
+
 		return get_optimizer(
 			model        = model,
 			query        = config['optimizer/name'],
 			lr           = config['optimizer/lr'],
 			weight_decay = config['optimizer/decay'],
-			betas        = (
-				config['optimizer/momentum'],
-				0.999
-			)
+			betas        = (beta1, beta2)
 		)
 
 	elif config['optimizer/name'] == 'sgd' :
+		momentum = 0.900
+
+		if   'optimizer/momentum' in config.keys() : momentum = config['optimizer/momentum']
+		elif 'optimizer/beta1'    in config.keys() : momentum = config['optimizer/beta1']
+		else : print('Using default momentum : {}'.format(momentum))
+
 		return get_optimizer(
 			model        = model,
 			query        = config['optimizer/name'],
 			lr           = config['optimizer/lr'],
 			weight_decay = config['optimizer/decay'],
-			momentum     = config['optimizer/momentum'],
+			momentum     = momentum,
 		)
 
 	raise ValueError()
@@ -139,7 +152,7 @@ def get_model_trainers (model : Module, config : Dict[str, Any], epochs : int) -
 		'scheduler' : scheduler
 	}
 
-def get_criterion (query : str, reduction : str = 'mean', weights : Union[numpy.ndarray, Tensor] = None, **kwargs) -> WeightedCriterion :
+def get_criterion (query : str, reduction : str = 'mean', weights : Union[numpy.ndarray, Tensor] = None, **kwargs) -> Metric_Weighted :
 	"""
 	Doc
 	"""
@@ -153,13 +166,13 @@ def get_criterion (query : str, reduction : str = 'mean', weights : Union[numpy.
 	elif query == 'mae'        : callable_criterion = L1Loss
 	elif query == 'smooth-mae' : callable_criterion = SmoothL1Loss
 	elif query == 'huber'      : callable_criterion = HuberLoss
-	elif query == 'r2'         : callable_criterion = R2Score
+	elif query == 'r2'         : callable_criterion = Metric_R2
 	elif query == 'entropy'    : callable_criterion = CrossEntropyLoss
 	elif query == 'nll'        : callable_criterion = NLLLoss
-	elif query == 'accuracy'   : callable_criterion = Accuracy
+	elif query == 'accuracy'   : callable_criterion = Metric_Accuracy
 	else : raise ValueError()
 
-	return WeightedCriterion(
+	return Metric_Weighted(
 		criterion = callable_criterion,
 		reduction = reduction,
 		weights   = weights,

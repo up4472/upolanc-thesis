@@ -1,17 +1,17 @@
-from torch    import Tensor
-from torch.nn import Module
+from torch        import Tensor
+from torch.nn     import Module
+from torchmetrics import R2Score
 
 import torch
-import torchmetrics
 
-class R2Score (Module) :
+class Metric_R2 (Module) :
 
 	def __init__ (self, reduction : str = 'mean', output_size : int = 1, force_finite : bool = False, **kwargs) -> None : # noqa : unused argument **kwargs
 		"""
 		Doc
 		"""
 
-		super(R2Score, self).__init__()
+		super(Metric_R2, self).__init__()
 
 		self.reduction    = reduction.lower()
 		self.multioutput  = None
@@ -21,7 +21,7 @@ class R2Score (Module) :
 		elif self.reduction == 'mean' : self.multioutput = 'uniform_average'
 		else : raise ValueError()
 
-		self.r2 = torchmetrics.R2Score(
+		self.module = R2Score(
 			num_outputs = output_size,
 			adjusted    = 0,
 			multioutput = self.multioutput
@@ -32,15 +32,11 @@ class R2Score (Module) :
 		Doc
 		"""
 
-		# [b, 1   ] -> [b,     ] :: num outputs = 1 :: flatten
-		# [b,     ] -> [b,     ] :: num outputs = 1 :: same
-		# [b, 1, 1] -> [b, 1, 1] :: num outputs = 1 :: same
-
 		if inputs.dim() == 2 and inputs.size(dim = 0) == 1 or inputs.size(dim = 1) == 1 :
 			inputs = torch.flatten(inputs)
 			labels = torch.flatten(labels)
 
-		score = self.r2(inputs, labels)
+		score = self.module(inputs, labels)
 
 		if self.force_finite :
 			score = torch.nan_to_num(

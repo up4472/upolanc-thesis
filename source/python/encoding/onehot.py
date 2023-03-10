@@ -6,7 +6,7 @@ from typing import Union
 
 import numpy
 
-def generate_mapping (nucleotide_order : Union[str, List[str]] = None, ambiguous_value : str = 'zero') -> Dict[str, numpy.ndarray] :
+def generate_onehot_mapping (nucleotide_order : Union[str, List[str]] = None, ambiguous_value : str = 'zero') -> Dict[str, numpy.ndarray] :
 	"""
 	Doc
 	"""
@@ -39,7 +39,7 @@ def generate_mapping (nucleotide_order : Union[str, List[str]] = None, ambiguous
 
 	return data
 
-def one_hot_encode (sequence : str, mapping : Dict[str, numpy.ndarray] = None, default : numpy.ndarray = None, transpose : bool = False) -> numpy.ndarray :
+def onehot_encode (sequence : str, mapping : Dict[str, numpy.ndarray] = None, default : numpy.ndarray = None, transpose : bool = False) -> numpy.ndarray :
 	"""
 	Doc
 	"""

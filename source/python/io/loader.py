@@ -171,7 +171,7 @@ def load_labels (filename : str, to_numpy : bool = False) -> Dict[str, Dict[str,
 
 	return data
 
-def load_feature_targets (group : str, directory : str, filename : str, explode : bool = False, filters : Dict[str, Any] = None) -> Tuple[DataFrame, Dict, List] :
+def load_feature_targets (group : str, directory : str, filename : str, explode : bool = False, filters : Dict[str, Any] = None, mode : str = 'regression') -> Tuple[DataFrame, Dict, List] :
 	"""
 	Doc
 	"""
@@ -248,6 +248,13 @@ def load_feature_targets (group : str, directory : str, filename : str, explode 
 		features  = DataFrame.from_dict({k : [v] for k, v in features_ext.items()}, orient = 'index', columns = ['Feature'])
 		dataframe = dataframe.merge(features, left_index = True, right_index = True)
 
-	target_value = dataframe['TPM_Value'].to_dict()
+	if mode == 'regression' :
+		target_value = dataframe['TPM_Value'].to_dict()
+		target_value = {k : numpy.array(v, dtype = numpy.float64) for k, v in target_value.items()}
+	elif mode == 'classification' :
+		target_value = dataframe['TPM_Label'].to_dict()
+		target_value = {k : numpy.array(v, dtype = numpy.int64) for k, v in target_value.items()}
+	else :
+		raise ValueError()
 
 	return dataframe, target_value, target_order

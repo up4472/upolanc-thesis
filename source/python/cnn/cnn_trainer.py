@@ -45,11 +45,11 @@ def train_epoch (model : Module, params : Dict[str, Any], desc : str = 'Progress
 	model.train(mode = True)
 
 	dataloader = params['train_dataloader']
-	optimizer = params['optimizer']
-	criterion = params['criterion']
-	metrics = params['metrics']
-	device = params['device']
-	verbose = params['verbose']
+	optimizer  = params['optimizer']
+	criterion  = params['criterion']
+	metrics    = params['metrics']
+	device     = params['device']
+	verbose    = params['verbose']
 
 	batch_loss = 0.0
 	batch_ids = list()
@@ -113,11 +113,11 @@ def evaluate_epoch (model : Module, params : Dict[str, Any], desc : str = 'Progr
 		dataloader = params['test_dataloader']
 
 	criterion = params['criterion']
-	metrics = params['metrics']
-	device = params['device']
-	verbose = params['verbose']
+	metrics   = params['metrics']
+	device    = params['device']
+	verbose   = params['verbose']
 
-	batch_loss = 0.0
+	batch_loss  = 0.0
 	batch_keys  = list()
 	batch_ypred = list()
 	batch_ytrue = list()
@@ -173,10 +173,10 @@ def evaluate_epoch (model : Module, params : Dict[str, Any], desc : str = 'Progr
 				desc = f'{desc} | Loss = {print_loss: 8.5f}'
 			)
 
-		batch_report['keys'] = numpy.array(batch_keys)
+		batch_report['keys']  = numpy.array(batch_keys)
 		batch_report['ypred'] = numpy.array(batch_ypred)
 		batch_report['ytrue'] = numpy.array(batch_ytrue)
-		batch_report['loss'] = batch_loss / len(dataloader)
+		batch_report['loss']  = batch_loss / len(dataloader)
 
 	return batch_report
 
@@ -188,9 +188,9 @@ def train (model : Module, params : Dict[str, Any], regression : bool = False) -
 	scheduler = params['scheduler']
 	optimizer = params['optimizer']
 	criterion = params['criterion']
-	metrics = params['metrics']
-	device = params['device']
-	epochs = params['epochs']
+	metrics   = params['metrics']
+	device    = params['device']
+	epochs    = params['epochs']
 
 	model = model.to(device)
 
@@ -200,10 +200,10 @@ def train (model : Module, params : Dict[str, Any], regression : bool = False) -
 	report = dict()
 
 	for mode in ['train', 'valid'] :
-		report[mode] = dict()
+		report[mode]           = dict()
 		report[mode]['metric'] = dict()
-		report[mode]['loss'] = list()
-		report[mode]['lr'] = list()
+		report[mode]['loss']   = list()
+		report[mode]['lr']     = list()
 
 		for metric in metrics.keys() :
 			report[mode]['metric'][metric] = list()

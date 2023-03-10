@@ -1,12 +1,45 @@
 import multiprocessing
 import numpy
 import os
+import pandas
 import platform
 import psutil
 import random
 import re
+import seaborn
 import subprocess
 import torch
+
+def set_numpy_format () -> None :
+	"""
+	Doc
+	"""
+
+	numpy.set_printoptions(
+		suppress  = True,
+		edgeitems = 25,
+		linewidth = 150,
+		formatter = {
+			'float_kind' : '{: 7,.3f}'.format
+		}
+	)
+
+def set_pandas_format () -> None :
+	"""
+	Doc
+	"""
+
+	pandas.set_option(
+		'display.float_format',
+		'{:.3f}'.format
+	)
+
+def set_plot_theme () -> None :
+	"""
+	Doc
+	"""
+
+	seaborn.set_theme()
 
 def lock_random (seed : int = None, generate : bool = False) -> int :
 	"""

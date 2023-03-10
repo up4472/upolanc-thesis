@@ -5,15 +5,15 @@ from typing           import List
 import matplotlib
 import numpy
 
-from source.python.cnn.dataset import to_dataloader
-from source.python.cnn.dataset import to_dataset
+from source.python.dataset.dataset_utils import to_dataloader
+from source.python.dataset.dataset_utils import to_gene_dataset
 
 def create_dataloader (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], expand_dims : int = None) -> DataLoader :
 	"""
 	Doc
 	"""
 
-	dataset = to_dataset(
+	dataset = to_gene_dataset(
 		sequences   = sequences,
 		features    = features,
 		targets     = targets,

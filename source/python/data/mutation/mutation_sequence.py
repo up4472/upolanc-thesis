@@ -7,11 +7,11 @@ from tqdm.auto import tqdm
 
 import itertools
 
-from source.python.data.feature.feature import codon_frequency
-from source.python.data.synth._mutation import mutate_exponential
-from source.python.data.synth._mutation import mutate_random
+from source.python.data.feature.feature_methods  import codon_frequency
+from source.python.data.mutation.mutation_method import mutate_exponential
+from source.python.data.mutation.mutation_method import mutate_random
 
-def mutate_sequences (sequences : Dict[str, Dict], rates : List[float], params : Dict[str, float], variants : int, method : str) -> Tuple[Dict, Dict] :
+def generate_multi (sequences : Dict[str, Dict], rates : List[float], params : Dict[str, float], variants : int, method : str) -> Tuple[Dict, Dict] :
 	"""
 	Doc
 	"""
@@ -48,7 +48,7 @@ def mutate_sequences (sequences : Dict[str, Dict], rates : List[float], params :
 
 			for region in regions :
 				m_sequences[key][region] = {
-					'seq' : mutate_sequence(
+					'seq' : generate_single(
 						sequence       = sequences[transcript][region]['seq'],
 						mutation_rates = params,
 						method         = method
@@ -67,7 +67,7 @@ def mutate_sequences (sequences : Dict[str, Dict], rates : List[float], params :
 
 	return m_sequences, m_features
 
-def mutate_sequence (sequence : str, mutation_rates : Dict[str, float], method : str = 'exponential') -> Tuple[str, List] :
+def generate_single (sequence : str, mutation_rates : Dict[str, float], method : str = 'exponential') -> Tuple[str, List] :
 	"""
 	Doc
 	"""

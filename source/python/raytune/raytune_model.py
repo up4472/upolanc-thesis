@@ -15,18 +15,22 @@ import torch
 from source.python.cnn.models  import Washburn2019r
 from source.python.cnn.models  import Zrimec2020r
 
-from source.python.cnn._common import evaluate_epoch
-from source.python.cnn._common import train_epoch
-from source.python.cnn.core    import lock_random
-from source.python.cnn.dataset import generate_group_shuffle_split
-from source.python.cnn.dataset import to_dataloaders
-from source.python.cnn.model   import get_criterion
-from source.python.cnn.model   import get_model_trainers
-from source.python.cnn.model   import he_uniform_weight
-from source.python.cnn.model   import zero_bias
-from source.python.io.loader   import load_csv
+from source.python.cnn.cnn_trainer       import evaluate_epoch
+from source.python.cnn.cnn_trainer       import train_epoch
+from source.python.runtime               import lock_random
+from source.python.dataset.dataset_split import generate_group_shuffle_split
+from source.python.dataset.dataset_utils import to_dataloaders
+from source.python.cnn.cnn_model         import get_criterion
+from source.python.cnn.cnn_model         import get_model_trainers
+from source.python.cnn.cnn_model         import he_uniform_weight
+from source.python.cnn.cnn_model         import zero_bias
+from source.python.io.loader             import load_csv
 
-def get_tune_model (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> Module :
+def get_model (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> Module :
+	"""
+	Doc
+	"""
+
 	if core_config['model/type'] == 'zrimec2020r' :
 		model = Zrimec2020r(params = tune_config | {
 			'model/input/channels' : core_config['model/input/channels'],
@@ -55,7 +59,7 @@ def get_tune_model (tune_config : Dict[str, Any], core_config : Dict[str, Any]) 
 
 	return model
 
-def regression_tune (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
+def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 	"""
 	Doc
 	"""
@@ -81,7 +85,7 @@ def regression_tune (tune_config : Dict[str, Any], core_config : Dict[str, Any])
 	valid_dataloader = dataloaders[1]
 	test_dataloader  = dataloaders[2]
 
-	model = get_tune_model(
+	model = get_model(
 		tune_config = tune_config,
 		core_config = core_config
 	)
@@ -175,7 +179,7 @@ def plot_trials (dataframe : DataFrame, y : str, ylabel : str, ascending : bool,
 			y     = y,
 			ax    = ax,
 			alpha = alpha,
-			label = progress['trial_id'].iloc[0]
+			label = str(progress['trial_id'].iloc[0])
 		)
 
 		max_trials = max_trials - 1
@@ -237,7 +241,7 @@ def plot_trial (dataframe : DataFrame, y : str, ylabel : str, alpha : float = 0.
 		ax    = ax,
 		alpha = alpha,
 		color = color,
-		label = dataframe['trial_id'].iloc[0]
+		label = str(dataframe['trial_id'].iloc[0])
 	)
 
 	ycomp = None
@@ -253,7 +257,7 @@ def plot_trial (dataframe : DataFrame, y : str, ylabel : str, alpha : float = 0.
 			ax     = ax,
 			alpha  = 0.5,
 			color  = 'k',
-			label  = dataframe['trial_id'].iloc[0] + '-' + ycomp.split('_')[0]
+			label  = str(dataframe['trial_id'].iloc[0]) + '-' + ycomp.split('_')[0]
 		)
 
 	ax.set_xlabel('Epoch')

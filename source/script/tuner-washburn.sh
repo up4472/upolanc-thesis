@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name=cnn-tuner-washburn
-#SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/tuner-%j.out
-#SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/tuner-%j.err
+#SBATCH --job-name=cnn-raytune-washburn
+#SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/raytune-%j.out
+#SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/raytune-%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --partition=gpu
@@ -36,5 +36,5 @@ python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp06-tuner.py \
 --model_name washburn2019 \
 --model_epochs 25 \
 --tuner_concurrent 5 \
---tuner_trials 250 \
+--tuner_trials 500 \
 --tuner_grace 10

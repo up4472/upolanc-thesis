@@ -1,11 +1,11 @@
-from typing import Any
-
-from anndata import AnnData
-from pandas  import DataFrame
-from typing  import Callable
-from typing  import Dict
-from typing  import List
-from typing  import Tuple
+from anndata               import AnnData
+from pandas                import DataFrame
+from sklearn.preprocessing import LabelBinarizer
+from typing                import Any
+from typing                import Callable
+from typing                import Dict
+from typing                import List
+from typing                import Tuple
 
 import itertools
 import math
@@ -13,9 +13,9 @@ import matplotlib
 import numpy
 import seaborn
 
-from source.python.data.feature._processing import boxcox1p_inv
-from source.python.data.feature._processing import log1p_inv
-from source.python.data.feature._processing import normalize_inv
+from source.python.data.feature.feature_processing import boxcox1p_inv
+from source.python.data.feature.feature_processing import log1p_inv
+from source.python.data.feature.feature_processing import normalize_inv
 
 def merge_dictionary (source : Dict, target : Dict) -> Dict :
 	"""
@@ -308,3 +308,45 @@ def distribution_histplot (data : Dict[str, Dict], groupby : str, discrete : boo
 				dpi    = 120,
 				format = 'png'
 			)
+
+def create_mapping (values : Dict[str, Any], labels : Dict[str, Any], order : Dict[str, Any]) -> Tuple[Dict, Dict, Dict] :
+	"""
+	Doc
+	"""
+
+	features_binarizer = dict()
+	features_grouped   = dict()
+	features_exploded  = dict()
+
+	transcripts = list(values.keys())
+	functions   = ['mean', 'max']
+	groups      = ['tissue', 'age', 'group', 'perturbation', 'global']
+
+	for group, function in itertools.product(groups, functions) :
+		group_order = order[group]
+
+		dataframe = DataFrame()
+		binarizer = LabelBinarizer()
+		binarizer = binarizer.fit(group_order)
+
+		key = f'{group}-{function}'
+		group = group.capitalize()
+
+		dataframe['ID']         = transcripts
+		dataframe['Transcript'] = transcripts
+		dataframe['TPM_Value']  = [values[x][key] for x in transcripts]
+		dataframe['TPM_Label']  = [labels[x][key] for x in transcripts]
+		dataframe[group]        = [group_order    for _ in transcripts]
+
+		features_grouped[key] = dataframe
+
+		dataframe = dataframe.copy().explode(['TPM_Value', 'TPM_Label', group])
+		dataframe = dataframe.reset_index(drop = True)
+
+		dataframe['TPM_Label'] = dataframe['TPM_Label'].astype('category')
+		dataframe[group] = dataframe[group].astype('category')
+
+		features_binarizer[key] = binarizer
+		features_exploded[key] = dataframe
+
+	return features_binarizer, features_grouped, features_exploded

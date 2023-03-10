@@ -21,18 +21,20 @@ class Zrimec2020c (Module) :
 
 		super(Zrimec2020c, self).__init__()
 
-		params = update_params(params = params)
-
-		self.backbone = Zrimec2020(
+		self.params = update_params(
 			params = params
 		)
 
-		self.heads = ModuleList([
+		self.backbone = Zrimec2020(
+			params = self.params
+		)
+
+		self.fc3 = ModuleList([
 			Linear(
-				in_features  = params['model/fc2/features'],
-				out_features = params['model/fc3/features']
+				in_features = self.params['model/fc2/features'],
+				out_features = self.params['model/fc3/features']
 			)
-			for _ in range(params['model/fc3/heads'])
+			for _ in range(self.params['model/fc3/heads'])
 		])
 
 	@property
@@ -59,7 +61,7 @@ class Zrimec2020c (Module) :
 		x = self.backbone(x, v)
 
 		x = torch.stack([
-			head(x) for head in self.heads
+			fc(x) for fc in self.fc3
 		], dim = 2)
 
 		return x

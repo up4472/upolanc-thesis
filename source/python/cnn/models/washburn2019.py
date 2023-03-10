@@ -148,86 +148,88 @@ class Washburn2019 (Module) :
 
 		super(Washburn2019, self).__init__()
 
-		params = update_params(params = params)
+		self.params = update_params(
+			params = params
+		)
 
 		self.conv1 = Conv2d(
-			in_channels  = params['model/input/channels'],
-			out_channels = params['model/conv1/filters'],
-			kernel_size  = params['model/conv1/kernel'],
-			padding      = params['model/conv1/padding'],
-			dilation     = params['model/conv1/dilation']
+			in_channels  = self.params['model/input/channels'],
+			out_channels = self.params['model/conv1/filters'],
+			kernel_size  = self.params['model/conv1/kernel'],
+			padding      = self.params['model/conv1/padding'],
+			dilation     = self.params['model/conv1/dilation']
 		)
 
 		self.conv2 = Conv2d(
-			in_channels  = params['model/conv1/filters'],
-			out_channels = params['model/conv2/filters'],
-			kernel_size  = params['model/conv2/kernel'],
-			padding      = params['model/conv2/padding'],
-			dilation     = params['model/conv2/dilation']
+			in_channels  = self.params['model/conv1/filters'],
+			out_channels = self.params['model/conv2/filters'],
+			kernel_size  = self.params['model/conv2/kernel'],
+			padding      = self.params['model/conv2/padding'],
+			dilation     = self.params['model/conv2/dilation']
 		)
 
 		self.conv3 = Conv2d(
-			in_channels  = params['model/conv2/filters'],
-			out_channels = params['model/conv3/filters'],
-			kernel_size  = params['model/conv3/kernel'],
-			padding      = params['model/conv3/padding'],
-			dilation     = params['model/conv3/dilation']
+			in_channels  = self.params['model/conv2/filters'],
+			out_channels = self.params['model/conv3/filters'],
+			kernel_size  = self.params['model/conv3/kernel'],
+			padding      = self.params['model/conv3/padding'],
+			dilation     = self.params['model/conv3/dilation']
 		)
 
 		self.conv4 = Conv2d(
-			in_channels  = params['model/conv3/filters'],
-			out_channels = params['model/conv4/filters'],
-			kernel_size  = params['model/conv4/kernel'],
-			padding      = params['model/conv4/padding'],
-			dilation     = params['model/conv4/dilation']
+			in_channels  = self.params['model/conv3/filters'],
+			out_channels = self.params['model/conv4/filters'],
+			kernel_size  = self.params['model/conv4/kernel'],
+			padding      = self.params['model/conv4/padding'],
+			dilation     = self.params['model/conv4/dilation']
 		)
 
 		self.conv5 = Conv2d(
-			in_channels  = params['model/conv4/filters'],
-			out_channels = params['model/conv5/filters'],
-			kernel_size  = params['model/conv5/kernel'],
-			padding      = params['model/conv5/padding'],
-			dilation     = params['model/conv5/dilation']
+			in_channels  = self.params['model/conv4/filters'],
+			out_channels = self.params['model/conv5/filters'],
+			kernel_size  = self.params['model/conv5/kernel'],
+			padding      = self.params['model/conv5/padding'],
+			dilation     = self.params['model/conv5/dilation']
 		)
 
 		self.conv6 = Conv2d(
-			in_channels  = params['model/conv5/filters'],
-			out_channels = params['model/conv6/filters'],
-			kernel_size  = params['model/conv6/kernel'],
-			padding      = params['model/conv6/padding'],
-			dilation     = params['model/conv6/dilation']
+			in_channels  = self.params['model/conv5/filters'],
+			out_channels = self.params['model/conv6/filters'],
+			kernel_size  = self.params['model/conv6/kernel'],
+			padding      = self.params['model/conv6/padding'],
+			dilation     = self.params['model/conv6/dilation']
 		)
 
-		self.bn1 = BatchNorm2d(num_features = params['model/conv1/filters'])
-		self.bn2 = BatchNorm2d(num_features = params['model/conv2/filters'])
-		self.bn3 = BatchNorm2d(num_features = params['model/conv3/filters'])
-		self.bn4 = BatchNorm2d(num_features = params['model/conv4/filters'])
-		self.bn5 = BatchNorm2d(num_features = params['model/conv5/filters'])
-		self.bn6 = BatchNorm2d(num_features = params['model/conv6/filters'])
+		self.bn1 = BatchNorm2d(num_features = self.params['model/conv1/filters'])
+		self.bn2 = BatchNorm2d(num_features = self.params['model/conv2/filters'])
+		self.bn3 = BatchNorm2d(num_features = self.params['model/conv3/filters'])
+		self.bn4 = BatchNorm2d(num_features = self.params['model/conv4/filters'])
+		self.bn5 = BatchNorm2d(num_features = self.params['model/conv5/filters'])
+		self.bn6 = BatchNorm2d(num_features = self.params['model/conv6/filters'])
 
 		self.maxpool1 = MaxPool2d(
-			kernel_size = params['model/maxpool1/kernel'],
-			stride      = params['model/maxpool1/stride'],
-			padding     = params['model/maxpool1/padding']
+			kernel_size = self.params['model/maxpool1/kernel'],
+			stride      = self.params['model/maxpool1/stride'],
+			padding     = self.params['model/maxpool1/padding']
 		)
 
 		self.maxpool2 = MaxPool2d(
-			kernel_size = params['model/maxpool2/kernel'],
-			stride      = params['model/maxpool2/stride'],
-			padding     = params['model/maxpool2/padding']
+			kernel_size = self.params['model/maxpool2/kernel'],
+			stride      = self.params['model/maxpool2/stride'],
+			padding     = self.params['model/maxpool2/padding']
 		)
 
 		self.maxpool3 = MaxPool2d(
-			kernel_size = params['model/maxpool3/kernel'],
-			stride      = params['model/maxpool3/stride'],
-			padding     = params['model/maxpool3/padding']
+			kernel_size = self.params['model/maxpool3/kernel'],
+			stride      = self.params['model/maxpool3/stride'],
+			padding     = self.params['model/maxpool3/padding']
 		)
 
 		self.flatten = Flatten()
 
 		size = (
-			params['model/input/height'],
-			params['model/input/width']
+			self.params['model/input/height'],
+			self.params['model/input/width']
 		)
 
 		size = compute2d(size = size, module = self.conv1)
@@ -240,27 +242,27 @@ class Washburn2019 (Module) :
 		size = compute2d(size = size, module = self.conv6)
 		size = compute2d(size = size, module = self.maxpool3)
 
-		size = size[0] * size[1]                     # flatten (dims)
-		size = size * params['model/conv6/filters']  # flatten (channels)
-		size = size + params['model/input/features'] # injects (hstack)
+		size = size[0] * size[1]                          # flatten (dims)
+		size = size * self.params['model/conv6/filters']  # flatten (channels)
+		size = size + self.params['model/input/features'] # injects (hstack)
 
 		self.fc1 = Linear(
 			in_features  = size,
-			out_features = params['model/fc1/features']
+			out_features = self.params['model/fc1/features']
 		)
 
 		self.fc2 = Linear(
-			in_features  = params['model/fc1/features'],
-			out_features = params['model/fc2/features']
+			in_features  = self.params['model/fc1/features'],
+			out_features = self.params['model/fc2/features']
 		)
 
 		self.dropout = Dropout(
-			p       = params['model/dropout'],
+			p       = self.params['model/dropout'],
 			inplace = False
 		)
 
 		self.relu = LeakyReLU(
-			negative_slope = params['model/leakyrelu'],
+			negative_slope = self.params['model/leakyrelu'],
 			inplace        = False
 		)
 
@@ -320,6 +322,7 @@ class Washburn2019 (Module) :
 
 		x = self.fc2(x)
 		x = self.relu(x)
+		x = self.dropout(x)
 
 		return x
 

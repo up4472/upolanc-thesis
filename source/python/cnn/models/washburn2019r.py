@@ -19,15 +19,17 @@ class Washburn2019r (Module) :
 
 		super(Washburn2019r, self).__init__()
 
-		params = update_params(params = params)
-
-		self.backbone = Washburn2019(
+		self.params = update_params(
 			params = params
 		)
 
+		self.backbone = Washburn2019(
+			params = self.params
+		)
+
 		self.fc3 = Linear(
-			in_features  = params['model/fc2/features'],
-			out_features = params['model/fc3/features']
+			in_features  = self.params['model/fc2/features'],
+			out_features = self.params['model/fc3/features']
 		)
 
 	@property

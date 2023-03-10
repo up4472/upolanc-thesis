@@ -10,11 +10,11 @@ import matplotlib
 import numpy
 import seaborn
 
-from source.python.data.feature._processing import boxcox1p
-from source.python.data.feature._processing import log1p
-from source.python.data.feature._processing import normalize
-from source.python.data.feature._processing import pca
-from source.python.data.feature._processing import standardize
+from source.python.data.feature.feature_processing import boxcox1p
+from source.python.data.feature.feature_processing import log1p
+from source.python.data.feature.feature_processing import normalize
+from source.python.data.feature.feature_processing import pca
+from source.python.data.feature.feature_processing import standardize
 
 def create_anndata (mat : DataFrame, obs : DataFrame) -> AnnData :
 	"""
@@ -307,32 +307,32 @@ def tpm_histplot (data : AnnData, layer : str, function : FunctionType, filters 
 			format = 'png'
 		)
 
-def gene_boxplot (data : AnnData, groupby : str, layer : str = None, gene : Union[int, str] = 0, filename : str = None) -> None :
+def gene_boxplot (data : AnnData, groupby : str, layer : str = None, transcript : Union[int, str] = 0, filename : str = None) -> None :
 	"""
 	Doc
 	"""
 
 	genes = data.var.index.to_list()
 
-	if isinstance(gene, int) :
-		cols = gene
-		gene = data.var.index.to_list()[gene]
+	if isinstance(transcript, int) :
+		columns    = transcript
+		transcript = data.var.index.to_list()[transcript]
 	else :
-		cols = genes.index(gene)
+		columns = genes.index(transcript)
 
 	if layer is None :
-		mat = data.X[:, cols]
+		mat = data.X[:, columns]
 	else :
-		mat = data.layers[layer][:, cols]
+		mat = data.layers[layer][:, columns]
 
-	dataframe = DataFrame(mat, columns = [gene])
+	dataframe = DataFrame(mat, columns = [transcript])
 	dataframe.insert(0, groupby, data.obs[groupby].to_list())
 
 	_, axis = matplotlib.pyplot.subplots(figsize = (16, 10))
 
-	seaborn.boxplot(data = dataframe, x = gene, y = groupby, ax = axis)
+	seaborn.boxplot(data = dataframe, x = transcript, y = groupby, ax = axis)
 
-	axis.set_title(gene)
+	axis.set_title(transcript)
 	axis.set_ylabel('')
 	axis.set_xlabel(layer)
 

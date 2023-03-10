@@ -1,5 +1,4 @@
 from anndata import AnnData
-from os      import PathLike
 from pandas  import DataFrame
 from pathlib import Path
 from typing  import Any
@@ -36,7 +35,7 @@ def write_h5ad (data : AnnData, filename : str) -> None :
 
 	data.write_h5ad(filename = Path(filename))
 
-def write_json (data : Dict[Any, Any], filename : PathLike) -> None :
+def write_json (data : Dict[Any, Any], filename : str) -> None :
 	"""
 	Doc
 	"""

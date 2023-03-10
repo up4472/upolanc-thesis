@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name=cnn-tuner-zrimec
-#SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/tuner-%j.out
-#SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/tuner-%j.err
+#SBATCH --job-name=cnn-raytune-zrimec
+#SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/raytune-%j.out
+#SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/raytune-%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --partition=gpu

@@ -5,15 +5,17 @@ from typing import Union
 import numpy
 import scipy
 
-def boxcox1p (x : numpy.ndarray, eps : float = 1e-7) -> Tuple[numpy.ndarray, float] :
+def boxcox1p (x : numpy.ndarray, eps : float = 1e-7, lmbda : float = None) -> Tuple[numpy.ndarray, float] :
 	"""
 	Doc
 	"""
 
-	array = x.copy().flatten()
-	array = array + eps
+	if lmbda is None :
+		array = x.copy().flatten()
+		array = array + eps
 
-	_, lmbda = scipy.stats.boxcox(array, lmbda = None)
+		_, lmbda = scipy.stats.boxcox(array, lmbda = None)
+
 	x = scipy.special.boxcox1p(x, lmbda)
 
 	return x, lmbda

@@ -114,63 +114,59 @@ class Zrimec2020 (Module) :
 
 		super(Zrimec2020, self).__init__()
 
-		params = update_params(
-			params = params
-		)
-
 		self.params = update_params(
 			params = params
 		)
 
 		self.conv1 = Conv1d(
-			in_channels  = params['model/input/height'],
-			out_channels = params['model/conv1/filters'],
-			kernel_size  = params['model/conv1/kernel'],
-			padding      = params['model/conv1/padding'],
-			dilation     = params['model/conv1/dilation']
+			in_channels  = self.params['model/input/height'],
+			out_channels = self.params['model/conv1/filters'],
+			kernel_size  = self.params['model/conv1/kernel'],
+			padding      = self.params['model/conv1/padding'],
+			dilation     = self.params['model/conv1/dilation']
 		)
 
 		self.conv2 = Conv1d(
-			in_channels  = params['model/conv1/filters'],
-			out_channels = params['model/conv2/filters'],
-			kernel_size  = params['model/conv2/kernel'],
-			padding      = params['model/conv2/padding'],
-			dilation     = params['model/conv2/dilation']
+			in_channels  = self.params['model/conv1/filters'],
+			out_channels = self.params['model/conv2/filters'],
+			kernel_size  = self.params['model/conv2/kernel'],
+			padding      = self.params['model/conv2/padding'],
+			dilation     = self.params['model/conv2/dilation']
 		)
 
 		self.conv3 = Conv1d(
-			in_channels  = params['model/conv2/filters'],
-			out_channels = params['model/conv3/filters'],
-			kernel_size  = params['model/conv3/kernel'],
-			padding      = params['model/conv3/padding'],
-			dilation     = params['model/conv3/dilation']
+			in_channels  = self.params['model/conv2/filters'],
+			out_channels = self.params['model/conv3/filters'],
+			kernel_size  = self.params['model/conv3/kernel'],
+			padding      = self.params['model/conv3/padding'],
+			dilation     = self.params['model/conv3/dilation']
 		)
 
-		self.bn1 = BatchNorm1d(num_features = params['model/conv1/filters'])
-		self.bn2 = BatchNorm1d(num_features = params['model/conv2/filters'])
-		self.bn3 = BatchNorm1d(num_features = params['model/conv3/filters'])
+		self.bn1 = BatchNorm1d(num_features = self.params['model/conv1/filters'])
+		self.bn2 = BatchNorm1d(num_features = self.params['model/conv2/filters'])
+		self.bn3 = BatchNorm1d(num_features = self.params['model/conv3/filters'])
 
 		self.maxpool1 = MaxPool1d(
-			kernel_size = params['model/maxpool1/kernel'],
-			stride      = params['model/maxpool1/stride'],
-			padding     = params['model/maxpool1/padding']
+			kernel_size = self.params['model/maxpool1/kernel'],
+			stride      = self.params['model/maxpool1/stride'],
+			padding     = self.params['model/maxpool1/padding']
 		)
 
 		self.maxpool2 = MaxPool1d(
-			kernel_size = params['model/maxpool2/kernel'],
-			stride      = params['model/maxpool2/stride'],
-			padding     = params['model/maxpool2/padding']
+			kernel_size = self.params['model/maxpool2/kernel'],
+			stride      = self.params['model/maxpool2/stride'],
+			padding     = self.params['model/maxpool2/padding']
 		)
 
 		self.maxpool3 = MaxPool1d(
-			kernel_size = params['model/maxpool3/kernel'],
-			stride      = params['model/maxpool3/stride'],
-			padding     = params['model/maxpool3/padding']
+			kernel_size = self.params['model/maxpool3/kernel'],
+			stride      = self.params['model/maxpool3/stride'],
+			padding     = self.params['model/maxpool3/padding']
 		)
 
 		self.flatten = Flatten()
 
-		size = params['model/input/width']
+		size = self.params['model/input/width']
 		size = compute1d(size = size, module = self.conv1)
 		size = compute1d(size = size, module = self.maxpool1)
 		size = compute1d(size = size, module = self.conv2)
@@ -178,26 +174,26 @@ class Zrimec2020 (Module) :
 		size = compute1d(size = size, module = self.conv3)
 		size = compute1d(size = size, module = self.maxpool3)
 
-		size = size * params['model/conv3/filters']  # flatten (channels)
-		size = size + params['model/input/features'] # injects (hstack)
+		size = size * self.params['model/conv3/filters']  # flatten (channels)
+		size = size + self.params['model/input/features'] # injects (hstack)
 
 		self.fc1 = Linear(
 			in_features  = size,
-			out_features = params['model/fc1/features']
+			out_features = self.params['model/fc1/features']
 		)
 
 		self.fc2 = Linear(
-			in_features  = params['model/fc1/features'],
-			out_features = params['model/fc2/features']
+			in_features  = self.params['model/fc1/features'],
+			out_features = self.params['model/fc2/features']
 		)
 
 		self.dropout = Dropout(
-			p       = params['model/dropout'],
+			p       = self.params['model/dropout'],
 			inplace = False
 		)
 
 		self.relu = LeakyReLU(
-			negative_slope = params['model/leakyrelu'],
+			negative_slope = self.params['model/leakyrelu'],
 			inplace        = False
 		)
 

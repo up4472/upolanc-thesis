@@ -3,14 +3,14 @@ from torch.nn import Module
 
 import torch
 
-class Accuracy (Module) :
+class Metric_Accuracy (Module) :
 
 	def __init__ (self, reduction : str = 'mean', **kwargs) -> None : # noqa : unused kwargs
 		"""
 		Doc
 		"""
 
-		super(Accuracy, self).__init__()
+		super(Metric_Accuracy, self).__init__()
 
 		self.reduction = reduction
 

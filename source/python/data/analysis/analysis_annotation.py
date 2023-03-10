@@ -1,12 +1,13 @@
 from pandas import DataFrame
 from typing import List
+from typing import Optional
 
 import matplotlib
 import numpy
 import scipy
 import seaborn
 
-def show (data : DataFrame, query : str = None, query_by : str = None, rows : int = 5, cols : int = 10) -> DataFrame :
+def show (data : DataFrame, query : str = None, query_by : str = None, rows : Optional[int] = 5, cols : int = 10) -> DataFrame :
 	"""
 	Doc
 	"""

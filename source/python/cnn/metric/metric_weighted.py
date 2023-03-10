@@ -4,16 +4,16 @@ from typing   import Callable
 
 import torch
 
-from source.python.cnn.criterions import R2Score
+from source.python.cnn.metric import Metric_R2
 
-class WeightedCriterion (Module) :
+class Metric_Weighted (Module) :
 
 	def __init__ (self, criterion : Callable, reduction : str = 'mean', weights : Tensor = None, **kwargs) -> None :
 		"""
 		Doc
 		"""
 
-		super(WeightedCriterion, self).__init__()
+		super(Metric_Weighted, self).__init__()
 
 		self.vectorized = False
 		self.reduction  = reduction.lower()
@@ -27,7 +27,7 @@ class WeightedCriterion (Module) :
 		else :
 			self.criterion = criterion(reduction = self.reduction, **kwargs)
 
-		if isinstance(self.criterion, R2Score) :
+		if isinstance(self.criterion, Metric_R2) :
 			self.vectorized = True
 
 	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor :

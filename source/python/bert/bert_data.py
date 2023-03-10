@@ -1,20 +1,19 @@
-import os.path
 from typing import Callable
 from typing import Dict
 from typing import List
 
-import textwrap
 import numpy
+import os
 
-from source.python.cnn.dataset import GeneDataset
-from source.python.cnn.dataset import to_dataset
+from source.python.dataset.dataset_classes import GeneDataset
+from source.python.dataset.dataset_utils   import to_gene_dataset
 
-def prepare_dnabert_data (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], generator : Callable, split_size : Dict[str, float], filename : str, write_header : bool = True, remainder : str = 'keep', random_seed : int = None) -> None :
+def create_kmers (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], generator : Callable, split_size : Dict[str, float], filename : str, random_seed : int = None) -> None :
 	"""
 	Doc
 	"""
 
-	dataset = to_dataset(
+	dataset = to_gene_dataset(
 		sequences   = sequences,
 		features    = features,
 		targets     = targets,
@@ -30,22 +29,20 @@ def prepare_dnabert_data (sequences : Dict[str, str], features : Dict[str, List]
 
 	indices = next(generator)
 	names = ['train', 'valid', 'dev']
-	kmers = {3, 4, 5, 6}
 
-	for kmer in kmers :
+	for kmer in range(3, 7) :
 		for index, name in zip(indices, names) :
 			if index is None : continue
 
-			write_dnabert_data(
+			create_kmer(
 				dataset      = dataset,
 				indices      = index,
 				filename     = filename.format(kmer, name),
 				kmer         = kmer,
-				remainder    = remainder,
-				write_header = write_header
+				write_header = True
 			)
 
-def write_dnabert_data (dataset : GeneDataset, indices : numpy.ndarray, filename : str, kmer : int, remainder : str = 'keep', write_header : bool = True) -> None :
+def create_kmer (dataset : GeneDataset, indices : numpy.ndarray, filename : str, kmer : int, write_header : bool = True) -> None :
 	"""
 	Doc
 	"""
@@ -73,22 +70,8 @@ def write_dnabert_data (dataset : GeneDataset, indices : numpy.ndarray, filename
 			feature  = data[2] # noqa unused
 			target   = data[3]
 
-			kmers = list()
-
-			for item in textwrap.wrap(sequence, width = kmer) :
-				if len(item) < kmer :
-					if   remainder == 'keep' :
-						kmers.append(item)
-					elif remainder == 'drop' :
-						continue
-					elif remainder == 'fill' :
-						kmers.append(item.ljust(kmer, '-'))
-					else :
-						continue
-				else :
-					kmers.append(item)
-
-			sequence = list_sep.join(kmers)
+			sequence = [sequence[x: x + kmer] for x in range(len(sequence) + 1 - kmer)]
+			sequence = list_sep.join(sequence)
 
 			if isinstance(target, list) :
 				target = array2str(target)
