@@ -35,6 +35,10 @@ import torch
 from source.python.cnn.metric import Metric_Accuracy
 from source.python.cnn.metric import Metric_R2
 from source.python.cnn.metric import Metric_Weighted
+from source.python.cnn.models import Washburn2019c
+from source.python.cnn.models import Washburn2019r
+from source.python.cnn.models import Zrimec2020c
+from source.python.cnn.models import Zrimec2020r
 
 from source.python.cnn.cnn_trainer import evaluate
 from source.python.cnn.cnn_trainer import train
@@ -137,14 +141,30 @@ def get_model_trainers (model : Module, config : Dict[str, Any], epochs : int) -
 	Doc
 	"""
 
+	if config['criterion/name'] == 'mse' :
+		if isinstance(model, (Zrimec2020c, Washburn2019c)) :
+			config['criterion/name'] = 'entropy'
+
+	elif config['criterion/name'] == 'entropy' :
+		if isinstance(model, (Zrimec2020r, Washburn2019r)) :
+			config['criterion/name'] = 'mse'
+
 	criterion = get_criterion(
 		query     = config['criterion/name'],
 		reduction = config['criterion/reduction'],
 		weights   = None
 	)
 
-	optimizer = _get_optimizer(model = model, config = config)
-	scheduler = _get_scheduler(optimizer = optimizer, config = config, epochs = epochs)
+	optimizer = _get_optimizer(
+		model  = model,
+		config = config
+	)
+
+	scheduler = _get_scheduler(
+		optimizer = optimizer,
+		config    = config,
+		epochs    = epochs
+	)
 
 	return {
 		'criterion' : criterion,

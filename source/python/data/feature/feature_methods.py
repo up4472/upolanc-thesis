@@ -3,7 +3,6 @@ from typing   import List
 from typing   import Union
 
 import itertools
-import numpy
 import textwrap
 
 def gc_content (sequence : str) -> float :
@@ -42,7 +41,7 @@ def gc_count (sequence : str) -> List[float] :
 
 	return [gc1, gc2, gc3]
 
-def codon_frequency (sequence : str, mrna : str, relative : bool = True) -> List[Union[int, float]] :
+def codon_frequency (sequence : str, mrna : str, relative : bool = True, verbose : bool = True) -> List[Union[int, float]] :
 	"""
 	Doc
 	"""
@@ -58,7 +57,7 @@ def codon_frequency (sequence : str, mrna : str, relative : bool = True) -> List
 
 		if codon in codons :
 			codons[codon] = codons[codon] + 1
-		else :
+		elif verbose :
 			print('[{:12s}]'.format(mrna) + f' : unknown codon [{codon}]')
 
 	if relative :

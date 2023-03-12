@@ -1,4 +1,4 @@
-from source.python.cnn.core import get_system_info
+from source.python.runtime import get_system_info
 
 if __name__ == '__main__' :
 	print()

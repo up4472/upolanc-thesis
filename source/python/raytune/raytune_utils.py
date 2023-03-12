@@ -56,7 +56,7 @@ def create_tune_config (config : Dict[str, Any], params : List[Dict[str, Any]] =
 		trial_dirname_creator = lambda x : str(x.trial_id)
 	)
 
-def create_run_config (config : Dict[str, Any], local_dir : str = None, verbosity : int = 1) -> RunConfig :
+def create_run_config (config : Dict[str, Any], local_dir : str = None, verbosity : int = 1, mode : str = 'regression') -> RunConfig :
 	"""
 	Doc
 	"""
@@ -67,11 +67,16 @@ def create_run_config (config : Dict[str, Any], local_dir : str = None, verbosit
 	if config['tuner/reporter/notebook'] :
 		reporter = JupyterNotebookReporter
 
+	if mode == 'regression' :
+		columns = ['valid_loss', 'valid_r2', 'train_loss']
+	else :
+		columns = ['valid_loss', 'train_loss']
+
 	reporter = reporter(
 		max_column_length    = 32,
 		max_progress_rows    = 10,
 		parameter_columns    = ['dataset/batch_size', 'optimizer/name', 'optimizer/lr', 'scheduler/name', 'model/dropout'],
-		metric_columns       = ['valid_loss', 'valid_r2', 'train_loss'],
+		metric_columns       = columns,
 		max_report_frequency = 60 * config['tuner/reporter/freq']
 	)
 

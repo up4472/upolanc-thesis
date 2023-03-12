@@ -140,14 +140,16 @@ def compute_log1p (data : AnnData, store_into : str, layer : str = None, base : 
 	else :
 		matrix = data.layers[layer]
 
-	matrix = matrix.copy()
-	matrix = log1p(x = matrix, base = base)
+	matrix = log1p(
+		x    = matrix.copy(),
+		base = base
+	)
 
 	data.layers[store_into] = matrix
 
 	return data
 
-def compute_boxcox1p (data : AnnData, store_into : str, eps : float = 1e-7, layer : str = None) -> Tuple[AnnData, Dict] :
+def compute_boxcox1p (data : AnnData, store_into : str, eps : float = 1e-7, layer : str = None, lmbda : float = None) -> Tuple[AnnData, Dict] :
 	"""
 	Doc
 	"""
@@ -157,8 +159,11 @@ def compute_boxcox1p (data : AnnData, store_into : str, eps : float = 1e-7, laye
 	else :
 		matrix = data.layers[layer]
 
-	matrix = matrix.copy()
-	matrix, lmbda = boxcox1p(x = matrix, eps = eps)
+	matrix, lmbda = boxcox1p(
+		x     = matrix.copy(),
+		eps   = eps,
+		lmbda = lmbda
+	)
 
 	data.layers[store_into] = matrix
 
@@ -179,8 +184,10 @@ def compute_standardized (data : AnnData, store_into : str, layer : str = None, 
 	else :
 		matrix = data.layers[layer]
 
-	matrix = matrix.copy()
-	matrix, avg_value, std_value = standardize(x = matrix, axis = axis)
+	matrix, avg_value, std_value = standardize(
+		x    = matrix.copy(),
+		axis = axis
+	)
 
 	data.layers[store_into] = matrix
 
@@ -202,8 +209,9 @@ def compute_normalized (data : AnnData, store_into : str, layer : str = None) ->
 	else :
 		matrix = data.layers[layer]
 
-	matrix = matrix.copy()
-	matrix, min_value, max_value = normalize(x = matrix)
+	matrix, min_value, max_value = normalize(
+		x = matrix.copy()
+	)
 
 	data.layers[store_into] = matrix
 
@@ -224,8 +232,10 @@ def compute_pca (data : AnnData, store_into : str, layer : str = None, component
 	else :
 		matrix = data.layers[layer]
 
-	matrix = matrix.copy()
-	matrix = pca(matrix = matrix, components = components)
+	matrix = pca(
+		matrix     = matrix.copy(),
+		components = components
+	)
 
 	data.obsm[store_into] = matrix
 

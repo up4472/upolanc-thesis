@@ -7,9 +7,7 @@ from pyfaidx import FastaRecord
 from typing  import Dict
 from typing  import List
 from typing  import Tuple
-from typing import Union
-
-from tqdm.auto import tqdm
+from typing  import Union
 
 import itertools
 import numpy
@@ -91,7 +89,7 @@ def group_regions_with_merge (dataframe : DataFrame, annotation : DataFrame, reg
 
 	return dataframe
 
-def annotation_to_regions (annotation : DataFrame, lengths : Dict[str, Union[int, List[int]]]) -> DataFrame :
+def annotation_to_regions (annotation : DataFrame, lengths : Dict[str, Union[int, List[int]]], verbose : bool = True) -> DataFrame :
 	"""
 	Doc
 	"""
@@ -179,8 +177,9 @@ def annotation_to_regions (annotation : DataFrame, lengths : Dict[str, Union[int
 		(dataframe['UTR3_Length'] < 10_000)
 	].reset_index(drop = True)
 
-	print('Passed 1st assertion : ' + str(len(dataframe['Transcript'].unique()) == len(dataframe['Transcript'])))
-	print('Passed 2nd assertion : ' + str(not dataframe.isnull().values.any()))
+	if verbose :
+		print('Passed 1st assertion : ' + str(len(dataframe['Transcript'].unique()) == len(dataframe['Transcript'])))
+		print('Passed 2nd assertion : ' + str(not dataframe.isnull().values.any()))
 
 	return dataframe[[
 		'Seq', 'Strand', 'Gene', 'Transcript', 'Start', 'End',
@@ -216,7 +215,7 @@ def extract_region_from_list (chromosome : FastaRecord, region : List[List[int]]
 
 	return ''
 
-def regions_to_features (faidx : Fasta, dataframe : DataFrame, lengths : Dict[str, Union[int, List[int]]]) -> Tuple[DataFrame, DataFrame] :
+def regions_to_features (faidx : Fasta, dataframe : DataFrame, lengths : Dict[str, Union[int, List[int]]], verbose : bool = True) -> Tuple[DataFrame, DataFrame] :
 	"""
 	Doc
 	"""
@@ -235,7 +234,7 @@ def regions_to_features (faidx : Fasta, dataframe : DataFrame, lengths : Dict[st
 	sequences = DataFrame(columns = seqcols)
 	variables = DataFrame(columns = varcols)
 
-	for index, row in tqdm(dataframe.iterrows(), total = len(dataframe)) :
+	for index, row in dataframe.iterrows() :
 		seq = str(row['Seq'])
 
 		if seq.lower() in ['mt'] :
@@ -246,14 +245,18 @@ def regions_to_features (faidx : Fasta, dataframe : DataFrame, lengths : Dict[st
 			end   = int(dataframe.at[index, 'End'])
 
 			if start - LEN_PROM < 0 or end + LEN_TERM > len(faidx[seq]) :
-				print('[{:12s}]'.format(row['Transcript']) + ' : out of bounds at sequence start')
+				if verbose :
+					print('[{:12s}]'.format(row['Transcript']) + ' : out of bounds at sequence start')
+
 				continue
 		else :
 			start = int(dataframe.at[index, 'End'])
 			end   = int(dataframe.at[index, 'Start'])
 
 			if start + LEN_PROM > len(faidx[seq]) or end - LEN_TERM < 0 :
-				print('[{:12s}]'.format(row['Transcript']) + ' : out of bounds at sequence end')
+				if verbose :
+					print('[{:12s}]'.format(row['Transcript']) + ' : out of bounds at sequence end')
+
 				continue
 
 		sequences.at[index, 'Gene'] = row['Gene']
@@ -278,7 +281,8 @@ def regions_to_features (faidx : Fasta, dataframe : DataFrame, lengths : Dict[st
 		variables.at[index, 'Frequency'] = codon_frequency(
 			sequence = sequences.at[index, 'CDS'],
 			mrna     = row['Transcript'],
-			relative = True
+			relative = True,
+			verbose  = verbose
 		)
 
 		variables.at[index, 'Stability'] = mrna_stability(
@@ -296,14 +300,16 @@ def regions_to_features (faidx : Fasta, dataframe : DataFrame, lengths : Dict[st
 
 	return sequences, variables
 
-def sequences_extend_kvpair (sequences : Dict[str, Dict], regions : DataFrame, header : str) -> Dict[str, Dict] :
+def sequences_extend_kvpair (sequences : Dict[str, Dict], regions : DataFrame, header : str = None) -> Dict[str, Dict] :
 	"""
 	Doc
 	"""
 
+	fcount = 0 if header is None else header.count('{}')
+
 	data = dict()
 
-	for mrna, region_dict in tqdm(sequences.items()) :
+	for mrna, region_dict in sequences.items() :
 		if mrna not in data.keys() :
 			data[mrna] = dict()
 
@@ -326,9 +332,17 @@ def sequences_extend_kvpair (sequences : Dict[str, Dict], regions : DataFrame, h
 				x = imin if x < 0 else min(x, imin)
 				y = imax if y < 0 else max(y, imax)
 
+			key = mrna
+
+			if   fcount == 1 : key = header.format(mrna)
+			elif fcount == 2 : key = header.format(mrna, strand)
+			elif fcount == 3 : key = header.format(mrna, strand, seqid)
+			elif fcount == 5 : key = header.format(mrna, strand, seqid, x, y)
+			elif fcount == 6 : key = header.format(mrna, strand, seqid, x, y, len(region_seq))
+
 			data[mrna].update({
 				region_key : {
-					'key' : header.format(mrna, strand, seqid, x, y, len(region_seq)),
+					'key' : key,
 					'seq' : region_seq
 				}
 			})

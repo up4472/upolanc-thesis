@@ -171,12 +171,16 @@ def load_labels (filename : str, to_numpy : bool = False) -> Dict[str, Dict[str,
 
 	return data
 
-def load_feature_targets (group : str, directory : str, filename : str, explode : bool = False, filters : Dict[str, Any] = None, mode : str = 'regression') -> Tuple[DataFrame, Dict, List] :
+def load_feature_targets (group : str, directory : str, filename : str, explode : bool = False, filters : Dict[str, Any] = None, mode : str = 'regression', cached : Any = None) -> Tuple[DataFrame, Dict, List] :
 	"""
 	Doc
 	"""
 
-	dataframe = load_pickle(filename = os.path.join(directory, filename))
+	if cached is None :
+		dataframe = load_pickle(filename = os.path.join(directory, filename))
+	else :
+		dataframe = cached
+
 	dataframe = dataframe[group].set_index('ID')
 
 	dataframe.index.name = None

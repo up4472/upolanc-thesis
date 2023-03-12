@@ -1,52 +1,73 @@
-from pandas                   import DataFrame
 from torch.nn                 import Module
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.utils.data         import DataLoader
 from typing                   import Any
 from typing                   import Dict
+from typing                   import List
 
 from ray import tune
 
-import matplotlib
 import numpy
 import os
-import seaborn
 import torch
 
+from source.python.cnn.models  import Washburn2019c
 from source.python.cnn.models  import Washburn2019r
+from source.python.cnn.models  import Zrimec2020c
 from source.python.cnn.models  import Zrimec2020r
 
-from source.python.cnn.cnn_trainer       import evaluate_epoch
-from source.python.cnn.cnn_trainer       import train_epoch
-from source.python.runtime               import lock_random
-from source.python.dataset.dataset_split import generate_group_shuffle_split
-from source.python.dataset.dataset_utils import to_dataloaders
-from source.python.cnn.cnn_model         import get_criterion
-from source.python.cnn.cnn_model         import get_model_trainers
-from source.python.cnn.cnn_model         import he_uniform_weight
-from source.python.cnn.cnn_model         import zero_bias
-from source.python.io.loader             import load_csv
+from source.python.cnn.cnn_trainer         import evaluate_epoch
+from source.python.cnn.cnn_trainer         import train_epoch
+from source.python.dataset.dataset_classes import GeneDataset
+from source.python.runtime                 import lock_random
+from source.python.dataset.dataset_split   import generate_group_shuffle_split
+from source.python.dataset.dataset_utils   import to_dataloaders
+from source.python.cnn.cnn_model           import get_criterion
+from source.python.cnn.cnn_model           import get_model_trainers
+from source.python.cnn.cnn_model           import he_uniform_weight
+from source.python.cnn.cnn_model           import zero_bias
 
-def get_model (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> Module :
+def get_model (params : Dict[str, Any], config : Dict[str, Any]) -> Module :
 	"""
 	Doc
 	"""
 
-	if core_config['model/type'] == 'zrimec2020r' :
-		model = Zrimec2020r(params = tune_config | {
-			'model/input/channels' : core_config['model/input/channels'],
-			'model/input/height'   : core_config['model/input/height'],
-			'model/input/width'    : core_config['model/input/width'],
-			'model/input/features' : core_config['model/input/features'],
-			'model/fc3/features'   : core_config['model/output/size']
+	if config['model/type'] == 'zrimec2020r' :
+		model = Zrimec2020r(params = params | {
+			'model/input/channels' : config['model/input/channels'],
+			'model/input/height'   : config['model/input/height'],
+			'model/input/width'    : config['model/input/width'],
+			'model/input/features' : config['model/input/features'],
+			'model/fc3/features'   : config['model/output/size']
 		})
 
-	elif core_config['model/type'] == 'washburn2019r' :
-		model = Washburn2019r(params = tune_config | {
-			'model/input/channels' : core_config['model/input/channels'],
-			'model/input/height'   : core_config['model/input/height'],
-			'model/input/width'    : core_config['model/input/width'],
-			'model/input/features' : core_config['model/input/features'],
-			'model/fc3/features'   : core_config['model/output/size']
+	elif config['model/type'] == 'zrimec2020c' :
+		model = Zrimec2020c(params = params | {
+			'model/input/channels' : config['model/input/channels'],
+			'model/input/height'   : config['model/input/height'],
+			'model/input/width'    : config['model/input/width'],
+			'model/input/features' : config['model/input/features'],
+			'model/fc3/features'   : config['model/output/size'],
+			'model/fc3/heads'      : config['model/output/heads']
+		})
+
+	elif config['model/type'] == 'washburn2019r' :
+		model = Washburn2019r(params = params | {
+			'model/input/channels' : config['model/input/channels'],
+			'model/input/height'   : config['model/input/height'],
+			'model/input/width'    : config['model/input/width'],
+			'model/input/features' : config['model/input/features'],
+			'model/fc3/features'   : config['model/output/size']
+		})
+
+	elif config['model/type'] == 'washburn2019c' :
+		model = Washburn2019c(params = params | {
+			'model/input/channels' : config['model/input/channels'],
+			'model/input/height'   : config['model/input/height'],
+			'model/input/width'    : config['model/input/width'],
+			'model/input/features' : config['model/input/features'],
+			'model/fc3/features'   : config['model/output/size'],
+			'model/fc3/heads'      : config['model/output/heads']
 		})
 
 	else :
@@ -55,75 +76,65 @@ def get_model (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> Mo
 	model = model.double()
 	model = model.apply(he_uniform_weight)
 	model = model.apply(zero_bias)
-	model = model.to(core_config['core/device'])
+	model = model.to(config['core/device'])
 
 	return model
 
-def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
+def get_dataloaders (params : Dict[str, Any], config : Dict[str, Any], dataset : GeneDataset = None) -> List[DataLoader] :
 	"""
 	Doc
 	"""
 
-	lock_random(seed = core_config['core/random'])
+	if dataset is None :
+		dataset = torch.load(config['dataset/filepath'])
 
-	dataloaders = to_dataloaders(
-		dataset     = torch.load(core_config['dataset/filepath']),
+	return to_dataloaders(
+		dataset     = dataset,
 		generator   = generate_group_shuffle_split,
-		random_seed = core_config['core/random'],
+		random_seed = config['core/random'],
 		split_size  = {
-			'valid' : core_config['dataset/split/valid'],
-			'test'  : core_config['dataset/split/test']
+			'valid' : config['dataset/split/valid'],
+			'test'  : config['dataset/split/test']
 		},
 		batch_size  = {
-			'train' : tune_config['dataset/batch_size'],
-			'valid' : tune_config['dataset/batch_size'],
-			'test'  : tune_config['dataset/batch_size']
+			'train' : params['dataset/batch_size'],
+			'valid' : params['dataset/batch_size'],
+			'test'  : params['dataset/batch_size']
 		}
 	)
 
-	train_dataloader = dataloaders[0]
-	valid_dataloader = dataloaders[1]
-	test_dataloader  = dataloaders[2]
+def get_metrics (config : Dict[str, Any]) -> Dict[str, Module] :
+	"""
+	Doc
+	"""
 
-	model = get_model(
-		tune_config = tune_config,
-		core_config = core_config
-	)
+	if config['model/type'].endswith('r') :
+		metrics = {
+			'r2'  : get_criterion(reduction = 'mean', weights = None, query = 'r2', output_size = config['model/output/size']),
+			'mae' : get_criterion(reduction = 'mean', weights = None, query = 'mae')
+		}
+	else :
+		metrics = {
+			'entropy'  : get_criterion(reduction = 'mean', weights = None, query = 'entropy'),
+			'accuracy' : get_criterion(reduction = 'mean', weights = None, query = 'accuracy')
+		}
 
-	model_trainers = get_model_trainers(
-		model  = model,
-		config = tune_config,
-		epochs = core_config['model/epochs']
-	)
-
-	criterion = model_trainers['criterion']
-	optimizer = model_trainers['optimizer']
-	scheduler = model_trainers['scheduler']
-
-	metrics = {
-		'r2'  : get_criterion(reduction = 'mean', weights = None, query = 'r2', output_size = core_config['model/output/size']),
-		'mae' : get_criterion(reduction = 'mean', weights = None, query = 'mae')
-	}
-
-	metrics = {
-		k : v.to(core_config['core/device'])
+	return {
+		k : v.to(config['core/device'])
 		for k, v in metrics.items()
 	}
 
-	model_params = {
-		'model'     : model,
-		'criterion' : criterion,
-		'optimizer' : optimizer,
-		'scheduler' : scheduler,
-		'device'    : core_config['core/device'],
-		'verbose'   : False,
-		'metrics'   : metrics,
-		'train_dataloader' : train_dataloader,
-		'valid_dataloader' : valid_dataloader,
-		'test_dataloader'  : test_dataloader
-	}
+def regression_loop (model_params : Dict[str, Any], config : Dict[str, Any]) -> None :
+	"""
+	Doc
+	"""
 
-	for epoch in range(core_config['model/epochs']) :
+	model = model_params['model']
+
+	optimizer = model_params['optimizer']
+	scheduler = model_params['scheduler']
+
+	for epoch in range(config['model/epochs']) :
 		current_lr = optimizer.param_groups[0]['lr']
 
 		train_report = train_epoch(model = model, params = model_params, desc = '')
@@ -140,7 +151,7 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 			else :
 				scheduler.step()
 
-		if core_config['tuner/checkpoint'] :
+		if config['tuner/checkpoint'] :
 			with tune.checkpoint_dir(epoch) as checkpoint :
 				path = os.path.join(checkpoint, 'checkpoint')
 				data = (
@@ -158,156 +169,42 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 			lr         = current_lr
 		)
 
-def plot_trials (dataframe : DataFrame, y : str, ylabel : str, ascending : bool, max_trials : int = 10, alpha : float = 0.9, filename : str = None) -> None :
+def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 	"""
 	Doc
 	"""
 
-	dataframe = dataframe.copy()
-	dataframe = dataframe.sort_values(y, ascending = ascending)
+	lock_random(seed = core_config['core/random'])
 
-	_, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
-
-	for iteration, directory in zip(dataframe['training_iteration'], dataframe['logdir']) :
-		progress = load_csv(
-			filename = os.path.join(directory, 'progress.csv')
-		)
-
-		seaborn.lineplot(
-			data  = progress,
-			x     = 'training_iteration',
-			y     = y,
-			ax    = ax,
-			alpha = alpha,
-			label = str(progress['trial_id'].iloc[0])
-		)
-
-		max_trials = max_trials - 1
-
-		if max_trials <= 0 :
-			break
-
-	ax.set_xlabel('Epoch')
-	ax.set_ylabel(ylabel)
-
-	if filename is not None :
-		matplotlib.pyplot.savefig(
-			filename + '.png',
-			format = 'png',
-			dpi    = 120
-		)
-
-def plot_trials_loss (dataframe : DataFrame, max_trials : int = 10, alpha : float = 0.9, filename : str = None) -> None :
-	"""
-	Doc
-	"""
-
-	plot_trials(
-		dataframe = dataframe,
-		y          = 'valid_loss',
-		ylabel     = 'Valid Loss',
-		ascending  = True,
-		max_trials = max_trials,
-		alpha      = alpha,
-		filename   = filename + '-loss'
+	dataloaders = get_dataloaders(
+		params  = tune_config,
+		config  = core_config,
+		dataset = None
 	)
 
-def plot_trials_r2 (dataframe : DataFrame, max_trials : int = 10, alpha : float = 0.9, filename : str = None) -> None :
-	"""
-	Doc
-	"""
-
-	plot_trials(
-		dataframe = dataframe,
-		y          = 'valid_r2',
-		ylabel     = 'Valid R2',
-		ascending  = False,
-		max_trials = max_trials,
-		alpha      = alpha,
-		filename   = filename + '-r2'
+	model = get_model(
+		params = tune_config,
+		config = core_config
 	)
 
-def plot_trial (dataframe : DataFrame, y : str, ylabel : str, alpha : float = 0.9, color : str = 'b', filename : str = None) -> None :
-	"""
-	Doc
-	"""
-
-	_, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
-
-	seaborn.lineplot(
-		data  = dataframe,
-		x     = 'training_iteration',
-		y     = y,
-		ax    = ax,
-		alpha = alpha,
-		color = color,
-		label = str(dataframe['trial_id'].iloc[0])
+	model_trainers = get_model_trainers(
+		model  = model,
+		config = tune_config,
+		epochs = core_config['model/epochs']
 	)
 
-	ycomp = None
-
-	if y == 'valid_loss' : ycomp = 'train_loss'
-	if y == 'train_loss' : ycomp = 'valid_loss'
-
-	if ycomp is not None :
-		seaborn.lineplot(
-			data   = dataframe,
-			x      = 'training_iteration',
-			y      = ycomp,
-			ax     = ax,
-			alpha  = 0.5,
-			color  = 'k',
-			label  = str(dataframe['trial_id'].iloc[0]) + '-' + ycomp.split('_')[0]
-		)
-
-	ax.set_xlabel('Epoch')
-	ax.set_ylabel(ylabel)
-
-	if filename is not None :
-		matplotlib.pyplot.savefig(
-			filename + '.png',
-			format = 'png',
-			dpi    = 120
-		)
-
-def plot_trial_loss (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None) -> None :
-	"""
-	Doc
-	"""
-
-	plot_trial(
-		dataframe = dataframe,
-		y         = 'valid_loss',
-		ylabel    = 'Valid Loss',
-		alpha     = alpha,
-		color     = color,
-		filename  = filename + '-loss'
-	)
-
-def plot_trial_r2 (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None) -> None :
-	"""
-	Doc
-	"""
-
-	plot_trial(
-		dataframe = dataframe,
-		y         = 'valid_r2',
-		ylabel    = 'R2',
-		alpha     = alpha,
-		color     = color,
-		filename  = filename + '-r2'
-	)
-
-def plot_trial_lr (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None) -> None :
-	"""
-	Doc
-	"""
-
-	plot_trial(
-		dataframe = dataframe,
-		y         = 'lr',
-		ylabel    = 'Learning Rate',
-		alpha     = alpha,
-		color     = color,
-		filename  = filename + '-lr'
+	regression_loop(
+		config       = core_config,
+		model_params = {
+			'model'     : model,
+			'criterion' : model_trainers['criterion'],
+			'optimizer' : model_trainers['optimizer'],
+			'scheduler' : model_trainers['scheduler'],
+			'device'    : core_config['core/device'],
+			'verbose'   : False,
+			'metrics'   : get_metrics(config = core_config),
+			'train_dataloader' : dataloaders[0],
+			'valid_dataloader' : dataloaders[1],
+			'test_dataloader'  : dataloaders[2]
+		}
 	)
