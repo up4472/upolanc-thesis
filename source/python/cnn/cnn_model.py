@@ -33,8 +33,10 @@ import numpy
 import torch
 
 from source.python.cnn.metric import Metric_Accuracy
+from source.python.cnn.metric import Metric_MAPE
 from source.python.cnn.metric import Metric_R2
 from source.python.cnn.metric import Metric_Weighted
+from source.python.cnn.metric import Metric_WMAPE
 from source.python.cnn.models import Washburn2019c
 from source.python.cnn.models import Washburn2019r
 from source.python.cnn.models import Zrimec2020c
@@ -187,6 +189,8 @@ def get_criterion (query : str, reduction : str = 'mean', weights : Union[numpy.
 	elif query == 'smooth-mae' : callable_criterion = SmoothL1Loss
 	elif query == 'huber'      : callable_criterion = HuberLoss
 	elif query == 'r2'         : callable_criterion = Metric_R2
+	elif query == 'mape'       : callable_criterion = Metric_MAPE
+	elif query == 'wmape'      : callable_criterion = Metric_WMAPE
 	elif query == 'entropy'    : callable_criterion = CrossEntropyLoss
 	elif query == 'nll'        : callable_criterion = NLLLoss
 	elif query == 'accuracy'   : callable_criterion = Metric_Accuracy

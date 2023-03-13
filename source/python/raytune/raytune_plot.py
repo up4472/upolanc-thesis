@@ -1,4 +1,5 @@
 from pandas import DataFrame
+from typing import Tuple
 
 import matplotlib
 import os
@@ -46,7 +47,7 @@ def trials_lineplot (dataframe : DataFrame, y : str, ylabel : str, ascending : b
 		)
 
 
-def plot_trials_loss (dataframe : DataFrame, max_trials : int = 10, alpha : float = 0.9, filename : str = None) -> None :
+def trials_lineplot_loss (dataframe : DataFrame, max_trials : int = 10, alpha : float = 0.9, filename : str = None) -> None :
 	"""
 	Doc
 	"""
@@ -61,7 +62,7 @@ def plot_trials_loss (dataframe : DataFrame, max_trials : int = 10, alpha : floa
 		filename   = filename + '-loss'
 	)
 
-def plot_trials_r2 (dataframe : DataFrame, max_trials : int = 10, alpha : float = 0.9, filename : str = None) -> None :
+def trials_lineplot_r2 (dataframe : DataFrame, max_trials : int = 10, alpha : float = 0.9, filename : str = None) -> None :
 	"""
 	Doc
 	"""
@@ -187,10 +188,17 @@ def trials_scatterplot (dataframe : DataFrame, x : str, y : str, xlabel : str, y
 			dpi    = 120
 		)
 
-def trials_scatterplot_lambda_loss (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None) -> None :
+def trials_scatterplot_lambda_loss (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None, clip : Tuple[int, int] = None) -> None :
 	"""
 	Doc
 	"""
+
+	if clip is not None :
+		dataframe = dataframe.copy()
+		dataframe['valid_loss'] = dataframe['valid_loss'].clip(
+			lower = clip[0],
+			upper = clip[1]
+		)
 
 	trials_scatterplot(
 		dataframe = dataframe,
@@ -203,10 +211,17 @@ def trials_scatterplot_lambda_loss (dataframe : DataFrame, alpha : float = 0.9, 
 		filename  = filename + '-lambda-loss'
 	)
 
-def trials_scatterplot_lambda_r2 (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None) -> None :
+def trials_scatterplot_lambda_r2 (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None, clip : Tuple[int, int] = None) -> None :
 	"""
 	Doc
 	"""
+
+	if clip is not None :
+		dataframe = dataframe.copy()
+		dataframe['valid_r2'] = dataframe['valid_r2'].clip(
+			lower = clip[0],
+			upper = clip[1]
+		)
 
 	trials_scatterplot(
 		dataframe = dataframe,

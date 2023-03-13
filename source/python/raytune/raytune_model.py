@@ -110,8 +110,10 @@ def get_metrics (config : Dict[str, Any]) -> Dict[str, Module] :
 
 	if config['model/type'].endswith('r') :
 		metrics = {
-			'r2'  : get_criterion(reduction = 'mean', weights = None, query = 'r2', output_size = config['model/output/size']),
-			'mae' : get_criterion(reduction = 'mean', weights = None, query = 'mae')
+			'r2'    : get_criterion(reduction = 'mean', weights = None, query = 'r2', output_size = config['model/output/size']),
+			'mae'   : get_criterion(reduction = 'mean', weights = None, query = 'mae'),
+			'mape'  : get_criterion(reduction = 'mean', weights = None, query = 'mape'),
+			'wmape' : get_criterion(reduction = 'mean', weights = None, query = 'wmape')
 		}
 	else :
 		metrics = {
@@ -140,10 +142,17 @@ def regression_loop (model_params : Dict[str, Any], config : Dict[str, Any]) -> 
 		train_report = train_epoch(model = model, params = model_params, desc = '')
 		valid_report = evaluate_epoch(model = model, params = model_params, desc = '', validation = True)
 
-		train_loss = train_report['loss']
-		valid_loss = valid_report['loss']
-		valid_r2   = valid_report['metric']['r2']
-		valid_mae  = valid_report['metric']['mae']
+		train_loss  = train_report['loss']
+		train_r2    = train_report['metric']['r2']
+		train_mae   = train_report['metric']['mae']
+		train_mape  = train_report['metric']['mape']
+		train_wmape = train_report['metric']['wmape']
+
+		valid_loss  = valid_report['loss']
+		valid_r2    = valid_report['metric']['r2']
+		valid_mae   = valid_report['metric']['mae']
+		valid_mape  = valid_report['metric']['mape']
+		valid_wmape = valid_report['metric']['wmape']
 
 		if scheduler is not None :
 			if isinstance(scheduler, ReduceLROnPlateau) :
@@ -162,11 +171,17 @@ def regression_loop (model_params : Dict[str, Any], config : Dict[str, Any]) -> 
 				torch.save(data, path)
 
 		tune.report(
-			valid_loss = valid_loss,
-			valid_r2   = numpy.mean(valid_r2),
-			valid_mae  = numpy.mean(valid_mae),
-			train_loss = train_loss,
-			lr         = current_lr
+			valid_loss  = valid_loss,
+			valid_r2    = numpy.mean(valid_r2),
+			valid_mae   = numpy.mean(valid_mae),
+			valid_mape  = numpy.mean(valid_mape),
+			valid_wmape = numpy.mean(valid_wmape),
+			train_loss  = train_loss,
+			train_r2    = numpy.mean(train_r2),
+			train_mae   = numpy.mean(train_mae),
+			train_mape  = numpy.mean(train_mape),
+			train_wmape = numpy.mean(train_wmape),
+			lr          = current_lr
 		)
 
 def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :

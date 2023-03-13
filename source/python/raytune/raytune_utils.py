@@ -56,7 +56,7 @@ def create_tune_config (config : Dict[str, Any], params : List[Dict[str, Any]] =
 		trial_dirname_creator = lambda x : str(x.trial_id)
 	)
 
-def create_run_config (config : Dict[str, Any], local_dir : str = None, verbosity : int = 1, mode : str = 'regression') -> RunConfig :
+def create_run_config (config : Dict[str, Any], local_dir : str = None, verbosity : int = 1, mode : str = 'regression', task : str = 'model') -> RunConfig :
 	"""
 	Doc
 	"""
@@ -67,16 +67,20 @@ def create_run_config (config : Dict[str, Any], local_dir : str = None, verbosit
 	if config['tuner/reporter/notebook'] :
 		reporter = JupyterNotebookReporter
 
-	if mode == 'regression' :
-		columns = ['valid_loss', 'valid_r2', 'train_loss']
-	else :
-		columns = ['valid_loss', 'train_loss']
+	pcolumns = None
+	mcolumns = None
+
+	if   mode == 'regression'     : mcolumns = ['train_loss', 'train_r2', 'train_mae', 'valid_loss', 'valid_r2', 'valid_mae']
+	elif mode == 'classification' : mcolumns = ['train_loss', 'valid_loss']
+
+	if   task == 'model' : pcolumns = ['dataset/batch_size', 'optimizer/name', 'scheduler/name']
+	elif task == 'data'  : pcolumns = ['boxcox/lambda']
 
 	reporter = reporter(
 		max_column_length    = 32,
 		max_progress_rows    = 10,
-		parameter_columns    = ['dataset/batch_size', 'optimizer/name', 'optimizer/lr', 'scheduler/name', 'model/dropout'],
-		metric_columns       = columns,
+		parameter_columns    = pcolumns,
+		metric_columns       = mcolumns,
 		max_report_frequency = 60 * config['tuner/reporter/freq']
 	)
 
