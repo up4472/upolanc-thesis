@@ -1,19 +1,20 @@
 from torch        import Tensor
 from torch.nn     import Module
-from torchmetrics import WeightedMeanAbsolutePercentageError
+from torchmetrics import KLDivergence
 
 import torch
 
-class Metric_WMAPE (Module) :
+class Metric_Divergence (Module) :
 
 	def __init__ (self, reduction : str = 'mean', **kwargs) -> None : # noqa : unused argument **kwargs
 		"""
 		Doc
 		"""
 
-		super(Metric_WMAPE, self).__init__()
+		super(Metric_Divergence, self).__init__()
 
-		self.module = WeightedMeanAbsolutePercentageError()
+		self.reduction = reduction.lower()
+		self.module    = KLDivergence()
 
 	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor :
 		"""

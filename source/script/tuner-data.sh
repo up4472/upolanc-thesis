@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=cnn-raytune-zrimec
+#SBATCH --job-name=cnn-raytune-data
 #SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/raytune-%j.out
 #SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/raytune-%j.err
 #SBATCH --nodes=1
@@ -28,7 +28,7 @@ if [[ ":$PATH:" != *":$ROOT:"* ]]; then
 fi
 
 # Run script
-python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp06-tuner-model.py \
+python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp06-tuner-data.py \
 --target_group global \
 --target_type mean \
 --target_explode false \
@@ -36,5 +36,5 @@ python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp06-tuner-model.py
 --model_name zrimec2020 \
 --model_epochs 25 \
 --tuner_concurrent 5 \
---tuner_trials 1000 \
+--tuner_trials 500 \
 --tuner_grace 10

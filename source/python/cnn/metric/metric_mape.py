@@ -13,8 +13,7 @@ class Metric_MAPE (Module) :
 
 		super(Metric_MAPE, self).__init__()
 
-		self.reduction = reduction.lower()
-		self.module    = MeanAbsolutePercentageError()
+		self.module = MeanAbsolutePercentageError()
 
 	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor :
 		"""

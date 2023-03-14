@@ -33,8 +33,8 @@ export KMER=6
 export TARGET=global-mean
 
 export MODEL_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/resources/dnabert/$KMER-new-12w-0
-export DATA_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/output/nbp05-target/dnabert-$KMER/$TARGET
-export OUTPUT_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/output/dnabert/$KMER
+export DATA_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/output/nbp05-target/dnabert-$KMER-prom/$TARGET
+export OUTPUT_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/output/nbp10-dnabert/$KMER
 
 python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp10-dnabert.py \
 --model_type rbertfc1 \

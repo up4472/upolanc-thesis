@@ -1,5 +1,9 @@
-from source.python.cnn.metric.metric_accuracy import Metric_Accuracy   as Metric_Accuracy # noqa : unused import
-from source.python.cnn.metric.metric_mape     import Metric_MAPE       as Metric_MAPE     # noqa : unused import
-from source.python.cnn.metric.metric_r2       import Metric_R2         as Metric_R2       # noqa : unused import
-from source.python.cnn.metric.metric_weighted import Metric_Weighted   as Metric_Weighted # noqa : unused import
-from source.python.cnn.metric.metric_wmape    import Metric_WMAPE      as Metric_WMAPE    # noqa : unused import
+from source.python.cnn.metric.metric_accuracy   import Metric_Accuracy   as Metric_Accuracy   # noqa : unused import
+from source.python.cnn.metric.metric_divergence import Metric_Divergence as Metric_Divergence # noqa : unused import
+from source.python.cnn.metric.metric_mape       import Metric_MAPE       as Metric_MAPE       # noqa : unused import
+from source.python.cnn.metric.metric_pearson    import Metric_Pearson    as Metric_Pearson    # noqa : unused import
+from source.python.cnn.metric.metric_r2         import Metric_R2         as Metric_R2         # noqa : unused import
+from source.python.cnn.metric.metric_smape      import Metric_SMAPE      as Metric_SMAPE      # noqa : unused import
+from source.python.cnn.metric.metric_spearman   import Metric_Spearman   as Metric_Spearman   # noqa : unused import
+from source.python.cnn.metric.metric_weighted   import Metric_Weighted   as Metric_Weighted   # noqa : unused import
+from source.python.cnn.metric.metric_wmape      import Metric_WMAPE      as Metric_WMAPE      # noqa : unused import

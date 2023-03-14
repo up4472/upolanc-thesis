@@ -28,7 +28,7 @@ if [[ ":$PATH:" != *":$ROOT:"* ]]; then
 fi
 
 # Run script
-python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp08-washburn2019r.py \
+python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp08-washburn-rm.py \
 --target_group global \
 --target_type mean \
 --target_explode false \
