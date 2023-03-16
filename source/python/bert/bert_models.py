@@ -2,6 +2,7 @@ from transformers import BertModel           # noqa F821 :: unresolved reference
 from transformers import BertPreTrainedModel # noqa F821 :: unresolved reference :: added at runtime
 
 from torch.nn import Dropout
+from torch.nn import LeakyReLU
 from torch.nn import Linear
 from torch.nn import MSELoss
 
@@ -31,7 +32,7 @@ class RegressionBertFC1 (BertPreTrainedModel) :
 		"""
 
 		outputs = self.bert(
-			input_ids,
+			input_ids      = input_ids,
 			attention_mask = attention_mask,
 			token_type_ids = token_type_ids,
 			position_ids   = position_ids,
@@ -47,16 +48,11 @@ class RegressionBertFC1 (BertPreTrainedModel) :
 		outputs = (logits,) + outputs[2:]
 
 		if labels is not None :
-			if self.num_labels == 1 :
-				loss = MSELoss()
-				loss = loss(logits.view(-1), labels.view(-1))
-			else :
-				loss = MSELoss()
-				loss = loss(logits.view(-1), labels.view(-1))
+			loss = MSELoss()
+			loss = loss(logits.view(-1), labels.view(-1))
 
 			outputs = (loss,) + outputs
 
-		# (loss), logits, (hidden_states), (attentions)
 		return outputs
 
 class RegressionBertFC3 (BertPreTrainedModel) :
@@ -78,6 +74,11 @@ class RegressionBertFC3 (BertPreTrainedModel) :
 		self.bert    = BertModel(config)
 		self.dropout = Dropout(config.hidden_dropout_prob)
 
+		self.relu    = LeakyReLU(
+			negative_slope = 0.0,
+			inplace        = False
+		)
+
 		self.fc1 = Linear(config.hidden_size, 512)
 		self.fc2 = Linear(512,                256)
 		self.fc3 = Linear(256,                self.config.num_labels)
@@ -88,7 +89,7 @@ class RegressionBertFC3 (BertPreTrainedModel) :
 		"""
 
 		outputs = self.bert(
-			input_ids,
+			input_ids      = input_ids,
 			attention_mask = attention_mask,
 			token_type_ids = token_type_ids,
 			position_ids   = position_ids,
@@ -97,25 +98,21 @@ class RegressionBertFC3 (BertPreTrainedModel) :
 		)
 
 		logits = outputs[1]
-
 		logits = self.dropout(logits)
 		logits = self.fc1(logits)
+		logits = self.relu(logits)
 		logits = self.dropout(logits)
 		logits = self.fc2(logits)
+		logits = self.relu(logits)
 		logits = self.dropout(logits)
 		logits = self.fc3(logits)
 
 		outputs = (logits,) + outputs[2:]
 
 		if labels is not None :
-			if self.num_labels == 1 :
-				loss = MSELoss()
-				loss = loss(logits.view(-1), labels.view(-1))
-			else :
-				loss = MSELoss()
-				loss = loss(logits.view(-1), labels.view(-1))
+			loss = MSELoss()
+			loss = loss(logits.view(-1), labels.view(-1))
 
 			outputs = (loss,) + outputs
 
-		# (loss), logits, (hidden_states), (attentions)
 		return outputs
