@@ -233,3 +233,49 @@ def trials_scatterplot_lambda_r2 (dataframe : DataFrame, alpha : float = 0.9, co
 		color     = color,
 		filename  = filename + '-lambda-r2'
 	)
+
+def trials_scatterplot_lambda_mape (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None, clip : Tuple[int, int] = None) -> None :
+	"""
+	Doc
+	"""
+
+	if clip is not None :
+		dataframe = dataframe.copy()
+		dataframe['valid_mape'] = dataframe['valid_mape'].clip(
+			lower = clip[0],
+			upper = clip[1]
+		)
+
+	trials_scatterplot(
+		dataframe = dataframe,
+		x         = 'config/boxcox/lambda',
+		y         = 'valid_mape',
+		xlabel    = 'Lambda',
+		ylabel    = 'Valid MAPE',
+		alpha     = alpha,
+		color     = color,
+		filename  = filename + '-lambda-mape'
+	)
+
+def trials_scatterplot_lambda_wmape (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None, clip : Tuple[int, int] = None) -> None :
+	"""
+	Doc
+	"""
+
+	if clip is not None :
+		dataframe = dataframe.copy()
+		dataframe['valid_wmape'] = dataframe['valid_wmape'].clip(
+			lower = clip[0],
+			upper = clip[1]
+		)
+
+	trials_scatterplot(
+		dataframe = dataframe,
+		x         = 'config/boxcox/lambda',
+		y         = 'valid_wmape',
+		xlabel    = 'Lambda',
+		ylabel    = 'Valid WMAPE',
+		alpha     = alpha,
+		color     = color,
+		filename  = filename + '-lambda-wmape'
+	)

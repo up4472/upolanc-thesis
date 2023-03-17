@@ -15,9 +15,11 @@ import torch.distributed
 from source.python.bert.bert_cache  import load_and_cache_examples
 from source.python.bert.bert_helper import log_result
 from source.python.bert.bert_helper import prepare_bert_inputs
-from source.python.bert.bert_helper import process_bert_accumulation_step
+from source.python.bert.bert_helper import process_bert_clip_grad
 from source.python.bert.bert_helper import process_bert_loss
 from source.python.bert.bert_helper import process_results
+from source.python.bert.bert_helper import save_model_checkpoint
+from source.python.bert.bert_utils import freeze_bert
 from source.python.bert.bert_utils  import get_dataloader
 from source.python.bert.bert_utils  import get_optimizer
 from source.python.bert.bert_utils  import get_scheduler
@@ -75,6 +77,12 @@ def train (args : Any, train_dataset : TensorDataset, model : Module, tokenizer 
 	)
 
 	#
+	# Freeze certain layers
+	#
+
+	freeze_bert(model = model)
+
+	#
 	# Check for checkpoints
 	#
 
@@ -85,8 +93,6 @@ def train (args : Any, train_dataset : TensorDataset, model : Module, tokenizer 
 	if os.path.exists(args.model_name_or_path) :
 		if '-' in args.model_name_or_path :
 			global_step = int(args.model_name_or_path.split('-')[-1].split('/')[0])
-		else :
-			global_step = 0
 
 		x = len(train_dataloader) // args.gradient_accumulation_steps
 
@@ -131,17 +137,53 @@ def train (args : Any, train_dataset : TensorDataset, model : Module, tokenizer 
 				args      = args
 			)
 
-			running_loss, logging_loss, global_step = process_bert_accumulation_step(
-				model        = model,
-				optimizer    = optimizer,
-				scheduler    = scheduler,
-				tokenizer    = tokenizer,
-				step         = step,
-				global_step  = global_step,
-				running_loss = running_loss + loss.item(),
-				logging_loss = logging_loss,
-				args         = args
-			)
+			running_loss = running_loss + loss.item()
+
+			if (step + 1) % args.gradient_accumulation_steps == 0 :
+				process_bert_clip_grad(
+					model     = model,
+					optimizer = optimizer,
+					args      = args
+				)
+
+				optimizer.step()
+				scheduler.step()
+				model.zero_grad()
+
+				global_step = global_step + 1
+
+				if args.local_rank in [-1, 0] and args.logging_steps > 0 and global_step % args.logging_steps == 0 :
+					logs = {}
+
+					if args.local_rank == -1 and args.evaluate_during_training :
+						results = evaluate(
+							args = args,
+							model = model,
+							tokenizer = tokenizer
+						)
+
+						for key, value in results.items() :
+							eval_key = 'eval_{}'.format(key)
+							logs[eval_key] = value
+
+					loss_scalar = (running_loss - logging_loss) / args.logging_steps
+					learning_rate_scalar = scheduler.get_lr()[0]
+
+					logs['learning_rate'] = learning_rate_scalar
+					logs['loss'] = loss_scalar
+
+					logging_loss = running_loss
+
+					print({**logs, **{'step' : global_step}})
+
+				save_model_checkpoint(
+					model       = model,
+					tokenizer   = tokenizer,
+					optimizer   = optimizer,
+					scheduler   = scheduler,
+					args        = args,
+					global_step = global_step
+				)
 
 			if 0 < args.max_steps < global_step :
 				epoch_iterator.close()

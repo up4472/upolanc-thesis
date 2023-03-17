@@ -1,11 +1,11 @@
-from typing import Optional
-from typing import Tuple
-
+from torch       import Tensor
 from torch.nn    import Module
-from torch.nn.utils import clip_grad_norm_
 from torch.optim import Optimizer
 from typing      import Any
 from typing      import Dict
+from typing      import Optional
+
+from torch.nn.utils import clip_grad_norm_
 
 import numpy
 import os
@@ -13,7 +13,6 @@ import torch
 
 from source.python.bert.bert_checkpoint import rotate_checkpoints
 from source.python.bert.bert_constants  import TOKENS
-from source.python.bert.bert_finetune import evaluate
 from source.python.bert.bert_metrics    import compute_metrics
 
 def prepare_bert_inputs (model_type : str, batch : Any) -> Dict[str, Any] :
@@ -57,68 +56,25 @@ def process_bert_loss (loss : Any, optimizer : Optimizer, args : Any) -> Any :
 
 	return loss
 
-def process_bert_accumulation_step (model : Module, optimizer : Optimizer, scheduler : Any, tokenizer : Any, step : int, global_step : int, running_loss : Any, logging_loss : Any, args : Any) -> Tuple[Any, Any, int] :
+def process_bert_clip_grad (model : Module, optimizer : Optimizer, args : Any) -> Tensor :
 	"""
 	Doc
 	"""
-
-	if (step + 1) % args.gradient_accumulation_steps != 0 :
-		return running_loss, logging_loss, global_step
 
 	if args.fp16 :
 		try :                from apex import amp  # noqa
 		except ImportError : raise ImportError('Please install apex from https://www.github.com/nvidia/apex to use fp16 training.')
 
-		clip_grad_norm_(
+		return clip_grad_norm_(
 			parameters = amp.master_params(optimizer),
 			max_norm   = args.max_grad_norm
 		)
 	else :
-		clip_grad_norm_(
+		return clip_grad_norm_(
 			parameters = model.parameters(),
 			max_norm   = args.max_grad_norm
 		)
 
-	optimizer.step()
-	scheduler.step()
-	model.zero_grad()
-
-	global_step = global_step + 1
-
-	if args.local_rank in [-1, 0] and args.logging_steps > 0 and global_step % args.logging_steps == 0 :
-		logs = {}
-
-		if args.local_rank == -1 and args.evaluate_during_training :
-			results = evaluate(
-				args = args,
-				model = model,
-				tokenizer = tokenizer
-			)
-
-			for key, value in results.items() :
-				eval_key = 'eval_{}'.format(key)
-				logs[eval_key] = value
-
-		loss_scalar = (running_loss - logging_loss) / args.logging_steps
-		learning_rate_scalar = scheduler.get_lr()[0]
-
-		logs['learning_rate'] = learning_rate_scalar
-		logs['loss'] = loss_scalar
-
-		logging_loss = running_loss
-
-		print({**logs, **{'step' : global_step}})
-
-	save_model_checkpoint(
-		model       = model,
-		tokenizer   = tokenizer,
-		optimizer   = optimizer,
-		scheduler   = scheduler,
-		args        = args,
-		global_step = global_step
-	)
-
-	return running_loss, logging_loss, global_step
 def process_results (task_name : str, preds : Any, labels : Any, args : Any) -> Dict[str, Any] :
 	"""
 	Doc

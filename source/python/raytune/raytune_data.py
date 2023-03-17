@@ -56,7 +56,9 @@ def get_anndata (params : Dict[str, Any], config : Dict[str, Any]) -> AnnData :
 	Doc
 	"""
 
-	if 'nbp02/anndata' not in CACHE.keys() :
+	cached_anndata = 'nbp02/anndata' in CACHE.keys()
+
+	if not cached_anndata :
 		with warnings.catch_warnings() :
 			warnings.simplefilter('ignore')
 
@@ -78,7 +80,10 @@ def get_sequences_and_features (config : Dict[str, Any]) -> Tuple[Dict, Dict] :
 	Doc
 	"""
 
-	if 'nbp04/features/bp2150' not in CACHE.keys() or 'nbp04/features/base' not in CACHE.keys() :
+	cached_sequence = 'nbp04/sequence/bp2150' in CACHE.keys()
+	cached_features = 'nbp04/features/base'   in CACHE.keys()
+
+	if not (cached_sequence and cached_features) :
 		regions = annotation_to_regions(
 			lengths    = CACHE['nbp04/sequence/lengths'],
 			verbose    = False,
@@ -119,7 +124,7 @@ def get_sequences_and_features (config : Dict[str, Any]) -> Tuple[Dict, Dict] :
 			padding   = CACHE['nbp04/sequence/padding'],
 		)
 
-		CACHE['nbp04/features/bp2150'] = {
+		CACHE['nbp04/sequence/bp2150'] = {
 			k.split()[0] : v
 			for k, v in sequences.items()
 		}
@@ -145,11 +150,11 @@ def get_sequences_and_features (config : Dict[str, Any]) -> Tuple[Dict, Dict] :
 		CACHE['nbp04/features/base'] = features_base
 
 	return (
-		CACHE['nbp04/features/bp2150'],
+		CACHE['nbp04/sequence/bp2150'],
 		CACHE['nbp04/features/base']
 	)
 
-def get_targets (data : AnnData, layer : str = None) -> Dict :
+def get_targets (params : Dict[str, Any], data : AnnData, layer : str = None) -> Dict :
 	"""
 	Doc
 	"""
@@ -198,7 +203,7 @@ def get_targets (data : AnnData, layer : str = None) -> Dict :
 
 	labels, bounds = classify_tpm(
 		data    = values,
-		classes = 3
+		classes = params['class/bins']
 	)
 
 	return create_mapping(
@@ -315,8 +320,9 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 		bp2150  = bp2150,
 		feature = feature,
 		cached  = get_targets(
-			data  = data,
-			layer = 'boxcox1p'
+			params = tune_config,
+			data   = data,
+			layer  = 'boxcox1p'
 		)
 	)
 

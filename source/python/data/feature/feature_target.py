@@ -113,6 +113,9 @@ def compute_percentile_bounds (data : Dict[str, Dict], group : str, classes : in
 		source = margin * index
 		target = margin + source
 
+		source = max(0.0, min(100.0, source))
+		target = max(0.0, min(100.0, target))
+
 		source = numpy.percentile(matrix, source)
 		target = numpy.percentile(matrix, target)
 

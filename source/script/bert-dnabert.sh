@@ -28,7 +28,6 @@ if [[ ":$PATH:" != *":$ROOT:"* ]]; then
 fi
 
 # Run script
-
 export KMER=6
 export TARGET=global-mean
 
@@ -37,7 +36,7 @@ export DATA_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/output/nbp05-target
 export OUTPUT_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/output/nbp10-dnabert/$KMER
 
 python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp10-dnabert.py \
---model_type rbertfc1 \
+--model_type rbertfc3 \
 --tokenizer_name=dna$KMER \
 --model_name_or_path $MODEL_PATH \
 --task_name regression \
