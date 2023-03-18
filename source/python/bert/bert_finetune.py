@@ -19,7 +19,7 @@ from source.python.bert.bert_helper import process_bert_clip_grad
 from source.python.bert.bert_helper import process_bert_loss
 from source.python.bert.bert_helper import process_results
 from source.python.bert.bert_helper import save_model_checkpoint
-from source.python.bert.bert_utils import freeze_bert
+from source.python.bert.bert_utils  import freeze_bert
 from source.python.bert.bert_utils  import get_dataloader
 from source.python.bert.bert_utils  import get_optimizer
 from source.python.bert.bert_utils  import get_scheduler

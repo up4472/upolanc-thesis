@@ -32,7 +32,7 @@ export KMER=6
 export TARGET=global-mean
 
 export MODEL_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/resources/dnabert/$KMER-new-12w-0
-export DATA_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/output/nbp05-target/dnabert-$KMER-prom/$TARGET
+export DATA_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/output/nbp05-target/dnabert-$KMER/promoter-512/$TARGET
 export OUTPUT_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/output/nbp10-dnabert/$KMER
 
 python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp10-dnabert.py \
@@ -47,7 +47,7 @@ python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp10-dnabert.py \
 --per_gpu_eval_batch_size=32 \
 --per_gpu_train_batch_size=32 \
 --learning_rate 5e-5 \
---num_train_epochs 25.0 \
+--num_train_epochs 25 \
 --output_dir $OUTPUT_PATH \
 --evaluate_during_training \
 --logging_steps 100 \

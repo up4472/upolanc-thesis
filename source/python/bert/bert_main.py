@@ -11,6 +11,7 @@ import glob
 import logging
 import numpy
 import os
+import random
 import torch.distributed
 
 from source.python.bert.bert_cache      import load_and_cache_examples
@@ -87,7 +88,7 @@ def bert_init_classes (args : Any, logger : Optional[Any]) -> Dict[str, Any] :
 
 	if logger is not None :
 		logger.info('Using task        : %s', args.task_name)
-		logger.info('Using processor   : %s', processor.__name__)
+		logger.info('Using processor   : %s', type(processor))
 		logger.info('Using output_mode : %s', args.output_mode)
 
 	if args.local_rank not in [-1, 0] :
@@ -108,13 +109,12 @@ def bert_init_classes (args : Any, logger : Optional[Any]) -> Dict[str, Any] :
 	config    = None
 
 	if not args.do_visualize and not args.do_ensemble_pred :
-		tokenizer_name = args.tokenizer_name
-		cache_dir      = args.cache_dir
-		config_name    = args.config_name
-
-		if cache_dir      : cache_dir      = None
-		if tokenizer_name : tokenizer_name = args.model_name_or_path
-		if config_name    : config_name    = args.model_name_or_path
+		if args.cache_dir      : cache_dir      = args.cache_dir
+		else                   : cache_dir      = None
+		if args.tokenizer_name : tokenizer_name = args.tokenizer_name
+		else                   : tokenizer_name = args.model_name_or_path
+		if args.config_name    : config_name    = args.config_name
+		else                   : config_name    = args.model_name_or_path
 
 		config = config_cls.from_pretrained(
 			config_name,

@@ -142,7 +142,7 @@ def trial_lineplot_r2 (dataframe : DataFrame, alpha : float = 0.9, color : str =
 	trial_lineplot(
 		dataframe = dataframe,
 		y         = 'valid_r2',
-		ylabel    = 'R2',
+		ylabel    = 'Valid R2',
 		alpha     = alpha,
 		color     = color,
 		filename  = filename + '-r2'
@@ -228,7 +228,7 @@ def trials_scatterplot_lambda_r2 (dataframe : DataFrame, alpha : float = 0.9, co
 		x         = 'config/boxcox/lambda',
 		y         = 'valid_r2',
 		xlabel    = 'Lambda',
-		ylabel    = 'R2',
+		ylabel    = 'Valid R2',
 		alpha     = alpha,
 		color     = color,
 		filename  = filename + '-lambda-r2'

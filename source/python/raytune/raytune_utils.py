@@ -22,15 +22,15 @@ VERBOSE_STATUS = 1
 VERBOSE_BRIEF  = 2
 VERBOSE_DETAIL = 3
 
-def create_tune_config (config : Dict[str, Any], params : List[Dict[str, Any]] = None) -> TuneConfig :
+def create_tune_config (config : Dict[str, Any], metric : str = 'valid_loss', mode : str = 'min', params : List[Dict[str, Any]] = None) -> TuneConfig :
 	"""
 	Doc
 	"""
 
 	tune_searcher = HyperOptSearch(
 		points_to_evaluate = params,
-		metric             = 'valid_loss',
-		mode               = 'min'
+		metric             = metric,
+		mode               = mode
 	)
 
 	tune_searcher = ConcurrencyLimiter(
@@ -47,8 +47,8 @@ def create_tune_config (config : Dict[str, Any], params : List[Dict[str, Any]] =
 	)
 
 	return TuneConfig(
-		metric      = 'valid_loss',
-		mode        = 'min',
+		metric      = metric,
+		mode        = mode,
 		num_samples = config['tuner/trials'],
 		search_alg  = tune_searcher,
 		scheduler   = tune_scheduler,
