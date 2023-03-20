@@ -103,7 +103,7 @@ def get_dataloaders (params : Dict[str, Any], config : Dict[str, Any], dataset :
 		}
 	)
 
-def get_metrics (config : Dict[str, Any]) -> Dict[str, Module] :
+def get_metrics (config : Dict[str, Any], n_classes : int = 3) -> Dict[str, Module] :
 	"""
 	Doc
 	"""
@@ -118,7 +118,9 @@ def get_metrics (config : Dict[str, Any]) -> Dict[str, Module] :
 	else :
 		metrics = {
 			'entropy'  : get_criterion(reduction = 'mean', weights = None, query = 'entropy'),
-			'accuracy' : get_criterion(reduction = 'mean', weights = None, query = 'accuracy')
+			'accuracy' : get_criterion(reduction = 'mean', weights = None, query = 'accuracy', n_classes = n_classes),
+			'auroc'    : get_criterion(reduction = 'mean', weights = None, query = 'auroc',    n_classes = n_classes),
+			'f1'       : get_criterion(reduction = 'mean', weights = None, query = 'f1',       n_classes = n_classes)
 		}
 
 	return {
@@ -217,7 +219,10 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 			'scheduler' : model_trainers['scheduler'],
 			'device'    : core_config['core/device'],
 			'verbose'   : False,
-			'metrics'   : get_metrics(config = core_config),
+			'metrics'   : get_metrics(
+				config    = core_config,
+				n_classes = core_config['model/output/size']
+			),
 			'train_dataloader' : dataloaders[0],
 			'valid_dataloader' : dataloaders[1],
 			'test_dataloader'  : dataloaders[2]

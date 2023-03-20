@@ -14,9 +14,7 @@ class Metric_Pearson (Module) :
 		super(Metric_Pearson, self).__init__()
 
 		self.reduction = reduction.lower()
-		self.module    = PearsonCorrCoef(
-			num_outputs = output_size
-		)
+		self.module    = PearsonCorrCoef(num_outputs = output_size)
 
 	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor :
 		"""

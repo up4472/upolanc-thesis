@@ -33,7 +33,11 @@ import numpy
 import torch
 
 from source.python.cnn.metric import Metric_Accuracy
+from source.python.cnn.metric import Metric_AP
+from source.python.cnn.metric import Metric_AUROC
 from source.python.cnn.metric import Metric_Divergence
+from source.python.cnn.metric import Metric_F1
+from source.python.cnn.metric import Metric_Jaccardi
 from source.python.cnn.metric import Metric_MAPE
 from source.python.cnn.metric import Metric_Pearson
 from source.python.cnn.metric import Metric_R2
@@ -189,9 +193,13 @@ def get_criterion (query : str, reduction : str = 'mean', weights : Union[numpy.
 	query = query.lower()
 
 	if   query == 'accuracy'   : callable_criterion = Metric_Accuracy
+	elif query == 'ap'         : callable_criterion = Metric_AP
+	elif query == 'auroc'      : callable_criterion = Metric_AUROC
 	elif query == 'divergence' : callable_criterion = Metric_Divergence
 	elif query == 'entropy'    : callable_criterion = CrossEntropyLoss
+	elif query == 'f1'         : callable_criterion = Metric_F1
 	elif query == 'huber'      : callable_criterion = HuberLoss
+	elif query == 'jaccardi'   : callable_criterion = Metric_Jaccardi
 	elif query == 'mae'        : callable_criterion = L1Loss
 	elif query == 'mape'       : callable_criterion = Metric_MAPE
 	elif query == 'mse'        : callable_criterion = MSELoss

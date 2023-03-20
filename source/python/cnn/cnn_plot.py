@@ -295,15 +295,17 @@ def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename :
 	for metric in metrics :
 		metric = metric.lower()
 
-		if   metric == 'mse'        : names.append('MSE')
-		elif metric == 'mae'        : names.append('MAE')
-		elif metric == 'smooth-mae' : names.append('Smooth MAE')
-		elif metric == 'huber'      : names.append('Huber')
-		elif metric == 'r2'         : names.append('R2 Score')
-		elif metric == 'entropy'    : names.append('Cross Entropy')
-		elif metric == 'nll'        : names.append('Negative Log Likelihood')
-		elif metric == 'accuracy'   : names.append('Accuracy')
-		else : names.append('?')
+		if   metric == 'accuracy'   : names.append(['Score', 'Accuracy'])
+		elif metric == 'auroc'      : names.append(['Score', 'AUROC'])
+		elif metric == 'entropy'    : names.append(['Loss',  'Cross Entropy'])
+		elif metric == 'f1'         : names.append(['Score', 'F1 Score'])
+		elif metric == 'huber'      : names.append(['Loss',  'Huber'])
+		elif metric == 'mae'        : names.append(['Loss',  'MAE'])
+		elif metric == 'mse'        : names.append(['Loss',  'MSE'])
+		elif metric == 'nll'        : names.append(['Loss',  'Negative Log Likelihood'])
+		elif metric == 'r2'         : names.append(['Score', 'R2 Score'])
+		elif metric == 'smooth-mae' : names.append(['Loss',  'Smooth MAE'])
+		else                        : names.append(['?',     '?'])
 
 	n, nrows, ncols = compute_gridsize(
 		n = len(names)
@@ -330,8 +332,8 @@ def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename :
 		seaborn.lineplot(x = numpy.arange(1, 1 + len(metric)), y = metric, ax = axis)
 
 		axis.set_xlabel('Epoch')
-		axis.set_ylabel('Loss')
-		axis.set_title(name)
+		axis.set_ylabel(name[0])
+		axis.set_title(name[1])
 
 	for index in range(n, nrows * ncols) :
 		if nrows == 1 or ncols == 1 :

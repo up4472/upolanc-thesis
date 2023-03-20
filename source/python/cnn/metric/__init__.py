@@ -1,5 +1,9 @@
 from source.python.cnn.metric.metric_accuracy   import Metric_Accuracy   as Metric_Accuracy   # noqa : unused import
+from source.python.cnn.metric.metric_auroc      import Metric_AUROC      as Metric_AUROC      # noqa : unused import
+from source.python.cnn.metric.metric_ap         import Metric_AP         as Metric_AP         # noqa : unused import
 from source.python.cnn.metric.metric_divergence import Metric_Divergence as Metric_Divergence # noqa : unused import
+from source.python.cnn.metric.metric_f1         import Metric_F1         as Metric_F1         # noqa : unused import
+from source.python.cnn.metric.metric_jaccardi   import Metric_Jaccardi   as Metric_Jaccardi   # noqa : unused import
 from source.python.cnn.metric.metric_mape       import Metric_MAPE       as Metric_MAPE       # noqa : unused import
 from source.python.cnn.metric.metric_pearson    import Metric_Pearson    as Metric_Pearson    # noqa : unused import
 from source.python.cnn.metric.metric_r2         import Metric_R2         as Metric_R2         # noqa : unused import

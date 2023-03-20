@@ -28,5 +28,6 @@ resources/
 tmp/
 temporary/
 
-# Bert Folder
+# Specific Folder
 source/python/bert/dnabert/
+source/test/

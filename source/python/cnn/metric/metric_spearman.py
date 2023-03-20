@@ -14,9 +14,7 @@ class Metric_Spearman (Module) :
 		super(Metric_Spearman, self).__init__()
 
 		self.reduction = reduction.lower()
-		self.module    = SpearmanCorrCoef(
-			num_outputs = output_size
-		)
+		self.module    = SpearmanCorrCoef(num_outputs = output_size)
 
 	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor :
 		"""

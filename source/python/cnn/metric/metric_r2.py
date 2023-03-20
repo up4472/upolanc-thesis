@@ -14,18 +14,11 @@ class Metric_R2 (Module) :
 		super(Metric_R2, self).__init__()
 
 		self.reduction    = reduction.lower()
-		self.multioutput  = None
 		self.force_finite = force_finite
 
-		if   self.reduction == 'none' : self.multioutput = 'raw_values'
-		elif self.reduction == 'mean' : self.multioutput = 'uniform_average'
+		if   self.reduction == 'none' : self.module = R2Score(num_outputs = output_size, adjusted = 0, multioutput = 'raw_values')
+		elif self.reduction == 'mean' : self.module = R2Score(num_outputs = output_size, adjusted = 0, multioutput = 'uniform_average')
 		else : raise ValueError()
-
-		self.module = R2Score(
-			num_outputs = output_size,
-			adjusted    = 0,
-			multioutput = self.multioutput
-		)
 
 	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor :
 		"""

@@ -352,7 +352,10 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 			'scheduler' : model_trainers['scheduler'],
 			'device'    : core_config['core/device'],
 			'verbose'   : False,
-			'metrics'   : get_metrics(config = core_config),
+			'metrics'   : get_metrics(
+				config    = core_config,
+				n_classes = tune_config['class/bins']
+			),
 			'train_dataloader' : dataloaders[0],
 			'valid_dataloader' : dataloaders[1],
 			'test_dataloader'  : dataloaders[2]

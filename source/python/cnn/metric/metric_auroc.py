@@ -1,23 +1,23 @@
 from torch        import Tensor
 from torch.nn     import Module
-from torchmetrics import Accuracy
+from torchmetrics import AUROC
 
 import torch
 
-class Metric_Accuracy (Module) :
+class Metric_AUROC (Module) :
 
 	def __init__ (self, reduction : str = 'mean', n_classes : int = 1, top_k : int = 1, **kwargs) -> None : # noqa : unused kwargs
 		"""
 		Doc
 		"""
 
-		super(Metric_Accuracy, self).__init__()
+		super(Metric_AUROC, self).__init__()
 
 		self.reduction = reduction.lower()
 
-		if   self.reduction == 'mean' : self.module = Accuracy(task = 'multiclass', num_classes = n_classes, top_k = top_k, average = 'micro')
-		elif self.reduction == 'none' : self.module = Accuracy(task = 'multiclass', num_classes = n_classes, top_k = top_k, average = 'none')
-		elif self.reduction == 'sum'  : self.module = Accuracy(task = 'multiclass', num_classes = n_classes, top_k = top_k, average = 'none')
+		if   self.reduction == 'mean' : self.module = AUROC(task = 'multiclass', num_classes = n_classes, top_k = top_k, average = 'macro')
+		elif self.reduction == 'none' : self.module = AUROC(task = 'multiclass', num_classes = n_classes, top_k = top_k, average = 'none')
+		elif self.reduction == 'sum'  : self.module = AUROC(task = 'multiclass', num_classes = n_classes, top_k = top_k, average = 'none')
 		else : ValueError()
 
 	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor :

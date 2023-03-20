@@ -13,8 +13,7 @@ class Metric_SMAPE (Module) :
 
 		super(Metric_SMAPE, self).__init__()
 
-		self.reduction = reduction.lower()
-		self.module    = SymmetricMeanAbsolutePercentageError()
+		self.module = SymmetricMeanAbsolutePercentageError()
 
 	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor :
 		"""
