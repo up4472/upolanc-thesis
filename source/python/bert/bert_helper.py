@@ -32,6 +32,9 @@ def prepare_bert_inputs (model_type : str, batch : Any) -> Dict[str, Any] :
 		else :
 			inputs['token_type_ids'] = None
 
+	if len(batch) >= 5 :
+		inputs['features'] = batch[4]
+
 	return inputs
 
 def process_bert_loss (loss : Any, optimizer : Optimizer, args : Any) -> Any :

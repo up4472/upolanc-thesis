@@ -40,7 +40,7 @@ def set_seed (args : Any) -> None :
 	if args.n_gpu > 0 :
 		torch.cuda.manual_seed_all(args.seed)
 
-def train (args : Any, train_dataset : TensorDataset, model : Module, tokenizer : Any) :
+def train (args : Any, train_dataset : TensorDataset, model : Module, tokenizer : Any, use_features : bool = False) :
 	"""
 	Doc
 	"""
@@ -157,9 +157,10 @@ def train (args : Any, train_dataset : TensorDataset, model : Module, tokenizer 
 
 					if args.local_rank == -1 and args.evaluate_during_training :
 						results = evaluate(
-							args = args,
-							model = model,
-							tokenizer = tokenizer
+							args         = args,
+							model        = model,
+							tokenizer    = tokenizer,
+							use_features = use_features
 						)
 
 						for key, value in results.items() :
@@ -195,7 +196,7 @@ def train (args : Any, train_dataset : TensorDataset, model : Module, tokenizer 
 
 	return global_step, running_loss / global_step
 
-def evaluate (args : Any, model : Module, tokenizer : Any, prefix : str = '', should_evaluate : bool = True) :
+def evaluate (args : Any, model : Module, tokenizer : Any, prefix : str = '', should_evaluate : bool = True, use_features : bool = False) :
 	"""
 	Doc
 	"""
@@ -222,7 +223,8 @@ def evaluate (args : Any, model : Module, tokenizer : Any, prefix : str = '', sh
 			args            = args,
 			task            = task_name,
 			tokenizer       = tokenizer,
-			should_evaluate = should_evaluate
+			should_evaluate = should_evaluate,
+			use_features    = use_features
 		)
 
 		if not os.path.exists(output_dir) and args.local_rank in [-1, 0] :
@@ -298,7 +300,7 @@ def evaluate (args : Any, model : Module, tokenizer : Any, prefix : str = '', sh
 
 	return results
 
-def predict (args : Any, model : Module, tokenizer : Any, prefix : str = '') :
+def predict (args : Any, model : Module, tokenizer : Any, prefix : str = '', use_features : bool = False) :
 	"""
 	Doc
 	"""
@@ -318,7 +320,8 @@ def predict (args : Any, model : Module, tokenizer : Any, prefix : str = '') :
 			args            = args,
 			task            = task_name,
 			tokenizer       = tokenizer,
-			should_evaluate = True
+			should_evaluate = True,
+			use_features    = use_features
 		)
 
 		if not os.path.exists(output_dir) and args.local_rank in [-1, 0] :
@@ -384,7 +387,9 @@ def predict (args : Any, model : Module, tokenizer : Any, prefix : str = '') :
 			logger     = logger
 		)
 
-def visualize (args : Any, model : Module, tokenizer : Any, kmer : int, prefix : str = '') :
+		return result
+
+def visualize (args : Any, model : Module, tokenizer : Any, kmer : int, prefix : str = '', use_features : bool = False) :
 	"""
 	Doc
 	"""
@@ -407,7 +412,8 @@ def visualize (args : Any, model : Module, tokenizer : Any, kmer : int, prefix :
 			args            = args,
 			task            = task_name,
 			tokenizer       = tokenizer,
-			should_evaluate = False if args.visualize_train else True
+			should_evaluate = False if args.visualize_train else True,
+			use_features    = use_features
 		)
 
 		if not os.path.exists(output_dir) and args.local_rank in [-1, 0] :

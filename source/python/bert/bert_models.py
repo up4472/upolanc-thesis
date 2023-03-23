@@ -6,6 +6,8 @@ from torch.nn import LeakyReLU
 from torch.nn import Linear
 from torch.nn import MSELoss
 
+import torch
+
 class RegressionBertFC1 (BertPreTrainedModel) :
 	"""
 	transformers.modeling_bert.BertModel()
@@ -20,13 +22,19 @@ class RegressionBertFC1 (BertPreTrainedModel) :
 
 		super().__init__(config)
 
-		self.num_labels = config.num_labels
-
 		self.bert    = BertModel(config)
 		self.dropout = Dropout(config.hidden_dropout_prob)
-		self.fc1     = Linear(config.hidden_size, self.config.num_labels)
 
-	def forward (self, input_ids = None, attention_mask = None, token_type_ids = None, position_ids = None, head_mask = None, inputs_embeds = None, labels = None) :
+		if config.use_features :
+			idim = config.hidden_size + config.num_features
+			odim = config.num_labels
+		else :
+			idim = config.hidden_size
+			odim = config.num_labels
+
+		self.fc1 = Linear(idim, odim)
+
+	def forward (self, input_ids = None, attention_mask = None, token_type_ids = None, position_ids = None, head_mask = None, inputs_embeds = None, labels = None, features = None) :
 		"""
 		Doc
 		"""
@@ -43,6 +51,13 @@ class RegressionBertFC1 (BertPreTrainedModel) :
 		logits = outputs[1]
 
 		logits = self.dropout(logits)
+
+		if features is not None :
+			logits = torch.cat(
+				tensors = (logits, features),
+				dim     = 1
+			)
+
 		logits = self.fc1(logits)
 
 		outputs = (logits,) + outputs[2:]
@@ -69,8 +84,6 @@ class RegressionBertFC3 (BertPreTrainedModel) :
 
 		super().__init__(config)
 
-		self.num_labels = config.num_labels
-
 		self.bert    = BertModel(config)
 		self.dropout = Dropout(config.hidden_dropout_prob)
 
@@ -79,11 +92,18 @@ class RegressionBertFC3 (BertPreTrainedModel) :
 			inplace        = False
 		)
 
-		self.fc1 = Linear(config.hidden_size, 512)
-		self.fc2 = Linear(512,                256)
-		self.fc3 = Linear(256,                self.config.num_labels)
+		if config.use_features :
+			idim = config.hidden_size + config.num_features
+			odim = config.num_labels
+		else :
+			idim = config.hidden_size
+			odim = config.num_labels
 
-	def forward (self, input_ids = None, attention_mask = None, token_type_ids = None, position_ids = None, head_mask = None, inputs_embeds = None, labels = None) :
+		self.fc1 = Linear(idim, 512)
+		self.fc2 = Linear(512,  256)
+		self.fc3 = Linear(256,  odim)
+
+	def forward (self, input_ids = None, attention_mask = None, token_type_ids = None, position_ids = None, head_mask = None, inputs_embeds = None, labels = None, features = None) :
 		"""
 		Doc
 		"""
@@ -99,6 +119,13 @@ class RegressionBertFC3 (BertPreTrainedModel) :
 
 		logits = outputs[1]
 		logits = self.dropout(logits)
+
+		if features is not None :
+			logits = torch.cat(
+				tensors = (logits, features),
+				dim     = 1
+			)
+
 		logits = self.fc1(logits)
 		logits = self.relu(logits)
 		logits = self.dropout(logits)

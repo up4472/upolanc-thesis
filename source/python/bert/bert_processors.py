@@ -3,6 +3,8 @@ from transformers import InputExample  # noqa F821 :: unresolved reference :: ad
 
 import os
 
+from source.python.bert.bert_input import BertInput
+
 class RegressionProcessor (DataProcessor) :
 	"""
 	transformers.data.processors.utils.DataProcessor()
@@ -37,6 +39,24 @@ class RegressionProcessor (DataProcessor) :
 
 		return [None]
 
+	@staticmethod
+	def to_float_array_or_float (value) :
+		"""
+		Doc
+		"""
+
+		if value is not None :
+			value = value.replace('[', '')
+			value = value.replace(']', '')
+			value = value.split()
+
+			value = [float(x) for x in value]
+
+			if len(value) == 1 :
+				value = value[0]
+
+		return value
+
 	def _create_examples (self, lines, set_type) : # noqa U100 :: method may be static
 		"""
 		Doc
@@ -48,9 +68,21 @@ class RegressionProcessor (DataProcessor) :
 			if i == 0 : continue
 
 			guid  = '%s-%s' % (set_type, i)
-			text  = line[0]
-			label = line[1]
+			text    = line[0]
+			label   = line[1]
 
-			examples.append(InputExample(guid = guid, text_a = text, text_b = None, label = label))
+			if len(line) >= 3 : feature = line[2]
+			else              : feature = None
+
+			label   = RegressionProcessor.to_float_array_or_float(value = label)
+			feature = RegressionProcessor.to_float_array_or_float(value = feature)
+
+			examples.append(BertInput(
+				guid    = guid,
+				text_a  = text,
+				text_b  = None,
+				label   = label,
+				feature = feature
+			))
 
 		return examples

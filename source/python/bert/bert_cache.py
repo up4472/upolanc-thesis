@@ -1,5 +1,3 @@
-from transformers import glue_convert_examples_to_features # noqa F821 :: unresolved reference :: added at runtime
-
 from multiprocessing  import Pool
 from torch.utils.data import TensorDataset
 from typing           import Any
@@ -9,8 +7,10 @@ import os
 
 from source.python.bert.bert_constants import PROCESSORS
 from source.python.bert.bert_constants import MODES
+from source.python.bert.bert_input     import BertFeatures
+from source.python.bert.bert_utils     import bert_convert_examples_to_features
 
-def load_and_cache_examples (args : Any, task : str, tokenizer : Any, should_evaluate : bool = False) :
+def load_and_cache_examples (args : Any, task : str, tokenizer : Any, should_evaluate : bool = False, use_features : bool = False) :
 	"""
 	Doc
 	"""
@@ -67,11 +67,12 @@ def load_and_cache_examples (args : Any, task : str, tokenizer : Any, should_eva
 			pad_token_segment_id = 0
 
 		if args.n_process == 1 :
-			features = glue_convert_examples_to_features(
-				examples,
-				tokenizer,
+			features = bert_convert_examples_to_features(
+				examples    = examples,
+				tokenizer   = tokenizer,
 				label_list  = label_list,
 				max_length  = max_length,
+				task        = None,
 				output_mode = output_mode,
 				pad_on_left = pad_on_left,
 				pad_token   = pad_token,
@@ -98,7 +99,7 @@ def load_and_cache_examples (args : Any, task : str, tokenizer : Any, should_eva
 
 			for i in range(nproc) :
 				results.append(pool.apply_async(
-					func = glue_convert_examples_to_features,
+					func = bert_convert_examples_to_features,
 					args = (
 						examples[indexes[i]:indexes[i + 1]],
 						tokenizer, max_length, None, label_list, output_mode,
@@ -130,10 +131,20 @@ def load_and_cache_examples (args : Any, task : str, tokenizer : Any, should_eva
 	all_attention_mask = torch.tensor([f.attention_mask for f in features], dtype = torch.long)
 	all_token_type_ids = torch.tensor([f.token_type_ids for f in features], dtype = torch.long)
 	all_labels         = None
+	all_feature        = None
 
 	if output_mode == 'classification' :
 		all_labels = torch.tensor([f.label for f in features], dtype = torch.long)
 	elif output_mode == 'regression' :
 		all_labels = torch.tensor([f.label for f in features], dtype = torch.float)
+
+	if use_features :
+		if isinstance(features[0], BertFeatures) :
+			all_feature = torch.tensor([f.feature for f in features], dtype = torch.float)
+		else :
+			all_feature = None
+
+	if all_feature is not None :
+		return TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels, all_feature)
 
 	return TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels)

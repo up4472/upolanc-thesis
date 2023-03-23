@@ -1,4 +1,13 @@
-from transformers import AdamW # noqa F821 :: unresolved reference :: added at runtime
+from transformers import AdamW           # noqa F821 :: unresolved reference :: added at runtime
+from transformers import InputExample    # noqa F821 :: unresolved reference :: added at runtime
+from transformers import InputFeatures   # noqa F821 :: unresolved reference :: added at runtime
+from transformers import is_tf_available # noqa F821 :: unresolved reference :: added at runtime
+
+from source.python.bert.bert_constants import MODES
+from source.python.bert.bert_constants import PROCESSORS
+from source.python.bert.bert_input     import BertFeatures
+
+if is_tf_available() : import tensorflow # noqa
 
 from torch.nn          import DataParallel
 from torch.nn          import Module
@@ -40,6 +49,7 @@ def freeze_bert (model : Module) -> None :
 	"""
 
 	freeze_module(module = get_bert_module(model = model))
+
 
 def get_sampler (dataset : TensorDataset, mode : str, local_rank : int) :
 	"""
@@ -153,3 +163,112 @@ def prepare_eval_model (model : Module, args : Any) -> Module :
 		model = DataParallel(model)
 
 	return model
+
+def bert_convert_examples_to_features (examples, tokenizer, max_length = 512, task = None, label_list = None, output_mode = None, pad_on_left = False, pad_token = 0, pad_token_segment_id = 0, mask_padding_with_zero = True) :
+	"""
+	Doc
+	"""
+
+	is_tf_dataset = False
+	processor     = None
+	features      = []
+
+	if is_tf_available() and isinstance(examples, tensorflow.data.Dataset):
+		is_tf_dataset = True
+
+	if task is not None :
+		processor = PROCESSORS[task]()
+
+		if label_list is None :
+			label_list = processor.get_labels()
+		if output_mode is None :
+			output_mode = MODES[task]
+
+	label_map = {
+		label : i
+		for i, label in enumerate(label_list)
+	}
+
+	for (index, example) in enumerate(examples) :
+		if is_tf_dataset and processor is not None :
+			example = processor.get_example_from_tensor_dict(example)
+			example = processor.tfds_map(example)
+
+		inputs = tokenizer.encode_plus(
+			example.text_a,
+			example.text_b,
+			add_special_tokens = True,
+			max_length         = max_length
+		)
+
+		input_ids      = inputs['input_ids']
+		token_type_ids = inputs['token_type_ids']
+
+		#
+		# The mask has 1 for real tokens and 0 for padding tokens. Only real tokens are attended to.
+		#
+
+		attention_mask = [1 if mask_padding_with_zero else 0] * len(input_ids)
+		padding_length = max_length - len(input_ids)
+
+		if pad_on_left :
+			input_ids      = ([pad_token] * padding_length) + input_ids
+			attention_mask = ([0 if mask_padding_with_zero else 1] * padding_length) + attention_mask
+			token_type_ids = ([pad_token_segment_id] * padding_length) + token_type_ids
+		else :
+			input_ids      = input_ids + ([pad_token] * padding_length)
+			attention_mask = attention_mask + ([0 if mask_padding_with_zero else 1] * padding_length)
+			token_type_ids = token_type_ids + ([pad_token_segment_id] * padding_length)
+
+		assert len(input_ids) == max_length,      'Error with input length {} vs {}'.format(len(input_ids), max_length)
+		assert len(attention_mask) == max_length, 'Error with input length {} vs {}'.format(len(attention_mask), max_length)
+		assert len(token_type_ids) == max_length, 'Error with input length {} vs {}'.format(len(token_type_ids), max_length)
+
+		if   output_mode == 'classification' : label = label_map[example.label]
+		elif output_mode == 'regression'     : label = float(example.label)
+		else                                 : raise KeyError(output_mode)
+
+		features.append(BertFeatures(
+			input_ids      = input_ids,
+			attention_mask = attention_mask,
+			token_type_ids = token_type_ids,
+			label          = label,
+			feature        = example.feature
+		))
+
+	if is_tf_available () and is_tf_dataset :
+		def gen () :
+			for ex in features :
+				yield (
+					{
+						'input_ids'      : ex.input_ids,
+						'attention_mask' : ex.attention_mask,
+						'token_type_ids' : ex.token_type_ids,
+					},
+					ex.label,
+					ex.feature
+				)
+
+		return tensorflow.data.Dataset.from_generator(
+			gen,
+			(
+				{
+					'input_ids'      : tensorflow.int32,
+					'attention_mask' : tensorflow.int32,
+					'token_type_ids' : tensorflow.int32
+				},
+				tensorflow.int64,
+				tensorflow.int64
+			),
+			(
+				{
+					'input_ids'      : tensorflow.TensorShape([None]),
+					'attention_mask' : tensorflow.TensorShape([None]),
+					'token_type_ids' : tensorflow.TensorShape([None]),
+				},
+				tensorflow.TensorShape([]),
+				tensorflow.TensorShape([])
+			)
+		)
+
+	return features

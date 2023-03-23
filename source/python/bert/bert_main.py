@@ -75,7 +75,7 @@ def bert_init_args (args : Any, logger : Optional[Any]) -> Any :
 
 	return args
 
-def bert_init_classes (args : Any, logger : Optional[Any]) -> Dict[str, Any] :
+def bert_init_classes (args : Any, logger : Optional[Any], use_features : bool = False, num_features : int = 72) -> Dict[str, Any] :
 	"""
 	Doc
 	"""
@@ -123,6 +123,8 @@ def bert_init_classes (args : Any, logger : Optional[Any]) -> Dict[str, Any] :
 			cache_dir       = cache_dir
 		)
 
+		config.use_features                 = use_features
+		config.num_features                 = num_features
 		config.hidden_dropout_prob          = args.hidden_dropout_prob
 		config.attention_probs_dropout_prob = args.attention_probs_dropout_prob
 
@@ -168,7 +170,7 @@ def bert_init_classes (args : Any, logger : Optional[Any]) -> Dict[str, Any] :
 		'num_labels'    : len(labels)
 	}
 
-def bert_train (args : Any, model : Module, tokenizer : Any, model_cls : Any, tokenizer_cls : Any, logger : Optional[Any]) -> Tuple[Module, Any] :
+def bert_train (args : Any, model : Module, tokenizer : Any, model_cls : Any, tokenizer_cls : Any, logger : Optional[Any], use_features : bool = False) -> Tuple[Module, Any] :
 	"""
 	Doc
 	"""
@@ -180,14 +182,16 @@ def bert_train (args : Any, model : Module, tokenizer : Any, model_cls : Any, to
 		args            = args,
 		task            = args.task_name,
 		tokenizer       = tokenizer,
-		should_evaluate = False
+		should_evaluate = False,
+		use_features    = use_features
 	)
 
 	global_step, training_loss = train(
 		args          = args,
 		train_dataset = train_dataset,
 		model         = model,
-		tokenizer     = tokenizer
+		tokenizer     = tokenizer,
+		use_features  = use_features
 	)
 
 	if logger is not None :
@@ -213,7 +217,7 @@ def bert_train (args : Any, model : Module, tokenizer : Any, model_cls : Any, to
 
 	return model, tokenizer
 
-def bert_evaluate (args : Any, model_cls : Any, tokenizer_cls : Any, logger : Optional[Any]) -> Tuple[Any, Any, Dict] :
+def bert_evaluate (args : Any, model_cls : Any, tokenizer_cls : Any, logger : Optional[Any], use_features : bool = False) -> Tuple[Any, Any, Dict] :
 	"""
 	Doc
 	"""
@@ -247,10 +251,11 @@ def bert_evaluate (args : Any, model_cls : Any, tokenizer_cls : Any, logger : Op
 		model.to(args.device)
 
 		result = evaluate(
-			args      = args,
-			model     = model,
-			tokenizer = tokenizer,
-			prefix    = prefix
+			args         = args,
+			model        = model,
+			tokenizer    = tokenizer,
+			prefix       = prefix,
+			use_features = use_features
 		)
 
 		result = dict((key + '_{}'.format(global_step), value) for key, value in result.items())
@@ -258,18 +263,16 @@ def bert_evaluate (args : Any, model_cls : Any, tokenizer_cls : Any, logger : Op
 
 	return model, tokenizer, results
 
-def bert_predict (args : Any, model_cls : Any, tokenizer_cls : Any, logger : Optional[Any]) -> Tuple[Any, Any, Dict] :
+def bert_predict (args : Any, model_cls : Any, tokenizer_cls : Any, logger : Optional[Any], use_features : bool = False) -> Tuple[Any, Any, Dict] :
 	"""
 	Doc
 	"""
-
-	results = dict()
 
 	model     = None
 	tokenizer = None
 
 	if not (args.do_predict and args.local_rank in [-1, 0]) :
-		return model, tokenizer, results
+		return model, tokenizer, dict()
 
 	tokenizer = tokenizer_cls.from_pretrained(
 		args.output_dir,
@@ -282,16 +285,17 @@ def bert_predict (args : Any, model_cls : Any, tokenizer_cls : Any, logger : Opt
 	model = model_cls.from_pretrained(args.output_dir)
 	model.to(args.device)
 
-	_ = predict(
-		args      = args,
-		model     = model,
-		tokenizer = tokenizer,
-		prefix    = ''
+	results = predict(
+		args         = args,
+		model        = model,
+		tokenizer    = tokenizer,
+		prefix       = '',
+		use_features = use_features
 	)
 
 	return model, tokenizer, results
 
-def bert_visualize (args : Any, model_cls : Any, tokenizer_cls : Any, config_cls : Any, num_labels : int, logger : Optional[Any]) -> None :
+def bert_visualize (args : Any, model_cls : Any, tokenizer_cls : Any, config_cls : Any, num_labels : int, logger : Optional[Any], use_features : bool = False) -> None :
 	"""
 	Doc
 	"""
@@ -345,11 +349,12 @@ def bert_visualize (args : Any, model_cls : Any, tokenizer_cls : Any, config_cls
 		model.to(args.device)
 
 		vscore, vprob = visualize(
-			args      = args,
-			model     = model,
-			tokenizer = tokenizer,
-			prefix    = prefix,
-			kmer      = kmer
+			args         = args,
+			model        = model,
+			tokenizer    = tokenizer,
+			prefix       = prefix,
+			kmer         = kmer,
+			use_features = use_features
 		)
 
 		if scores is not None :
@@ -364,7 +369,7 @@ def bert_visualize (args : Any, model_cls : Any, tokenizer_cls : Any, config_cls
 	numpy.save(os.path.join(args.predict_dir, 'atten.npy'), scores)
 	numpy.save(os.path.join(args.predict_dir, 'probs.npy'), probs)
 
-def bert_ensamble (args : Any, model_cls : Any, tokenizer_cls : Any, config_cls : Any, num_labels : int, logger : Optional[Any]) -> None :
+def bert_ensamble (args : Any, model_cls : Any, tokenizer_cls : Any, config_cls : Any, num_labels : int, logger : Optional[Any], use_features : bool = False) -> None :
 	"""
 	Doc
 	"""
@@ -422,18 +427,20 @@ def bert_ensamble (args : Any, model_cls : Any, tokenizer_cls : Any, config_cls 
 
 		if args.result_dir.split('/')[-1] == 'test.npy' :
 			results, eval_task, _, out_label_ids, probs = evaluate(
-				args = args,
-				model = model,
-				tokenizer = tokenizer,
-				prefix = prefix
+				args         = args,
+				model        = model,
+				tokenizer    = tokenizer,
+				prefix       = prefix,
+				use_features = use_features
 			)
 		elif args.result_dir.split('/')[-1] == 'train.npy' :
 			results, eval_task, _, out_label_ids, probs = evaluate(
-				args = args,
-				model = model,
-				tokenizer = tokenizer,
-				prefix = prefix,
-				should_evaluate = False
+				args            = args,
+				model           = model,
+				tokenizer       = tokenizer,
+				prefix          = prefix,
+				should_evaluate = False,
+				use_features    = use_features
 			)
 		else :
 			raise ValueError('File name in result_dir should be either test.npy or train.npy')

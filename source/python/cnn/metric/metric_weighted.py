@@ -4,7 +4,7 @@ from typing   import Callable
 
 import torch
 
-from source.python.cnn.metric import Metric_R2
+from source.python.cnn.metric.regression.metric_r2 import Metric_R2
 
 class Metric_Weighted (Module) :
 

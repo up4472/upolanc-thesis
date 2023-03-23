@@ -34,12 +34,14 @@ export TARGET=global-mean
 export MODEL_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/resources/dnabert/$KMER-new-12w-0
 export DATA_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/output/nbp05-target/dnabert-$KMER/promoter-512/$TARGET
 export OUTPUT_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/output/nbp10-dnabert/$KMER
+export CACHE_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/cached
 
 python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp10-dnabert.py \
 --model_type rbertfc3 \
 --tokenizer_name=dna$KMER \
 --model_name_or_path $MODEL_PATH \
 --task_name regression \
+--cache_dir $CACHE_PATH \
 --do_train \
 --do_eval \
 --data_dir $DATA_PATH \
