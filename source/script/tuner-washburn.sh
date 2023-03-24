@@ -34,6 +34,7 @@ python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp06-tuner-model.py
 --target_explode false \
 --target_filter none \
 --model_name washburn2019 \
+--model_type r \
 --model_epochs 25 \
 --tuner_concurrent 5 \
 --tuner_trials 500 \

@@ -105,16 +105,17 @@ def train (args : Any, train_dataset : TensorDataset, model : Module, tokenizer 
 
 	logger.info('***** Running training *****')
 
-	running_loss = 0.0
-	logging_loss = 0.0
+	logging_reports = []
+	running_loss    = 0.0
+	logging_loss    = 0.0
 
 	model.zero_grad()
 	set_seed(args)
 
-	train_iterator = trange(epochs_div, int(args.num_train_epochs), desc = 'Epoch', disable = args.local_rank not in [-1, 0])
+	train_iterator = trange(epochs_div, int(args.num_train_epochs), desc = 'Epoch', disable = True)
 
 	for _ in train_iterator :
-		epoch_iterator = tqdm(train_dataloader, desc = 'Iteration', disable = args.local_rank not in [-1, 0])
+		epoch_iterator = tqdm(train_dataloader, desc = 'Iteration', disable = True)
 
 		for step, batch in enumerate(epoch_iterator) :
 			if epochs_mod > 0 :
@@ -173,9 +174,11 @@ def train (args : Any, train_dataset : TensorDataset, model : Module, tokenizer 
 					logs['learning_rate'] = learning_rate_scalar
 					logs['loss'] = loss_scalar
 
-					logging_loss = running_loss
+					logging_loss   = running_loss
+					logging_report = {**logs, **{'step' : global_step}}
+					logging_reports.append(logging_report)
 
-					print({**logs, **{'step' : global_step}})
+					print(logging_report)
 
 				save_model_checkpoint(
 					model       = model,
@@ -252,7 +255,7 @@ def evaluate (args : Any, model : Module, tokenizer : Any, prefix : str = '', sh
 		ypred        = None
 		ytrue        = None
 
-		for batch in tqdm(eval_dataloader, desc = 'Evaluating') :
+		for batch in tqdm(eval_dataloader, desc = 'Evaluating', disable = True) :
 			model.eval()
 
 			with torch.no_grad() :
@@ -348,7 +351,7 @@ def predict (args : Any, model : Module, tokenizer : Any, prefix : str = '', use
 		ypred = None
 		ytrue = None
 
-		for batch in tqdm(pred_dataloader, desc = 'Predicting') :
+		for batch in tqdm(pred_dataloader, desc = 'Predicting', disable = True) :
 			model.eval()
 			batch = tuple(t.to(args.device) for t in batch)
 

@@ -18,16 +18,14 @@ from source.python.data.feature.feature_extractor import sequences_extend_kvpair
 from source.python.data.feature.feature_target    import classify_tpm
 from source.python.data.feature.feature_target    import create_mapping
 from source.python.data.feature.feature_target    import extract_tpm_multi
-from source.python.dataset.dataset_classes        import GeneDataset
-from source.python.dataset.dataset_utils          import to_gene_dataset
+from source.python.dataset.dataset_utils          import get_dataset
 from source.python.io.loader                      import load_csv
 from source.python.io.loader                      import load_faidx
-from source.python.io.loader                      import load_feature_targets
 from source.python.io.loader                      import load_json
 from source.python.raytune.raytune_model          import get_dataloaders
 from source.python.raytune.raytune_model          import get_metrics
 from source.python.raytune.raytune_model          import get_model
-from source.python.raytune.raytune_model          import regression_loop
+from source.python.raytune.raytune_model          import main_loop
 from source.python.runtime                        import lock_random
 
 CACHE = {
@@ -169,10 +167,8 @@ def get_targets (params : Dict[str, Any], data : AnnData, layer : str = None) ->
 		]
 	)
 
-	if layer is None :
-		matrix = data.X
-	else :
-		matrix = data.layers[layer]
+	if layer is None : matrix = data.X
+	else             : matrix = data.layers[layer]
 
 	for index, transcript in enumerate(data.var.index) :
 		values[transcript]['global-mean'] = [matrix[:, index].mean()]
@@ -212,65 +208,6 @@ def get_targets (params : Dict[str, Any], data : AnnData, layer : str = None) ->
 		order  = order
 	)[1]
 
-def get_dataset (config : Dict[str, Any], bp2150 : Dict[str, Any], feature : Dict[str, Any], cached : Dict[str, Any] = None) -> GeneDataset :
-	"""
-	Doc
-	"""
-
-	target_group   = config['model/output/target']
-	target_type    = config['model/output/type']
-	target_filter  = config['model/output/filter']
-	target_explode = config['model/output/explode']
-
-	if config['model/type'].endswith('r') :
-		mode = 'regression'
-	else :
-		mode = 'classification'
-
-	filters = {
-		'tissue'       : None,
-		'group'        : None,
-		'age'          : None,
-		'perturbation' : None,
-		'global'       : None
-	} | {
-		target_group : target_filter
-		if target_filter is None
-		else [target_filter]
-	}
-
-	dataframe, target_value, target_order = load_feature_targets(
-		group     = '{}-{}'.format(target_group, target_type),
-		explode   = target_explode,
-		filters   = filters,
-		directory = config['core/outdir'],
-		filename  = 'mapping-grouped.pkl',
-		mode      = mode,
-		cached    = cached
-	)
-
-	if 'Feature' in dataframe.columns :
-		feature = {
-			key : numpy.concatenate((feature[key.split('?')[-1]], value))
-			for key, value in dataframe['Feature'].to_dict().items()
-		}
-
-	if mode == 'regression' :
-		config['model/output/size']    = len(target_order)
-		config['model/input/features'] = len(list(feature.values())[0])
-	else :
-		config['model/output/size']    = len(numpy.unique(numpy.array([x for x in dataframe['TPM_Label']]).flatten()))
-		config['model/output/heads']   = len(target_order)
-		config['model/input/features'] = len(list(feature.values())[0])
-
-	return to_gene_dataset(
-		sequences   = bp2150,
-		features    = feature,
-		targets     = target_value,
-		expand_dims = config['dataset/expanddim'],
-		groups      = None
-	)
-
 def get_model_params (config : Dict[str, Any]) -> List[Dict[str, Any]] :
 	"""
 	Doc
@@ -279,7 +216,7 @@ def get_model_params (config : Dict[str, Any]) -> List[Dict[str, Any]] :
 	folder = config['params/filepath']
 	params = [{}]
 
-	if config['model/type'].startswith('zrimec2020r') :
+	if config['model/type'].startswith('zrimec2020') :
 		if 'params/zrimec2020' not in CACHE.keys() :
 			filename = os.path.join(folder, 'zrimec2020.json')
 
@@ -288,7 +225,7 @@ def get_model_params (config : Dict[str, Any]) -> List[Dict[str, Any]] :
 
 		params = CACHE['params/zrimec2020']
 
-	if config['model/type'].startswith('washburn2019r') :
+	if config['model/type'].startswith('washburn2019') :
 		if 'params/washburn2019' not in CACHE.keys() :
 			filename = os.path.join(folder, 'washburn2019.json')
 
@@ -316,15 +253,16 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 	)[0]
 
 	dataset = get_dataset(
-		config  = core_config,
-		bp2150  = bp2150,
-		feature = feature,
-		cached  = get_targets(
+		config    = core_config,
+		bp2150    = bp2150,
+		feature   = feature,
+		directory = core_config['core/outdir'],
+		cached    = get_targets(
 			params = tune_config,
 			data   = data,
 			layer  = 'boxcox1p'
 		)
-	)
+	)[0]
 
 	dataloaders = get_dataloaders(
 		params  = core_config['params/tuner'],
@@ -343,7 +281,7 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 		epochs = core_config['model/epochs']
 	)
 
-	regression_loop(
+	main_loop(
 		config       = core_config,
 		model_params = {
 			'model'     : model,

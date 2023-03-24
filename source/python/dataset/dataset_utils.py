@@ -1,13 +1,17 @@
+from pandas           import DataFrame
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 from torch.utils.data import SubsetRandomSampler
+from typing           import Any
 from typing           import Callable
 from typing           import Dict
 from typing           import List
+from typing           import Tuple
 
 import numpy
 
 from source.python.dataset.dataset_classes import GeneDataset
+from source.python.io.loader               import load_feature_targets
 
 def to_gene_dataset (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], expand_dims : int = None, groups : Dict[str, int] = None, onehot : bool = True) -> GeneDataset :
 	"""
@@ -96,3 +100,60 @@ def show_dataloader (dataloader : DataLoader, verbose : bool = True) -> None :
 	print(f' Batch Size  : {batch_size:6,d}')
 	print(f' Batch Count : {nbatches:6,d}')
 	print(f'Sample Count : {nsamples:6,d}')
+
+def get_dataset (config : Dict[str, Any], bp2150 : Dict[str, Any], feature : Dict[str, Any], directory : str, cached : Dict[str, Any] = None) -> Tuple[GeneDataset, DataFrame, Dict, List] :
+	"""
+	Doc
+	"""
+
+	target_group   = config['model/output/target']
+	target_type    = config['model/output/type']
+	target_filter  = config['model/output/filter']
+	target_explode = config['model/output/explode']
+
+	filters = {
+		'tissue'       : None,
+		'group'        : None,
+		'age'          : None,
+		'perturbation' : None,
+		'global'       : None
+	} | {
+		target_group : target_filter
+		if target_filter is None
+		else [target_filter]
+	}
+
+	dataframe, target_value, target_order = load_feature_targets(
+		group     = '{}-{}'.format(target_group, target_type),
+		explode   = target_explode,
+		filters   = filters,
+		directory = directory,
+		filename  = 'mapping-grouped.pkl',
+		mode      = config['model/mode'],
+		cached    = cached
+	)
+
+	if 'Feature' in dataframe.columns :
+		feature = {
+			key : numpy.concatenate((feature[key.split('?')[-1]], value))
+			for key, value in dataframe['Feature'].to_dict().items()
+		}
+
+	if config['model/mode'] == 'regression' :
+		config['model/output/size']    = len(target_order)
+		config['model/input/features'] = len(list(feature.values())[0])
+
+	if config['model/mode'] == 'classification' :
+		config['model/output/size']    = len(numpy.unique(numpy.array([x for x in dataframe['TPM_Label']]).flatten()))
+		config['model/output/heads']   = len(target_order)
+		config['model/input/features'] = len(list(feature.values())[0])
+
+	dataset = to_gene_dataset(
+		sequences   = bp2150,
+		features    = feature,
+		targets     = target_value,
+		expand_dims = config['dataset/expanddim'],
+		groups      = None
+	)
+
+	return dataset, dataframe, target_value, target_order

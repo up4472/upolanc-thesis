@@ -108,14 +108,17 @@ def get_metrics (config : Dict[str, Any], n_classes : int = 3) -> Dict[str, Modu
 	Doc
 	"""
 
-	if config['model/type'].endswith('r') :
+	metrics = dict()
+
+	if config['model/mode'] == 'regression' :
 		metrics = {
 			'r2'    : get_criterion(reduction = 'mean', weights = None, query = 'r2', output_size = config['model/output/size']),
 			'mae'   : get_criterion(reduction = 'mean', weights = None, query = 'mae'),
 			'mape'  : get_criterion(reduction = 'mean', weights = None, query = 'mape'),
 			'wmape' : get_criterion(reduction = 'mean', weights = None, query = 'wmape')
 		}
-	else :
+
+	if config['model/mode'] == 'classification' :
 		metrics = {
 			'entropy'  : get_criterion(reduction = 'mean', weights = None, query = 'entropy'),
 			'accuracy' : get_criterion(reduction = 'mean', weights = None, query = 'accuracy', n_classes = n_classes),
@@ -128,7 +131,40 @@ def get_metrics (config : Dict[str, Any], n_classes : int = 3) -> Dict[str, Modu
 		for k, v in metrics.items()
 	}
 
-def regression_loop (model_params : Dict[str, Any], config : Dict[str, Any]) -> None :
+def tune_report (train_report : Dict[str, Any], valid_report : Dict[str, Any], lr : float, mode : str) -> None :
+	"""
+	Doc
+	"""
+
+	if mode == 'regression' :
+		tune.report(
+			valid_loss  = valid_report['loss'],
+			valid_r2    = numpy.mean(valid_report['metric']['r2']),
+			valid_mae   = numpy.mean(valid_report['metric']['mae']),
+			valid_mape  = numpy.mean(valid_report['metric']['mape']),
+			valid_wmape = numpy.mean(valid_report['metric']['wmape']),
+			train_loss  = train_report['loss'],
+			train_r2    = numpy.mean(train_report['metric']['r2']),
+			train_mae   = numpy.mean(train_report['metric']['mae']),
+			train_mape  = numpy.mean(train_report['metric']['mape']),
+			train_wmape = numpy.mean(train_report['metric']['wmape']),
+			lr          = lr
+		)
+
+	if mode == 'classification' :
+		tune.report(
+			valid_loss     = valid_report['loss'],
+			valid_accuracy = numpy.mean(valid_report['metric']['accuracy']),
+			valid_auroc    = numpy.mean(valid_report['metric']['auroc']),
+			valid_f1       = numpy.mean(valid_report['metric']['f1']),
+			train_loss     = train_report['loss'],
+			train_accuracy = numpy.mean(train_report['metric']['accuracy']),
+			train_auroc    = numpy.mean(train_report['metric']['auroc']),
+			train_f1       = numpy.mean(train_report['metric']['f1']),
+			lr             = lr
+		)
+
+def main_loop (model_params : Dict[str, Any], config : Dict[str, Any]) -> None :
 	"""
 	Doc
 	"""
@@ -141,24 +177,22 @@ def regression_loop (model_params : Dict[str, Any], config : Dict[str, Any]) -> 
 	for epoch in range(config['model/epochs']) :
 		current_lr = optimizer.param_groups[0]['lr']
 
-		train_report = train_epoch(model = model, params = model_params, desc = '')
-		valid_report = evaluate_epoch(model = model, params = model_params, desc = '', validation = True)
+		train_report = train_epoch(
+			model  = model,
+			params = model_params,
+			desc   = ''
+		)
 
-		train_loss  = train_report['loss']
-		train_r2    = train_report['metric']['r2']
-		train_mae   = train_report['metric']['mae']
-		train_mape  = train_report['metric']['mape']
-		train_wmape = train_report['metric']['wmape']
-
-		valid_loss  = valid_report['loss']
-		valid_r2    = valid_report['metric']['r2']
-		valid_mae   = valid_report['metric']['mae']
-		valid_mape  = valid_report['metric']['mape']
-		valid_wmape = valid_report['metric']['wmape']
+		valid_report = evaluate_epoch(
+			model      = model,
+			params     = model_params,
+			desc       = '',
+			validation = True
+		)
 
 		if scheduler is not None :
 			if isinstance(scheduler, ReduceLROnPlateau) :
-				scheduler.step(valid_loss)
+				scheduler.step(valid_report['loss'])
 			else :
 				scheduler.step()
 
@@ -172,18 +206,11 @@ def regression_loop (model_params : Dict[str, Any], config : Dict[str, Any]) -> 
 
 				torch.save(data, path)
 
-		tune.report(
-			valid_loss  = valid_loss,
-			valid_r2    = numpy.mean(valid_r2),
-			valid_mae   = numpy.mean(valid_mae),
-			valid_mape  = numpy.mean(valid_mape),
-			valid_wmape = numpy.mean(valid_wmape),
-			train_loss  = train_loss,
-			train_r2    = numpy.mean(train_r2),
-			train_mae   = numpy.mean(train_mae),
-			train_mape  = numpy.mean(train_mape),
-			train_wmape = numpy.mean(train_wmape),
-			lr          = current_lr
+		tune_report(
+			train_report = train_report,
+			valid_report = valid_report,
+			lr           = current_lr,
+			mode         = config['model/mode']
 		)
 
 def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
@@ -210,7 +237,7 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 		epochs = core_config['model/epochs']
 	)
 
-	regression_loop(
+	main_loop(
 		config       = core_config,
 		model_params = {
 			'model'     : model,

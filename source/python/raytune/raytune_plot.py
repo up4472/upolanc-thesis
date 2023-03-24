@@ -62,6 +62,21 @@ def trials_lineplot_loss (dataframe : DataFrame, max_trials : int = 10, alpha : 
 		filename   = filename + '-loss'
 	)
 
+def trials_lineplot_accuracy (dataframe : DataFrame, max_trials : int = 10, alpha : float = 0.9, filename : str = None) -> None :
+	"""
+	Doc
+	"""
+
+	trials_lineplot(
+		dataframe = dataframe,
+		y          = 'valid_accuracy',
+		ylabel     = 'Valid Accuracy',
+		ascending  = False,
+		max_trials = max_trials,
+		alpha      = alpha,
+		filename   = filename + '-accuracy'
+	)
+
 def trials_lineplot_r2 (dataframe : DataFrame, max_trials : int = 10, alpha : float = 0.9, filename : str = None) -> None :
 	"""
 	Doc
@@ -132,6 +147,20 @@ def trial_lineplot_loss (dataframe : DataFrame, alpha : float = 0.9, color : str
 		alpha     = alpha,
 		color     = color,
 		filename  = filename + '-loss'
+	)
+
+def trial_lineplot_accuracy (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None) -> None :
+	"""
+	Doc
+	"""
+
+	trial_lineplot(
+		dataframe = dataframe,
+		y         = 'valid_accuracy',
+		ylabel    = 'Valid Accuracy',
+		alpha     = alpha,
+		color     = color,
+		filename  = filename + '-accuracy'
 	)
 
 def trial_lineplot_r2 (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None) -> None :
@@ -278,4 +307,73 @@ def trials_scatterplot_lambda_wmape (dataframe : DataFrame, alpha : float = 0.9,
 		alpha     = alpha,
 		color     = color,
 		filename  = filename + '-lambda-wmape'
+	)
+
+def trials_scatterplot_lambda_accuracy (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None, clip : Tuple[int, int] = None) -> None :
+	"""
+	Doc
+	"""
+
+	if clip is not None :
+		dataframe = dataframe.copy()
+		dataframe['valid_accuracy'] = dataframe['valid_accuracy'].clip(
+			lower = clip[0],
+			upper = clip[1]
+		)
+
+	trials_scatterplot(
+		dataframe = dataframe,
+		x         = 'config/boxcox/lambda',
+		y         = 'valid_accuracy',
+		xlabel    = 'Lambda',
+		ylabel    = 'Valid Accuracy',
+		alpha     = alpha,
+		color     = color,
+		filename  = filename + '-lambda-accuracy'
+	)
+
+def trials_scatterplot_lambda_auroc (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None, clip : Tuple[int, int] = None) -> None :
+	"""
+	Doc
+	"""
+
+	if clip is not None :
+		dataframe = dataframe.copy()
+		dataframe['valid_auroc'] = dataframe['valid_auroc'].clip(
+			lower = clip[0],
+			upper = clip[1]
+		)
+
+	trials_scatterplot(
+		dataframe = dataframe,
+		x         = 'config/boxcox/lambda',
+		y         = 'valid_auroc',
+		xlabel    = 'Lambda',
+		ylabel    = 'Valid AUROC',
+		alpha     = alpha,
+		color     = color,
+		filename  = filename + '-lambda-auroc'
+	)
+
+def trials_scatterplot_lambda_f1 (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None, clip : Tuple[int, int] = None) -> None :
+	"""
+	Doc
+	"""
+
+	if clip is not None :
+		dataframe = dataframe.copy()
+		dataframe['valid_f1'] = dataframe['valid_f1'].clip(
+			lower = clip[0],
+			upper = clip[1]
+		)
+
+	trials_scatterplot(
+		dataframe = dataframe,
+		x         = 'config/boxcox/lambda',
+		y         = 'valid_f1',
+		xlabel    = 'Lambda',
+		ylabel    = 'Valid F1',
+		alpha     = alpha,
+		color     = color,
+		filename  = filename + '-lambda-f1'
 	)

@@ -56,7 +56,7 @@ def create_tune_config (config : Dict[str, Any], metric : str = 'valid_loss', mo
 		trial_dirname_creator = lambda x : str(x.trial_id)
 	)
 
-def create_run_config (config : Dict[str, Any], local_dir : str = None, verbosity : int = 1, mode : str = 'regression', task : str = 'model') -> RunConfig :
+def create_run_config (config : Dict[str, Any], local_dir : str = None, verbosity : int = 1, task : str = 'model') -> RunConfig :
 	"""
 	Doc
 	"""
@@ -70,11 +70,23 @@ def create_run_config (config : Dict[str, Any], local_dir : str = None, verbosit
 	pcolumns = None
 	mcolumns = None
 
-	if   mode == 'regression'     : mcolumns = ['train_loss', 'train_r2', 'train_mae', 'valid_loss', 'valid_r2', 'valid_mae']
-	elif mode == 'classification' : mcolumns = ['train_loss', 'valid_loss']
+	if config['model/type'].endswith('r') :
+		mcolumns = [
+			'train_loss', 'train_r2', 'train_mae',
+			'valid_loss', 'valid_r2', 'valid_mae'
+		]
 
-	if   task == 'model' : pcolumns = ['dataset/batch_size', 'optimizer/name', 'scheduler/name']
-	elif task == 'data'  : pcolumns = ['boxcox/lambda']
+		if   task == 'model' : pcolumns = ['dataset/batch_size', 'optimizer/name', 'scheduler/name']
+		elif task == 'data'  : pcolumns = ['boxcox/lambda']
+
+	elif config['model/type'].endswith('c') :
+		mcolumns = [
+			'train_loss', 'train_accuracy', 'train_auroc', 'train_f1',
+			'valid_loss', 'valid_accuracy', 'valid_auroc', 'valid_f1'
+		]
+
+		if   task == 'model' : pcolumns = ['dataset/batch_size', 'optimizer/name', 'scheduler/name']
+		elif task == 'data'  : pcolumns = ['boxcox/lambda', 'class/bins']
 
 	reporter = reporter(
 		max_column_length    = 32,
