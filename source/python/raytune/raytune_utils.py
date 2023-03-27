@@ -6,6 +6,7 @@ from ray.tune                 import JupyterNotebookReporter
 from ray.tune                 import TuneConfig
 from ray.tune                 import Tuner
 from ray.tune.schedulers      import ASHAScheduler
+from ray.tune.search          import BasicVariantGenerator
 from ray.tune.search          import ConcurrencyLimiter
 from ray.tune.search.hyperopt import HyperOptSearch
 from ray.tune.stopper         import TimeoutStopper
@@ -22,20 +23,41 @@ VERBOSE_STATUS = 1
 VERBOSE_BRIEF  = 2
 VERBOSE_DETAIL = 3
 
-def create_tune_config (config : Dict[str, Any], metric : str = 'valid_loss', mode : str = 'min', params : List[Dict[str, Any]] = None) -> TuneConfig :
+def get_search_algorithm (config : Dict[str, Any], metric : str = 'valid_loss', mode : str = 'min', params : List[Dict[str, Any]] = None, algorithm : str = 'hyperopt') -> Any :
 	"""
 	Doc
 	"""
 
-	tune_searcher = HyperOptSearch(
-		points_to_evaluate = params,
-		metric             = metric,
-		mode               = mode
-	)
+	algorithm = algorithm.lower()
 
-	tune_searcher = ConcurrencyLimiter(
-		searcher       = tune_searcher,
-		max_concurrent = config['tuner/max_concurrent']
+	if algorithm == 'hyperopt' :
+		return ConcurrencyLimiter(
+			searcher = HyperOptSearch(
+				points_to_evaluate = params,
+				metric             = metric,
+				mode               = mode
+			),
+			max_concurrent = config['tuner/max_concurrent']
+		)
+
+	if algorithm == 'gridsearch' :
+		return BasicVariantGenerator(
+			points_to_evaluate   = params,
+			max_concurrent       = config['tuner/max_concurrent'],
+			constant_grid_search = True
+		)
+
+def create_tune_config (config : Dict[str, Any], metric : str = 'valid_loss', mode : str = 'min', params : List[Dict[str, Any]] = None, algorithm : str = 'hyperopt') -> TuneConfig :
+	"""
+	Doc
+	"""
+
+	tune_searcher = get_search_algorithm(
+		config    = config,
+		metric    = metric,
+		mode      = mode,
+		params    = params,
+		algorithm = algorithm
 	)
 
 	tune_scheduler = ASHAScheduler(

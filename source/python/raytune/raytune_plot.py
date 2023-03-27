@@ -1,5 +1,6 @@
 from pandas import DataFrame
 from typing import Tuple
+from typing import Optional
 
 import matplotlib
 import os
@@ -59,7 +60,7 @@ def trials_lineplot_loss (dataframe : DataFrame, max_trials : int = 10, alpha : 
 		ascending  = True,
 		max_trials = max_trials,
 		alpha      = alpha,
-		filename   = filename + '-loss'
+		filename   = filename + '-line-loss'
 	)
 
 def trials_lineplot_accuracy (dataframe : DataFrame, max_trials : int = 10, alpha : float = 0.9, filename : str = None) -> None :
@@ -74,7 +75,7 @@ def trials_lineplot_accuracy (dataframe : DataFrame, max_trials : int = 10, alph
 		ascending  = False,
 		max_trials = max_trials,
 		alpha      = alpha,
-		filename   = filename + '-accuracy'
+		filename   = filename + '-line-accuracy'
 	)
 
 def trials_lineplot_r2 (dataframe : DataFrame, max_trials : int = 10, alpha : float = 0.9, filename : str = None) -> None :
@@ -89,7 +90,7 @@ def trials_lineplot_r2 (dataframe : DataFrame, max_trials : int = 10, alpha : fl
 		ascending  = False,
 		max_trials = max_trials,
 		alpha      = alpha,
-		filename   = filename + '-r2'
+		filename   = filename + '-line-r2'
 	)
 
 def trial_lineplot (dataframe : DataFrame, y : str, ylabel : str, alpha : float = 0.9, color : str = 'b', filename : str = None) -> None :
@@ -146,7 +147,7 @@ def trial_lineplot_loss (dataframe : DataFrame, alpha : float = 0.9, color : str
 		ylabel    = 'Valid Loss',
 		alpha     = alpha,
 		color     = color,
-		filename  = filename + '-loss'
+		filename  = filename + '-line-loss'
 	)
 
 def trial_lineplot_accuracy (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None) -> None :
@@ -160,7 +161,7 @@ def trial_lineplot_accuracy (dataframe : DataFrame, alpha : float = 0.9, color :
 		ylabel    = 'Valid Accuracy',
 		alpha     = alpha,
 		color     = color,
-		filename  = filename + '-accuracy'
+		filename  = filename + '-line-accuracy'
 	)
 
 def trial_lineplot_r2 (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None) -> None :
@@ -174,7 +175,7 @@ def trial_lineplot_r2 (dataframe : DataFrame, alpha : float = 0.9, color : str =
 		ylabel    = 'Valid R2',
 		alpha     = alpha,
 		color     = color,
-		filename  = filename + '-r2'
+		filename  = filename + '-line-r2'
 	)
 
 def trial_lineplot_lr (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None) -> None :
@@ -188,7 +189,7 @@ def trial_lineplot_lr (dataframe : DataFrame, alpha : float = 0.9, color : str =
 		ylabel    = 'Learning Rate',
 		alpha     = alpha,
 		color     = color,
-		filename  = filename + '-lr'
+		filename  = filename + '-line-lr'
 	)
 
 def trials_scatterplot (dataframe : DataFrame, x : str, y : str, xlabel : str, ylabel : str, alpha : float = 0.9, color : str = 'b', filename : str = None) -> None :
@@ -237,7 +238,7 @@ def trials_scatterplot_lambda_loss (dataframe : DataFrame, alpha : float = 0.9, 
 		ylabel    = 'Valid Loss',
 		alpha     = alpha,
 		color     = color,
-		filename  = filename + '-lambda-loss'
+		filename  = filename + '-scatter-lambda-loss'
 	)
 
 def trials_scatterplot_lambda_r2 (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None, clip : Tuple[int, int] = None) -> None :
@@ -260,7 +261,7 @@ def trials_scatterplot_lambda_r2 (dataframe : DataFrame, alpha : float = 0.9, co
 		ylabel    = 'Valid R2',
 		alpha     = alpha,
 		color     = color,
-		filename  = filename + '-lambda-r2'
+		filename  = filename + '-scatter-lambda-r2'
 	)
 
 def trials_scatterplot_lambda_mape (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None, clip : Tuple[int, int] = None) -> None :
@@ -283,7 +284,7 @@ def trials_scatterplot_lambda_mape (dataframe : DataFrame, alpha : float = 0.9, 
 		ylabel    = 'Valid MAPE',
 		alpha     = alpha,
 		color     = color,
-		filename  = filename + '-lambda-mape'
+		filename  = filename + '-scatter-lambda-mape'
 	)
 
 def trials_scatterplot_lambda_wmape (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None, clip : Tuple[int, int] = None) -> None :
@@ -306,7 +307,7 @@ def trials_scatterplot_lambda_wmape (dataframe : DataFrame, alpha : float = 0.9,
 		ylabel    = 'Valid WMAPE',
 		alpha     = alpha,
 		color     = color,
-		filename  = filename + '-lambda-wmape'
+		filename  = filename + '-scatter-lambda-wmape'
 	)
 
 def trials_scatterplot_lambda_accuracy (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None, clip : Tuple[int, int] = None) -> None :
@@ -329,7 +330,7 @@ def trials_scatterplot_lambda_accuracy (dataframe : DataFrame, alpha : float = 0
 		ylabel    = 'Valid Accuracy',
 		alpha     = alpha,
 		color     = color,
-		filename  = filename + '-lambda-accuracy'
+		filename  = filename + '-scatter-lambda-accuracy'
 	)
 
 def trials_scatterplot_lambda_auroc (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None, clip : Tuple[int, int] = None) -> None :
@@ -352,7 +353,7 @@ def trials_scatterplot_lambda_auroc (dataframe : DataFrame, alpha : float = 0.9,
 		ylabel    = 'Valid AUROC',
 		alpha     = alpha,
 		color     = color,
-		filename  = filename + '-lambda-auroc'
+		filename  = filename + '-scatter-lambda-auroc'
 	)
 
 def trials_scatterplot_lambda_f1 (dataframe : DataFrame, alpha : float = 0.9, color : str = 'b', filename : str = None, clip : Tuple[int, int] = None) -> None :
@@ -375,5 +376,80 @@ def trials_scatterplot_lambda_f1 (dataframe : DataFrame, alpha : float = 0.9, co
 		ylabel    = 'Valid F1',
 		alpha     = alpha,
 		color     = color,
-		filename  = filename + '-lambda-f1'
+		filename  = filename + '-scatter-lambda-f1'
+	)
+
+def trials_heatmap_lambda_bins (dataframe : DataFrame, vmin : Optional[float], vmax : Optional[float], values : str = 'valid_accuracy', filename : str = None) -> None :
+	"""
+	Doc
+	"""
+
+	data = dataframe.pivot(
+		index   = 'config/boxcox/lambda',
+		columns = 'config/class/bins',
+		values  = values
+	)
+
+	_, ax = matplotlib.pyplot.subplots(figsize = (16, 9))
+
+	seaborn.heatmap(
+		data      = data,
+		cmap      = 'crest',
+		annot     = True,
+		linewidth = 0.5,
+		vmin      = vmin,
+		vmax      = vmax,
+		square    = True,
+		ax        = ax
+	)
+
+	index = sorted(data.index.tolist())
+	index = ['{:.5f}'.format(i) for i in index]
+
+	ax.set_yticklabels(index)
+
+	if filename is not None :
+		matplotlib.pyplot.savefig(
+			filename + '.png',
+			format = 'png',
+			dpi    = 120
+		)
+
+def trials_heatmap_lambda_bins_accuracy (dataframe : DataFrame, filename : str = None) -> None :
+	"""
+	Doc
+	"""
+
+	trials_heatmap_lambda_bins(
+		dataframe = dataframe,
+		values    = 'valid_accuracy',
+		vmin      = 0.0,
+		vmax      = 1.0,
+		filename  = filename + '-heatmap-lambda-bins-accuracy'
+	)
+
+def trials_heatmap_lambda_bins_f1 (dataframe : DataFrame, filename : str = None) -> None :
+	"""
+	Doc
+	"""
+
+	trials_heatmap_lambda_bins(
+		dataframe = dataframe,
+		values    = 'valid_f1',
+		vmin      = None,
+		vmax      = None,
+		filename  = filename + '-heatmap-lambda-bins-f1'
+	)
+
+def trials_heatmap_lambda_bins_auroc (dataframe : DataFrame, filename : str = None) -> None :
+	"""
+	Doc
+	"""
+
+	trials_heatmap_lambda_bins(
+		dataframe = dataframe,
+		values    = 'valid_auroc',
+		vmin      = None,
+		vmax      = None,
+		filename  = filename + '-heatmap-lambda-bins-auroc'
 	)
