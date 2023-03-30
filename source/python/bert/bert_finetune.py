@@ -197,7 +197,7 @@ def train (args : Any, train_dataset : TensorDataset, model : Module, tokenizer 
 			train_iterator.close()
 			break
 
-	return global_step, running_loss / global_step
+	return global_step, running_loss / global_step, logging_reports
 
 def evaluate (args : Any, model : Module, tokenizer : Any, prefix : str = '', should_evaluate : bool = True, use_features : bool = False) :
 	"""

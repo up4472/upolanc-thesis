@@ -43,13 +43,29 @@ def freeze_module (module : Module) -> None :
 	for param in module.parameters() :
 		param.requires_grad = False
 
-def freeze_bert (model : Module) -> None :
+def freeze_layers (module : Module, n : int) -> None :
 	"""
 	Doc
 	"""
 
-	freeze_module(module = get_bert_module(model = model))
+	for name, params in module.named_parameters() :
+		if name.startswith('encoder.layer.{}.'.format(n)) :
+			break
 
+		params.requires_grad = False
+
+def freeze_bert (model : Module, n : int = None) -> None :
+	"""
+	Doc
+	"""
+
+	module = get_bert_module(model = model)
+
+	if n >= 12 : n = None
+	if n <=  0 : return
+
+	if n is None : freeze_module(module = module)
+	else         : freeze_layers(module = module, n = n)
 
 def get_sampler (dataset : TensorDataset, mode : str, local_rank : int) :
 	"""

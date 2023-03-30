@@ -13,6 +13,7 @@ import numpy
 import os
 import random
 import torch.distributed
+import json
 
 from source.python.bert.bert_cache      import load_and_cache_examples
 from source.python.bert.bert_checkpoint import sort_chekpoints
@@ -186,7 +187,7 @@ def bert_train (args : Any, model : Module, tokenizer : Any, model_cls : Any, to
 		use_features    = use_features
 	)
 
-	global_step, training_loss = train(
+	global_step, training_loss, results = train(
 		args          = args,
 		train_dataset = train_dataset,
 		model         = model,
@@ -200,6 +201,9 @@ def bert_train (args : Any, model : Module, tokenizer : Any, model_cls : Any, to
 	if args.task_name != 'dna690' and (args.local_rank == -1 or torch.distributed.get_rank() == 0) :
 		if not os.path.exists(args.output_dir) and args.local_rank in [-1, 0] :
 			os.makedirs(args.output_dir)
+
+		with open(os.path.join(args.output_dir, 'results.json'), mode = 'w') as handle :
+			json.dump(results, handle, sort_keys = True, indent = 4, separators = (',', ' : '))
 
 		if hasattr(model, 'module') :
 			model_to_save = model.module
