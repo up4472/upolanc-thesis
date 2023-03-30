@@ -7,7 +7,7 @@ from source.python.bert.bert_constants import MODES
 from source.python.bert.bert_constants import PROCESSORS
 from source.python.bert.bert_input     import BertFeatures
 
-if is_tf_available() : import tensorflow # noqa
+if is_tf_available() : import tensorflow # noqa :: module not found
 
 from torch.nn          import DataParallel
 from torch.nn          import Module
@@ -43,29 +43,28 @@ def freeze_module (module : Module) -> None :
 	for param in module.parameters() :
 		param.requires_grad = False
 
-def freeze_layers (module : Module, n : int) -> None :
+def freeze_layers (module : Module, layers : int, prefix : str) -> None :
 	"""
 	Doc
 	"""
 
 	for name, params in module.named_parameters() :
-		if name.startswith('encoder.layer.{}.'.format(n)) :
+		if name.startswith(prefix.format(layers)) :
 			break
 
 		params.requires_grad = False
 
-def freeze_bert (model : Module, n : int = None) -> None :
+def freeze_bert (model : Module, layers : int = None) -> None :
 	"""
 	Doc
 	"""
 
 	module = get_bert_module(model = model)
 
-	if n >= 12 : n = None
-	if n <=  0 : return
-
-	if n is None : freeze_module(module = module)
-	else         : freeze_layers(module = module, n = n)
+	if layers is None : freeze_module(module = module)
+	elif layers >= 12 : freeze_module(module = module)
+	elif layers <=  0 : return
+	else              : freeze_layers(module = module, layers = layers, prefix = 'encoder.layer.{}.')
 
 def get_sampler (dataset : TensorDataset, mode : str, local_rank : int) :
 	"""

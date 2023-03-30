@@ -80,7 +80,10 @@ def train (args : Any, train_dataset : TensorDataset, model : Module, tokenizer 
 	# Freeze certain layers
 	#
 
-	freeze_bert(model = model)
+	freeze_bert(
+		model  = model,
+		layers = None
+	)
 
 	#
 	# Check for checkpoints
