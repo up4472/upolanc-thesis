@@ -390,7 +390,7 @@ def trials_heatmap_lambda_bins (dataframe : DataFrame, vmin : Optional[float], v
 		values  = values
 	)
 
-	_, ax = matplotlib.pyplot.subplots(figsize = (16, 9))
+	_, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
 
 	seaborn.heatmap(
 		data      = data,
@@ -403,7 +403,7 @@ def trials_heatmap_lambda_bins (dataframe : DataFrame, vmin : Optional[float], v
 		ax        = ax
 	)
 
-	index = sorted(data.index.tolist())
+	index = ax.get_yticklabels()
 	index = ['{:.5f}'.format(i) for i in index]
 
 	ax.set_yticklabels(index)

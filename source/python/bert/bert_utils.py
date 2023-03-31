@@ -3,9 +3,10 @@ from transformers import InputExample    # noqa F821 :: unresolved reference :: 
 from transformers import InputFeatures   # noqa F821 :: unresolved reference :: added at runtime
 from transformers import is_tf_available # noqa F821 :: unresolved reference :: added at runtime
 
-from source.python.bert.bert_constants import MODES
-from source.python.bert.bert_constants import PROCESSORS
-from source.python.bert.bert_input     import BertFeatures
+from source.python.bert.bert_constants  import MODES
+from source.python.bert.bert_constants  import PROCESSORS
+from source.python.bert.bert_input      import BertFeatures
+from source.python.bert.bert_optimizers import Lamb
 
 if is_tf_available() : import tensorflow # noqa :: module not found
 
@@ -112,6 +113,16 @@ def get_optimizer (model : Module, args : Any) -> Optimizer :
 			'weight_decay' : 0.0
 		},
 	]
+
+	if args.optimizer == 'lamb' :
+		return Lamb(
+			params       = model.parameters(),
+			lr           = args.learning_rate,
+			betas        = (args.beta1, args.beta2),
+			eps          = 1e-6,
+			weight_decay = args.weight_decay,
+			adam         = False
+		)
 
 	return AdamW(
 		params = optimizer_grouped_parameters,

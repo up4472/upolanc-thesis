@@ -36,6 +36,8 @@ class RegressionBertFC1 (BertPreTrainedModel) :
 
 		self.fc1 = Linear(idim, odim)
 
+		self.init_weights()
+
 	def forward (self, input_ids = None, attention_mask = None, token_type_ids = None, position_ids = None, head_mask = None, inputs_embeds = None, labels = None, features = None) :
 		"""
 		Doc
@@ -104,6 +106,8 @@ class RegressionBertFC3 (BertPreTrainedModel) :
 		self.fc1 = Linear(idim, 512)
 		self.fc2 = Linear(512,  256)
 		self.fc3 = Linear(256,  odim)
+
+		self.init_weights()
 
 	def forward (self, input_ids = None, attention_mask = None, token_type_ids = None, position_ids = None, head_mask = None, inputs_embeds = None, labels = None, features = None) :
 		"""
@@ -213,6 +217,12 @@ class CatRegressionBertFC3 (BertPreTrainedModel) :
 		logits = self.fc1(logits)
 		logits = self.relu(logits)
 		logits = self.dropout(logits)
+
+		if features is not None :
+			logits = torch.cat(
+				tensors = (logits, features),
+				dim     = 1
+			)
 
 		logits = self.fc2(logits)
 		logits = self.relu(logits)

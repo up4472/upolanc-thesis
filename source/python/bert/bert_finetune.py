@@ -82,7 +82,7 @@ def train (args : Any, train_dataset : TensorDataset, model : Module, tokenizer 
 
 	freeze_bert(
 		model  = model,
-		layers = None
+		layers = args.freeze_layers
 	)
 
 	#
