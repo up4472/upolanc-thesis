@@ -8,6 +8,19 @@ import seaborn
 
 from source.python.io.loader import load_csv
 
+def format_float_tick (label : str) -> str :
+	"""
+	Doc
+	"""
+
+	if len(label) >= 1 and label[0] != '-' :
+		label = ' ' + label
+
+	while len(label) < 8 :
+		label = label + '0'
+
+	return '{:8s}'.format(label[:8])
+
 def trials_lineplot (dataframe : DataFrame, y : str, ylabel : str, ascending : bool, max_trials : int = 10, alpha : float = 0.9, filename : str = None) -> None :
 	"""
 	Doc
@@ -395,18 +408,13 @@ def trials_heatmap_lambda_bins (dataframe : DataFrame, vmin : Optional[float], v
 	seaborn.heatmap(
 		data      = data,
 		cmap      = 'crest',
-		annot     = True,
+		annot     = False,
 		linewidth = 0.5,
 		vmin      = vmin,
 		vmax      = vmax,
 		square    = True,
 		ax        = ax
 	)
-
-	index = ax.get_yticklabels()
-	index = ['{:.5f}'.format(i) for i in index]
-
-	ax.set_yticklabels(index)
 
 	if filename is not None :
 		matplotlib.pyplot.savefig(

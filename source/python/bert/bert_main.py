@@ -13,7 +13,6 @@ import numpy
 import os
 import random
 import torch.distributed
-import json
 
 from source.python.bert.bert_cache      import load_and_cache_examples
 from source.python.bert.bert_checkpoint import sort_chekpoints
@@ -203,7 +202,32 @@ def bert_train (args : Any, model : Module, tokenizer : Any, model_cls : Any, to
 			os.makedirs(args.output_dir)
 
 		with open(os.path.join(args.output_dir, 'results.json'), mode = 'w') as handle :
-			json.dump(results, handle, sort_keys = True, indent = 4, separators = (',', ' : '))
+			handle.write('[')
+			handle.write('\n')
+
+			for dictionary in results :
+				handle.write('\t')
+				handle.write('{')
+				handle.write('\n')
+
+				for key, value in dictionary.items() :
+					key   = '"' + str(key) + '"'
+					value = str(value)
+
+					handle.write('\t\t')
+					handle.write(key)
+					handle.write(' : ')
+					handle.write(value)
+					handle.write(',')
+					handle.write('\n')
+
+				handle.write('\t')
+				handle.write('}')
+				handle.write(',')
+				handle.write('\n')
+
+			handle.write(']')
+			handle.write('\n')
 
 		if hasattr(model, 'module') :
 			model_to_save = model.module
