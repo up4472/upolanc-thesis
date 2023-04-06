@@ -27,21 +27,21 @@ if [[ ":$PATH:" != *":$ROOT:"* ]]; then
 	export PATH="$PATH:$ROOT"
 fi
 
-# Run script
 export KMER=6
 export TARGET=global-mean
+export SEQUENCE=promoter-512
 
 export MODEL_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/resources/dnabert/$KMER-new-12w-0
-export DATA_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/output/nbp05-target/dnabert-$KMER/promoter-512/$TARGET
-export OUTPUT_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/output/nbp10-dnabert/$KMER
-export CACHE_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/cached
+export DATA_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/output/nbp05-target/dnabert-$KMER/$SEQUENCE/$TARGET
+export OUTPUT_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/output/nbp10-dnabert/def/$KMER/$SEQUENCE/$TARGET
+export CACHE_PATH=/d/hpc/home/up4472/workspace/upolanc-thesis/cache/def
 
 python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp10-dnabert.py \
 --model_type rbertfc3 \
 --tokenizer_name=dna$KMER \
 --model_name_or_path $MODEL_PATH \
---task_name regression \
 --cache_dir $CACHE_PATH \
+--task_name regression \
 --do_train \
 --do_eval \
 --data_dir $DATA_PATH \
@@ -49,13 +49,15 @@ python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp10-dnabert.py \
 --per_gpu_eval_batch_size=32 \
 --per_gpu_train_batch_size=32 \
 --learning_rate 5e-5 \
---num_train_epochs 25 \
+--num_train_epochs 250 \
 --output_dir $OUTPUT_PATH \
 --evaluate_during_training \
 --logging_steps 100 \
---save_steps 4000 \
+--save_steps 10000 \
 --warmup_percent 0.1 \
 --hidden_dropout_prob 0.1 \
 --overwrite_output \
 --weight_decay 0.01 \
---n_process 12
+--n_process 6 \
+--optimizer adamw \
+--freeze_layers 12
