@@ -1,0 +1,35 @@
+from torch        import Tensor
+from torch.nn     import Module
+from torchmetrics import MatthewsCorrCoef
+
+import torch
+
+class Metric_Matthews (Module) :
+
+	def __init__ (self, reduction : str = 'mean', n_classes : int = 1, top_k : int = 1, **kwargs) -> None : # noqa : unused kwargs
+		"""
+		Doc
+		"""
+
+		super(Metric_Matthews, self).__init__()
+
+		self.reduction = reduction.lower()
+		self.module    = MatthewsCorrCoef(task = 'multiclass', num_classes = n_classes)
+
+	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor :
+		"""
+		Doc
+		"""
+
+		if inputs.dim() == 3 :
+			inputs = torch.softmax(inputs, dim = 1)
+			labels = labels.int()
+		else :
+			raise NotImplementedError()
+
+		score = self.module(inputs, labels)
+
+		if self.reduction == 'sum' :
+			score = torch.sum(score, dim = None)
+
+		return score

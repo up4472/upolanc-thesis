@@ -22,7 +22,7 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 	else                     : xcolumn = per_step
 
 	for name, dataframe in data[mode].items() :
-		name = name[17:]
+		name = name[16:]
 
 		if y is None : y = len(dataframe)
 		if x is None : x = 0
@@ -30,6 +30,7 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 		dataframe = dataframe.head(n = y)
 		dataframe = dataframe.tail(n = y - x)
 
+		# Approximate
 		dataframe['epoch'] = dataframe['step'] / 480
 
 		if   step == 'iteration' : xcolumn = ('step',  'Step')

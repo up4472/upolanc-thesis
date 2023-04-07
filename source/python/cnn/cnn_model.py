@@ -39,6 +39,7 @@ from source.python.cnn.metric import Metric_KL
 from source.python.cnn.metric import Metric_F1
 from source.python.cnn.metric import Metric_Jaccardi
 from source.python.cnn.metric import Metric_MAPE
+from source.python.cnn.metric import Metric_Matthews
 from source.python.cnn.metric import Metric_Pearson
 from source.python.cnn.metric import Metric_R2
 from source.python.cnn.metric import Metric_SMAPE
@@ -202,6 +203,7 @@ def get_criterion (query : str, reduction : str = 'mean', weights : Union[numpy.
 	elif query == 'jaccardi'   : callable_criterion = Metric_Jaccardi
 	elif query == 'mae'        : callable_criterion = L1Loss
 	elif query == 'mape'       : callable_criterion = Metric_MAPE
+	elif query == 'matthews'   : callable_criterion = Metric_Matthews
 	elif query == 'mse'        : callable_criterion = MSELoss
 	elif query == 'nll'        : callable_criterion = NLLLoss
 	elif query == 'pearson'    : callable_criterion = Metric_Pearson
@@ -312,14 +314,14 @@ def train_classifier (model : Module, params : Dict[str, Any]) -> Dict[str, Any]
 
 	return train(model = model, params = params, regression = False)
 
-def eval_regressor (model: Module, params: Dict[str, Any]) -> Dict[str, Dict] :
+def eval_regressor (model : Module, params : Dict[str, Any]) -> Dict[str, Dict] :
 	"""
 	Doc
 	"""
 
 	return evaluate(model = model, params = params, regression = True)
 
-def eval_classifier (model: Module, params: Dict[str, Any]) -> Dict[str, Dict] :
+def eval_classifier (model : Module, params : Dict[str, Any]) -> Dict[str, Dict] :
 	"""
 	Doc
 	"""

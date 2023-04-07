@@ -2,6 +2,7 @@ from source.python.cnn.metric.classification.metric_ap       import Metric_AP   
 from source.python.cnn.metric.classification.metric_auroc    import Metric_AUROC      as Metric_AUROC    # noqa : unused import
 from source.python.cnn.metric.classification.metric_f1       import Metric_F1         as Metric_F1       # noqa : unused import
 from source.python.cnn.metric.classification.metric_jaccardi import Metric_Jaccardi   as Metric_Jaccardi # noqa : unused import
+from source.python.cnn.metric.classification.metric_matthews import Metric_Matthews   as Metric_Matthews # noqa : unused import
 from source.python.cnn.metric.metric_weighted                import Metric_Weighted   as Metric_Weighted # noqa : unused import
 from source.python.cnn.metric.regression.metric_accuracy     import Metric_Accuracy   as Metric_Accuracy # noqa : unused import
 from source.python.cnn.metric.regression.metric_kl           import Metric_KL         as Metric_KL       # noqa : unused import

@@ -461,3 +461,16 @@ def trials_heatmap_lambda_bins_auroc (dataframe : DataFrame, filename : str = No
 		vmax      = None,
 		filename  = filename + '-heatmap-lambda-bins-auroc'
 	)
+
+def trials_heatmap_lambda_bins_matthews (dataframe : DataFrame, filename : str = None) -> None :
+	"""
+	Doc
+	"""
+
+	trials_heatmap_lambda_bins(
+		dataframe = dataframe,
+		values    = 'valid_matthews',
+		vmin      = None,
+		vmax      = None,
+		filename  = filename + '-heatmap-lambda-bins-matthews'
+	)

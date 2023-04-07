@@ -123,7 +123,8 @@ def get_metrics (config : Dict[str, Any], n_classes : int = 3) -> Dict[str, Modu
 			'entropy'  : get_criterion(reduction = 'mean', weights = None, query = 'entropy'),
 			'accuracy' : get_criterion(reduction = 'mean', weights = None, query = 'accuracy', n_classes = n_classes),
 			'auroc'    : get_criterion(reduction = 'mean', weights = None, query = 'auroc',    n_classes = n_classes),
-			'f1'       : get_criterion(reduction = 'mean', weights = None, query = 'f1',       n_classes = n_classes)
+			'f1'       : get_criterion(reduction = 'mean', weights = None, query = 'f1',       n_classes = n_classes),
+			'matthews' : get_criterion(reduction = 'mean', weights = None, query = 'matthews', n_classes = n_classes)
 		}
 
 	return {
@@ -157,10 +158,12 @@ def tune_report (train_report : Dict[str, Any], valid_report : Dict[str, Any], l
 			valid_accuracy = numpy.mean(valid_report['metric']['accuracy']),
 			valid_auroc    = numpy.mean(valid_report['metric']['auroc']),
 			valid_f1       = numpy.mean(valid_report['metric']['f1']),
+			valid_matthews = numpy.mean(valid_report['metric']['matthews']),
 			train_loss     = train_report['loss'],
 			train_accuracy = numpy.mean(train_report['metric']['accuracy']),
 			train_auroc    = numpy.mean(train_report['metric']['auroc']),
 			train_f1       = numpy.mean(train_report['metric']['f1']),
+			train_matthews = numpy.mean(valid_report['metric']['matthews']),
 			lr             = lr
 		)
 

@@ -108,8 +108,8 @@ def create_run_config (config : Dict[str, Any], local_dir : str = None, verbosit
 
 	elif config['model/type'].endswith('c') :
 		mcolumns = [
-			'train_loss', 'train_accuracy', 'train_auroc', 'train_f1',
-			'valid_loss', 'valid_accuracy', 'valid_auroc', 'valid_f1'
+			'train_loss', 'train_accuracy', 'train_auroc', 'train_f1', 'train_matthews',
+			'valid_loss', 'valid_accuracy', 'valid_auroc', 'valid_f1', 'valid_matthews'
 		]
 
 		if   task == 'model' : pcolumns = ['dataset/batch_size', 'optimizer/name', 'scheduler/name']
