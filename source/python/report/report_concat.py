@@ -9,6 +9,7 @@ import pandas
 from source.python.report.report_format import format_bert_data_dataframe
 from source.python.report.report_format import format_tune_data_dataframe
 from source.python.report.report_format import format_tune_model_dataframe
+from source.python.report.report_utils import convert_bert_step_to_epoch
 
 def concat_tune_cnn_reports (reports : Dict, formatter : Callable, mode : str, n : int = 50) -> Optional[DataFrame] :
 	"""
@@ -95,14 +96,20 @@ def concat_bert_best (data : Dict[str, Any], mode : str, metric : str, ascending
 
 		tokens = key.split('-')
 
-		item['Mode']     = tokens[1]
-		item['Model']    = '{}-{}'.format(tokens[2], tokens[3])
-		item['Kmer']     = int(tokens[4])
-		item['Sequence'] = tokens[5]
-		item['Epochs']   = int(tokens[6])
-		item['Target0']  = tokens[7]
-		item['Target1']  = tokens[8]
-		item['Target2']  = tokens[9] if len(tokens) == 10 else None
+		item['Mode']      = str(tokens[1])
+		item['Model']     = '{}-{}'.format(tokens[2], tokens[3])
+		item['Freeze']    = int(tokens[4])
+		item['Kmer']      = int(tokens[5])
+		item['Sequence']  = str(tokens[6])
+		item['Optimizer'] = str(tokens[7])
+		item['Epochs']    = int(tokens[8])
+		item['Target0']   = str(tokens[9])
+		item['Target1']   = str(tokens[10])
+		item['Target2']   = str(tokens[11]) if len(tokens) == 12 else None
+		item['Epoch']     = convert_bert_step_to_epoch(
+			step  = item['step'],
+			floor = True
+		)
 
 		array.append(item)
 

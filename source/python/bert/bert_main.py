@@ -86,11 +86,6 @@ def bert_init_classes (args : Any, logger : Optional[Any], use_features : bool =
 	processor  = PROCESSORS[args.task_name]()
 	labels     = processor.get_labels()
 
-	if logger is not None :
-		logger.info('Using task        : %s', args.task_name)
-		logger.info('Using processor   : %s', type(processor))
-		logger.info('Using output_mode : %s', args.output_mode)
-
 	if args.local_rank not in [-1, 0] :
 		torch.distributed.barrier()
 
@@ -98,15 +93,19 @@ def bert_init_classes (args : Any, logger : Optional[Any], use_features : bool =
 	model_cls     = MODELS[args.model_type][1]
 	tokenizer_cls = MODELS[args.model_type][2]
 
-	if logger is not None :
-		logger.info('Using model_type  : %s', args.model_type)
-		logger.info('Using config      : %s', config_cls.__name__)
-		logger.info('Using model       : %s', model_cls.__name__)
-		logger.info('Using tokenizer   : %s', tokenizer_cls.__name__)
-
 	model     = None
 	tokenizer = None
 	config    = None
+
+	print('============================================================')
+	print('Using task        : {}'.format(args.task_name))
+	print('Using processor   : {}'.format(type(processor)))
+	print('Using output_mode : {}'.format(args.output_mode))
+	print('Using model_type  : {}'.format(args.model_type))
+	print('Using config      : {}'.format(config_cls.__name__))
+	print('Using model       : {}'.format(model_cls.__name__))
+	print('Using tokenizer   : {}'.format(tokenizer_cls.__name__))
+	print('============================================================')
 
 	if not args.do_visualize and not args.do_ensemble_pred :
 		if args.cache_dir      : cache_dir      = args.cache_dir
@@ -136,6 +135,11 @@ def bert_init_classes (args : Any, logger : Optional[Any], use_features : bool =
 		config.num_rnn_layer = args.num_rnn_layer
 		config.rnn_dropout   = args.rnn_dropout
 		config.rnn_hidden    = args.rnn_hidden
+
+		print('============================================================')
+		print('Max Seq Length    : {}'.format(args.max_seq_length))
+		print('Num Seq Splits    : {}'.format(config.split))
+		print('============================================================')
 
 		tokenizer = tokenizer_cls.from_pretrained(
 			tokenizer_name,

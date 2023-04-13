@@ -181,8 +181,6 @@ def train (args : Any, train_dataset : TensorDataset, model : Module, tokenizer 
 					logging_report = {**logs, **{'step' : global_step}}
 					logging_reports.append(logging_report)
 
-					print(logging_report)
-
 				save_model_checkpoint(
 					model       = model,
 					tokenizer   = tokenizer,

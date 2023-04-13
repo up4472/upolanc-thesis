@@ -16,6 +16,8 @@ from source.python.report.report_utils  import recover_dataframe
 MODES        = ['r', 'c']
 CNNS         = ['zrimec', 'washburn']
 TRANSFORMERS = ['bertfc3-rnn', 'bertfc3-cat', 'bertfc3-def']
+OPTIMIZERS   = ['adam', 'lamb']
+FREEZED      = [9, 12]
 SEQUENCES    = ['gene', 'transcript', 'promoter']
 KMERS        = [3, 4, 5, 6]
 EPOCHS       = [1000, 500, 250, 200, 150, 100, 25]
@@ -271,22 +273,24 @@ def load_bert_reports (root : str, n : int = 5, show : bool = False) -> Dict[str
 		'classification' : dict()
 	}
 
-	for item in itertools.product(MODES, TRANSFORMERS, KMERS, SEQUENCES, EPOCHS, TARGETS[0], TARGETS[1], TARGETS[2]) :
+	for item in itertools.product(MODES, TRANSFORMERS, FREEZED, KMERS, SEQUENCES, OPTIMIZERS, EPOCHS, TARGETS[0], TARGETS[1], TARGETS[2]) :
 		mode    = item[0]
 		model   = item[1]
-		kmer    = item[2]
-		data    = item[3]
-		epoch   = item[4]
-		target0 = item[5]
-		target1 = item[6]
-		target2 = item[7]
+		freeze  = item[2]
+		kmer    = item[3]
+		data    = item[4]
+		optim   = item[5]
+		epoch   = item[6]
+		target0 = item[7]
+		target1 = item[8]
+		target2 = item[9]
 
 		if target2 is None :
-			template = 'model-{}-{}-{}-{}-{:04d}-{}-{}'
-			items    = [mode, model, kmer, data, epoch, target0, target1]
+			template = 'model-{}-{}-{:02d}-{}-{}-{}-{:04d}-{}-{}'
+			items    = [mode, model, freeze, kmer, data, optim, epoch, target0, target1]
 		else :
-			template = 'model-{}-{}-{}-{}-{:04d}-{}-{}-{}'
-			items    = [mode, model, kmer, data, epoch, target0, target1, target2]
+			template = 'model-{}-{}-{:02d}-{}-{}-{}-{:04d}-{}-{}-{}'
+			items    = [mode, model, freeze, kmer, data, optim, epoch, target0, target1, target2]
 
 		key    = template.format(*items)
 		folder = os.path.join(root, key)

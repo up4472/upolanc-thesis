@@ -4,16 +4,22 @@ from torch.nn  import LeakyReLU
 from torch.nn  import Linear
 from torch.nn  import Module
 from torchinfo import ModelStatistics
+from typing    import List
+from typing    import Union
+
 from torchinfo import torchinfo
 
 class DenseFC2 (Module) :
 
-	def __init__ (self, input_size : int, output_size : int, hidden_size : int = 256, dropout : float = 0.1, leaky_relu : float = 0.0) -> None :
+	def __init__ (self, input_size : int, output_size : int, hidden_size : Union[List, int] = 256, dropout : float = 0.1, leaky_relu : float = 0.0) -> None :
 		"""
 		Doc
 		"""
 
 		super(DenseFC2, self).__init__()
+
+		if isinstance(hidden_size, list) :
+			hidden_size = hidden_size[0]
 
 		self.fc1 = Linear(in_features = input_size,  out_features = hidden_size)
 		self.fc2 = Linear(in_features = hidden_size, out_features = output_size)
@@ -34,7 +40,7 @@ class DenseFC2 (Module) :
 		Doc
 		"""
 
-		return 'N/A'
+		return 'densefc2'
 
 	@property
 	def __str__ (self) -> str :
@@ -44,14 +50,18 @@ class DenseFC2 (Module) :
 
 		return 'N/A'
 
-	def forward (self, x : Tensor) -> Tensor :
+	def forward (self, x : Tensor, v : Tensor = None) -> Tensor :
 		"""
 		Doc
 		"""
 
+		if v is not None :
+			x = v
+
 		x = self.fc1(x)
 		x = self.relu(x)
 		x = self.dropout(x)
+
 		x = self.fc2(x)
 
 		return x

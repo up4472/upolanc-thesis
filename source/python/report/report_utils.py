@@ -4,6 +4,7 @@ from typing import Dict
 
 import json
 import pandas
+import math
 import numpy
 import os
 
@@ -85,3 +86,15 @@ def convert_json_to_dataframe (root : str, source_name : str, target_name : str)
 	dataframe.to_csv(target_name)
 
 	return dataframe
+
+def convert_bert_step_to_epoch (step : int, steps_per_epoch : int = 485, floor : bool = False) -> float :
+	"""
+	Doc
+	"""
+
+	epoch = step / steps_per_epoch
+
+	if floor :
+		epoch = math.floor(epoch)
+
+	return epoch

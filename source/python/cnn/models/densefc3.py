@@ -39,7 +39,7 @@ class DenseFC3 (Module) :
 		Doc
 		"""
 
-		return 'N/A'
+		return 'densefc3'
 
 	@property
 	def __str__ (self) -> str :
@@ -49,10 +49,13 @@ class DenseFC3 (Module) :
 
 		return 'N/A'
 
-	def forward (self, x : Tensor) -> Tensor :
+	def forward (self, x : Tensor, v : Tensor = None) -> Tensor :
 		"""
 		Doc
 		"""
+
+		if v is not None :
+			x = v
 
 		x = self.fc1(x)
 		x = self.relu(x)

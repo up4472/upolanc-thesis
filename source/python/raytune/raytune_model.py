@@ -4,6 +4,7 @@ from torch.utils.data         import DataLoader
 from typing                   import Any
 from typing                   import Dict
 from typing                   import List
+from typing                   import Tuple
 
 from ray import tune
 
@@ -27,10 +28,66 @@ from source.python.cnn.cnn_model           import get_model_trainers
 from source.python.cnn.cnn_model           import he_uniform_weight
 from source.python.cnn.cnn_model           import zero_bias
 
-def get_model (params : Dict[str, Any], config : Dict[str, Any]) -> Module :
+def get_model_params (params : Dict[str, Any], config : Dict[str, Any], params_share : bool = False) -> Tuple[Dict, Dict] :
 	"""
 	Doc
 	"""
+
+	if not params_share :
+		return params, config
+
+	if 'model/convx/kernel' not in params.keys() :
+		return params, config
+
+	params['model/conv2/filters']  = params['model/convx/filters']
+	params['model/conv2/kernel']   = params['model/convx/kernel']
+	params['model/conv2/padding']  = params['model/convx/padding']
+	params['model/conv2/dilation'] = params['model/convx/dilation']
+	params['model/conv3/filters']  = params['model/convx/filters']
+	params['model/conv3/kernel']   = params['model/convx/kernel']
+	params['model/conv3/padding']  = params['model/convx/padding']
+	params['model/conv3/dilation'] = params['model/convx/dilation']
+
+	if config['model/type'].startswith('washburn2019') :
+		params['model/conv4/filters']  = params['model/convx/filters']
+		params['model/conv4/kernel']   = params['model/convx/kernel']
+		params['model/conv4/padding']  = params['model/convx/padding']
+		params['model/conv4/dilation'] = params['model/convx/dilation']
+		params['model/conv5/filters']  = params['model/convx/filters']
+		params['model/conv5/kernel']   = params['model/convx/kernel']
+		params['model/conv5/padding']  = params['model/convx/padding']
+		params['model/conv5/dilation'] = params['model/convx/dilation']
+		params['model/conv6/filters']  = params['model/convx/filters']
+		params['model/conv6/kernel']   = params['model/convx/kernel']
+		params['model/conv6/padding']  = params['model/convx/padding']
+		params['model/conv6/dilation'] = params['model/convx/dilation']
+
+	params['model/maxpool1/kernel']  = params['model/maxpoolx/kernel']
+	params['model/maxpool1/padding'] = params['model/maxpoolx/padding']
+	params['model/maxpool2/kernel']  = params['model/maxpoolx/kernel']
+	params['model/maxpool2/padding'] = params['model/maxpoolx/padding']
+	params['model/maxpool3/kernel']  = params['model/maxpoolx/kernel']
+	params['model/maxpool3/padding'] = params['model/maxpoolx/padding']
+
+	params.pop('model/convx/filters',    None)
+	params.pop('model/convx/kernel',     None)
+	params.pop('model/convx/padding',    None)
+	params.pop('model/convx/dilation',   None)
+	params.pop('model/maxpoolx/kernel',  None)
+	params.pop('model/maxpoolx/padding', None)
+
+	return params, config
+
+def get_model (params : Dict[str, Any], config : Dict[str, Any], params_share : bool = False) -> Module :
+	"""
+	Doc
+	"""
+
+	params, config = get_model_params(
+		params       = params,
+		config       = config,
+		params_share = params_share
+	)
 
 	if config['model/type'] == 'zrimec2020r' :
 		model = Zrimec2020r(params = params | {
@@ -230,8 +287,9 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 	)
 
 	model = get_model(
-		params = tune_config,
-		config = core_config
+		params       = tune_config,
+		config       = core_config,
+		params_share = core_config['params/share']
 	)
 
 	model_trainers = get_model_trainers(

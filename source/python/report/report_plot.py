@@ -5,6 +5,8 @@ from typing import Dict
 import seaborn
 import matplotlib
 
+from source.python.report.report_utils import convert_bert_step_to_epoch
+
 def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str = 'iteration', x : int = None, y : int = None, filename : str = None) :
 	"""
 	Doc
@@ -24,14 +26,18 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 	for name, dataframe in data[mode].items() :
 		name = name[16:]
 
-		if y is None : y = len(dataframe)
-		if x is None : x = 0
+		py = len(dataframe)
+		px = 0
 
-		dataframe = dataframe.head(n = y)
-		dataframe = dataframe.tail(n = y - x)
+		if y is not None : py = min(py, y)
+		if x is not None : px = max(px, x)
 
-		# Approximate
-		dataframe['epoch'] = dataframe['step'] / 480
+		dataframe = dataframe.head(n = py)
+		dataframe = dataframe.tail(n = py - px)
+
+		dataframe['epoch'] = convert_bert_step_to_epoch(
+			step = dataframe['step']
+		)
 
 		if   step == 'iteration' : xcolumn = ('step',  'Step')
 		elif step == 'step'      : xcolumn = ('step',  'Step')
@@ -43,7 +49,7 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 			x     = xcolumn[0],
 			y     = 'eval_r2',
 			ax    = ax,
-			alpha = 0.8,
+			alpha = 0.65,
 			label = name
 		)
 
