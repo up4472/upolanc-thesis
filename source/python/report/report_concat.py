@@ -7,11 +7,11 @@ from typing import Optional
 import pandas
 
 from source.python.report.report_format import format_bert_data_dataframe
-from source.python.report.report_format import format_tune_data_dataframe
-from source.python.report.report_format import format_tune_model_dataframe
+from source.python.report.report_format import format_data_tune_dataframe
+from source.python.report.report_format import format_cnn_tune_dataframe
 from source.python.report.report_utils import convert_bert_step_to_epoch
 
-def concat_tune_cnn_reports (reports : Dict, formatter : Callable, mode : str, n : int = 50) -> Optional[DataFrame] :
+def concat_tune_reports_format (reports : Dict, formatter : Callable, mode : str, n : int = 50) -> Optional[DataFrame] :
 	"""
 	Doc
 	"""
@@ -24,21 +24,18 @@ def concat_tune_cnn_reports (reports : Dict, formatter : Callable, mode : str, n
 	for key, dataframe in reports[mode].items() :
 		keys = key.split('-')
 
-		model    = keys[3]
-		sequence = keys[4]
-		target0  = keys[7]
-		target1  = keys[8]
-		target2  = None
-
-		if len(keys) == 10 :
-			target2 = keys[9]
+		arch     = keys[0]
+		sequence = keys[1]
+		target0  = keys[5]
+		target1  = keys[6] if len(keys) >= 7 else None
+		target2  = keys[7] if len(keys) >= 8 else None
 
 		dataframe = dataframe.copy()
-		dataframe.insert(0, 'Model', model)
+		dataframe.insert(0, 'Model',    arch)
 		dataframe.insert(1, 'Sequence', sequence)
-		dataframe.insert(4, 'Target0', target0)
-		dataframe.insert(5, 'Target1', target1)
-		dataframe.insert(5, 'Target2', target2)
+		dataframe.insert(4, 'Target0',  target0)
+		dataframe.insert(5, 'Target1',  target1)
+		dataframe.insert(5, 'Target2',  target2)
 
 		if data is None :
 			data = dataframe
@@ -57,31 +54,31 @@ def concat_tune_cnn_reports (reports : Dict, formatter : Callable, mode : str, n
 		mode      = mode
 	).head(n = n)
 
-def concat_tune_model_reports (reports : Dict, mode : str, n : int = 50) -> Optional[DataFrame] :
+def concat_cnn_tune_reports (reports : Dict, mode : str, n : int = 50) -> Optional[DataFrame] :
 	"""
 	Doc
 	"""
 
-	return concat_tune_cnn_reports(
+	return concat_tune_reports_format(
 		reports   = reports,
-		formatter = format_tune_model_dataframe,
+		formatter = format_cnn_tune_dataframe,
 		mode      = mode,
 		n         = n
 	)
 
-def concat_tune_data_reports (reports : Dict, mode : str, n : int = 50) -> Optional[DataFrame] :
+def concat_data_tune_reports (reports : Dict, mode : str, n : int = 50) -> Optional[DataFrame] :
 	"""
 	Doc
 	"""
 
-	return concat_tune_cnn_reports(
+	return concat_tune_reports_format(
 		reports   = reports,
-		formatter = format_tune_data_dataframe,
+		formatter = format_data_tune_dataframe,
 		mode      = mode,
 		n         = n
 	)
 
-def concat_bert_best (data : Dict[str, Any], mode : str, metric : str, ascending : bool) -> DataFrame :
+def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascending : bool) -> DataFrame :
 	"""
 	Doc
 	"""
@@ -96,18 +93,31 @@ def concat_bert_best (data : Dict[str, Any], mode : str, metric : str, ascending
 
 		tokens = key.split('-')
 
-		item['Mode']      = str(tokens[1])
-		item['Model']     = '{}-{}'.format(tokens[2], tokens[3])
-		item['Freeze']    = int(tokens[4])
-		item['Kmer']      = int(tokens[5])
-		item['Sequence']  = str(tokens[6])
-		item['Optimizer'] = str(tokens[7])
-		item['Epochs']    = int(tokens[8])
-		item['Target0']   = str(tokens[9])
-		item['Target1']   = str(tokens[10])
-		item['Target2']   = str(tokens[11]) if len(tokens) == 12 else None
-		item['Epoch']     = convert_bert_step_to_epoch(
-			step  = item['step'],
+		bert_arch     = tokens[0]
+		bert_type     = tokens[1]
+		bert_layer    = tokens[2]
+		bert_kmer     = tokens[3]
+		bert_sequence = tokens[4]
+		bert_optim    = tokens[5]
+		bert_epochs   = tokens[6]
+		bert_target0  = tokens[7]
+		bert_target1  = tokens[8] if len(tokens) >=  9 else None
+		bert_target2  = tokens[9] if len(tokens) >= 10 else None
+
+		item['Mode']      = str(mode)
+		item['Arch']      = str(bert_arch)
+		item['Type']      = str(bert_type)
+		item['Layer']     = int(bert_layer)
+		item['Kmer']      = int(bert_kmer)
+		item['Sequence']  = str(bert_sequence)
+		item['Optimizer'] = str(bert_optim)
+		item['Epochs']    = int(bert_epochs)
+		item['Target0']   = str(bert_target0)
+		item['Target1']   = str(bert_target1)
+		item['Target2']   = str(bert_target2)
+
+		item['Epoch'] = convert_bert_step_to_epoch(
+			step = item['step'],
 			floor = True
 		)
 

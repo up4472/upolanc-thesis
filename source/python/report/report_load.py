@@ -8,237 +8,235 @@ import pandas
 import os
 
 from source.python.io.loader            import load_json
-from source.python.report.report_format import format_tune_data_dataframe
-from source.python.report.report_format import format_tune_model_dataframe
+from source.python.report.report_format import format_cnn_tune_dataframe
+from source.python.report.report_format import format_data_tune_dataframe
 from source.python.report.report_utils  import convert_json_to_dataframe
 from source.python.report.report_utils  import recover_dataframe
 
-MODES        = ['r', 'c']
-CNNS         = ['zrimec', 'washburn']
-TRANSFORMERS = ['bertfc3-rnn', 'bertfc3-cat', 'bertfc3-def']
-OPTIMIZERS   = ['adam', 'lamb']
-FREEZED      = [9, 12]
-SEQUENCES    = ['gene', 'transcript', 'promoter']
-KMERS        = [3, 4, 5, 6]
-EPOCHS       = [1000, 500, 250, 200, 150, 100, 25]
-TRIALS       = [1000, 500, 250, 200, 150, 100, 25]
-TARGETS      = [
-	['tissue', 'group', 'global'],
-	['mean', 'max'],
-	['all', 'explode', 'seedling', None]
+TARGETS = [
+	'global-mean',
+	'tissue-mean',
+	'tissue-mean-seedling',
+	'tissue-mean-explode'
 ]
 
-def load_tune_model_reports (root : str, n : int = 5, show : bool = False) -> Dict[str, Dict] :
+def load_cnn_tune_reports_for (root : str, mode : str, n : int = 5, show : bool = False) -> Dict[str, DataFrame] :
 	"""
 	Doc
 	"""
 
-	reports = {
-		'regression'     : dict(),
-		'classification' : dict()
-	}
+	report = dict()
 
-	for item in itertools.product(MODES, CNNS, SEQUENCES, TRIALS, EPOCHS, TARGETS[0], TARGETS[1], TARGETS[2]) :
-		mode    = item[0]
-		model   = item[1]
-		data    = item[2]
-		trial   = item[3]
-		epoch   = item[4]
-		target0 = item[5]
-		target1 = item[6]
-		target2 = item[7]
+	if mode == 'regression'     : root = os.path.join(root, 'cnn-tune-regression')
+	if mode == 'classification' : root = os.path.join(root, 'cnn-tune-classification')
 
-		if target2 is None :
-			template = 'tune-model-{}-{}-{}-{:04d}-{}-{}-{}'
-			items    = [mode, model, data, trial, epoch, target0, target1]
-		else :
-			template = 'tune-model-{}-{}-{}-{:04d}-{}-{}-{}-{}'
-			items    = [mode, model, data, trial, epoch, target0, target1, target2]
+	cnn_archs      = ['zrimec', 'washburn']
+	cnn_sequences  = ['promoter', 'transcript']
+	cnn_trials     = [250, 500, 1000]
+	cnn_epochs     = [25, 50]
+	cnn_targets    = TARGETS
 
-		key      = template.format(*items)
-		folder   = os.path.join(root, key)
-
-		if not os.path.exists(folder) :
-			continue
-
-		if   mode[0] == 'r' : mode = 'regression'
-		elif mode[0] == 'c' : mode = 'classification'
-
-		filename = os.path.join(folder, 'report.csv')
-		logdir   = os.path.join(folder, 'raytune')
-
-		if not os.path.exists(filename) :
-			dataframe = recover_dataframe(logdir)
-			dataframe.to_csv(filename)
-		else :
-			dataframe = pandas.read_csv(filename, index_col = [0])
-			dataframe = dataframe.sort_values('valid_loss', ascending = True)
-			dataframe = dataframe.reset_index()
-
-		dataframe['logdir'] = dataframe['logdir'].str.split('/')
-		dataframe['logdir'] = dataframe['logdir'].str[-1]
-
-		print(filename)
-
-		if show :
-			display(format_tune_model_dataframe(
-				dataframe = dataframe,
-				mode      = mode
-			).head(n = n))
-
-		reports[mode][key] = dataframe
-
-	return reports
-
-def load_tune_data_reports (root : str, n : int = 5, show : bool = False) -> Dict[str, Dict] :
-	"""
-	Doc
-	"""
-
-	reports = {
-		'regression'     : dict(),
-		'classification' : dict()
-	}
-
-	for item in itertools.product(MODES, CNNS, SEQUENCES, TRIALS, EPOCHS, TARGETS[0], TARGETS[1], TARGETS[2]) :
-		mode    = item[0]
-		model   = item[1]
-		data    = item[2]
-		trial   = item[3]
-		epoch   = item[4]
-		target0 = item[5]
-		target1 = item[6]
-		target2 = item[7]
-
-		if target2 is None :
-			template = 'tune-data-{}-{}-{}-{:04d}-{}-{}-{}'
-			items    = [mode, model, data, trial, epoch, target0, target1]
-		else :
-			template = 'tune-data-{}-{}-{}-{:04d}-{}-{}-{}-{}'
-			items    = [mode, model, data, trial, epoch, target0, target1, target2]
-
-		key      = template.format(*items)
-		folder   = os.path.join(root, key)
-
-		if not os.path.exists(folder) :
-			continue
-
-		if   mode[0] == 'r' : mode = 'regression'
-		elif mode[0] == 'c' : mode = 'classification'
-
-		filename = os.path.join(folder, 'report.csv')
-		logdir   = os.path.join(folder, 'raytune')
-
-		if not os.path.exists(filename) :
-			dataframe = recover_dataframe(logdir)
-			dataframe.to_csv(filename)
-		else :
-			dataframe = pandas.read_csv(filename, index_col = [0])
-			dataframe = dataframe.sort_values('valid_loss', ascending = True)
-			dataframe = dataframe.reset_index()
-
-		dataframe['logdir'] = dataframe['logdir'].str.split('/')
-		dataframe['logdir'] = dataframe['logdir'].str[-1]
-
-		print(filename)
-
-		if show :
-			display(format_tune_data_dataframe(
-				dataframe = dataframe,
-				mode      = mode
-			).head(n = n))
-
-		reports[mode][key] = dataframe
-
-	return reports
-
-def load_cnn_reports (root : str) -> Dict :
-	"""
-	Doc
-	"""
-
-	reg_df = DataFrame(columns = [
-		'Type', 'Epochs', 'Target_0', 'Target_1', 'Target_2', 'Model',
-		'Optimizer', 'Learning_Rate', 'Momentum', 'Decay', 'Scheduler',
-		'Batch_Size', 'Dropout', 'Epoch',
-		'Valid_MSE', 'Eval_MSE', 'Eval_MAE', 'Eval_R2'
-	])
-
-	cls_df = DataFrame(columns = [
-		'Type', 'Epochs', 'Target_0', 'Target_1', 'Target_2', 'Model',
-		'Optimizer', 'Learning_Rate', 'Momentum', 'Decay', 'Scheduler',
-		'Batch_Size', 'Dropout', 'Epoch',
-		'Valid_Entropy', 'Eval_Entropy', 'Eval_Accuracy', 'Eval_F1', 'Eval_AUROC'
-	])
-
-	reports = {
-		'regression'     : reg_df,
-		'classification' : cls_df
-	}
-
-	for item in itertools.product(MODES, CNNS, SEQUENCES, EPOCHS, TARGETS[0], TARGETS[1], TARGETS[2]) :
-		mode    = item[0]
-		model   = item[1]
-		data    = item[2]
-		epoch   = item[3]
-		target0 = item[4]
-		target1 = item[5]
-		target2 = item[6]
-
-		if target2 is None :
-			template = 'model-{}-{}-{}-{:04d}-{}-{}'
-			items    = [mode, model, data, epoch, target0, target1]
-		else :
-			template = 'model-{}-{}-{}-{:04d}-{}-{}-{}'
-			items    = [mode, model, data, epoch, target0, target1, target2]
-
-		key    = template.format(*items)
+	for items in itertools.product(cnn_archs, cnn_sequences, cnn_trials, cnn_epochs, cnn_targets) :
+		key    = '{:s}-{:s}-{:04d}-{:2d}-{:s}'.format(*items)
 		folder = os.path.join(root, key)
 
 		if not os.path.exists(folder) :
 			continue
 
-		if   mode[0] == 'r' : mode = 'regression'
-		elif mode[0] == 'c' : mode = 'classification'
+		filename = os.path.join(folder, 'report.csv')
+		logdir   = os.path.join(folder, 'raytune')
 
-		config = os.path.join(folder, 'config.json')
-		report = os.path.join(folder, 'report.json')
+		if not os.path.exists(filename) :
+			dataframe = recover_dataframe(logdir)
+			dataframe.to_csv(filename)
+		else :
+			dataframe = pandas.read_csv(filename, index_col = [0])
+			dataframe = dataframe.sort_values('valid_loss', ascending = True)
+			dataframe = dataframe.reset_index()
 
-		if not os.path.exists(config) : continue
-		if not os.path.exists(report) : continue
+		dataframe['logdir'] = dataframe['logdir'].str.split('/')
+		dataframe['logdir'] = dataframe['logdir'].str[-1]
 
-		config = load_json(filename = config)
-		report = load_json(filename = report)
+		print(filename)
 
-		data = [
-			data, epoch, target0, target1, target2, model,
-			config['optimizer/name'],
-			config['optimizer/lr'],
-			config['optimizer/momentum'],
-			config['optimizer/decay'],
-			config['scheduler/name'],
-			config['dataset/batch/train'],
-			config['model/dropout'],
-			report['evaluation/best/epoch'],
-			report['evaluation/best/loss']
-		]
+		if show :
+			display(format_cnn_tune_dataframe(
+				dataframe = dataframe,
+				mode      = mode
+			).head(n = n))
 
-		if mode == 'regression' :
+		report[key] = dataframe
+
+	return report
+
+def load_cnn_tune_reports (root : str, n : int = 5, show : bool = False) -> Dict[str, Dict] :
+	"""
+	Doc
+	"""
+
+	return {
+		'regression'     : load_cnn_tune_reports_for(root = root, n = n, show = show, mode = 'regression'),
+		'classification' : load_cnn_tune_reports_for(root = root, n = n, show = show, mode = 'classification')
+	}
+
+def load_data_tune_reports_for (root : str, mode : str, n : int = 5, show : bool = False) -> Dict[str, DataFrame] :
+	"""
+	Doc
+	"""
+
+	report = dict()
+
+	if mode == 'regression'     : root = os.path.join(root, 'data-tune-regression')
+	if mode == 'classification' : root = os.path.join(root, 'data-tune-classification')
+
+	cnn_archs      = ['zrimec', 'washburn']
+	cnn_sequences  = ['promoter', 'transcript']
+	cnn_trials     = [250, 500, 1000]
+	cnn_epochs     = [25, 50]
+	cnn_targets    = TARGETS
+
+	for items in itertools.product(cnn_archs, cnn_sequences, cnn_trials, cnn_epochs, cnn_targets) :
+		key    = '{:s}-{:s}-{:04d}-{:2d}-{:s}'.format(*items)
+		folder = os.path.join(root, key)
+
+		if not os.path.exists(folder) :
+			continue
+
+		filename = os.path.join(folder, 'report.csv')
+		logdir   = os.path.join(folder, 'raytune')
+
+		if not os.path.exists(filename) :
+			dataframe = recover_dataframe(logdir)
+			dataframe.to_csv(filename)
+		else :
+			dataframe = pandas.read_csv(filename, index_col = [0])
+			dataframe = dataframe.sort_values('valid_loss', ascending = True)
+			dataframe = dataframe.reset_index()
+
+		dataframe['logdir'] = dataframe['logdir'].str.split('/')
+		dataframe['logdir'] = dataframe['logdir'].str[-1]
+
+		print(filename)
+
+		if show :
+			display(format_data_tune_dataframe(
+				dataframe = dataframe,
+				mode      = mode
+			).head(n = n))
+
+		report[key] = dataframe
+
+	return report
+
+def load_data_tune_reports (root : str, n : int = 5, show : bool = False) -> Dict[str, Dict] :
+	"""
+	Doc
+	"""
+
+	return {
+		'regression'     : load_data_tune_reports_for(root = root, n = n, show = show, mode = 'regression'),
+		'classification' : load_data_tune_reports_for(root = root, n = n, show = show, mode = 'classification')
+	}
+
+def load_cnn_reports_for (root : str, mode : str) -> DataFrame :
+	"""
+	Doc
+	"""
+
+	columns = [
+		'Model', 'Type', 'Epochs', 'Target_0', 'Target_1', 'Target_2',
+		'Optimizer', 'Learning_Rate', 'Momentum', 'Decay', 'Scheduler',
+		'Batch_Size', 'Dropout', 'Epoch'
+	]
+
+	if mode == 'regression'     : columns.extend(['Valid_MSE', 'Eval_MSE', 'Eval_MAE', 'Eval_R2'])
+	if mode == 'classification' : columns.extend(['Valid_Entropy', 'Eval_Entropy', 'Eval_Accuracy', 'Eval_F1', 'Eval_AUROC'])
+
+	dataframe = DataFrame(columns = columns)
+
+	if mode == 'regression'     : root = os.path.join(root, 'cnn-regression')
+	if mode == 'classification' : root = os.path.join(root, 'cnn-classification')
+
+	cnn_archs      = ['zrimec', 'washburn']
+	cnn_sequences  = ['promoter', 'transcript']
+	cnn_epochs     = [250, 500, 1000]
+	cnn_targets    = [
+		'global-mean',
+		'tissue-mean',
+		'tissue-mean-seedling',
+		'tissue-mean-explode'
+	]
+
+	for items in itertools.product(cnn_archs, cnn_sequences, cnn_epochs, cnn_targets) :
+			key    = '{:s}-{:s}-{:04d}-{:s}'.format(*items)
+			folder = os.path.join(root, key)
+
+			if not os.path.exists(folder) :
+				continue
+
+			if   mode[0] == 'r' : mode = 'regression'
+			elif mode[0] == 'c' : mode = 'classification'
+
+			config = os.path.join(folder, 'config.json')
+			report = os.path.join(folder, 'report.json')
+
+			if not os.path.exists(config) : continue
+			if not os.path.exists(report) : continue
+
+			config = load_json(filename = config)
+			report = load_json(filename = report)
+
+			target = items[-1].split('-')
+
+			data = [
+				items[0],
+				items[1],
+				items[2],
+				target[0] if len(target) >= 1 else None,
+				target[1] if len(target) >= 2 else None,
+				target[2] if len(target) >= 3 else None
+			]
+
 			data.extend([
-				report['evaluation/best/mse/mean'],
-				report['evaluation/best/mae/mean'],
-				report['evaluation/best/r2/mean']
-			])
-		elif mode == 'classification' :
-			data.extend([
-				report['evaluation/best/accuracy/mean'],
-				report['evaluation/best/f1/mean'],
-				report['evaluation/best/auroc/mean']
+				config['optimizer/name'],
+				config['optimizer/lr'],
+				config['optimizer/momentum'],
+				config['optimizer/decay'],
+				config['scheduler/name'],
+				config['dataset/batch/train'],
+				config['model/dropout'],
+				report['evaluation/best/epoch'],
+				report['evaluation/best/loss']
 			])
 
-		reports[mode].loc[-1] = data
-		reports[mode].index   = reports[mode].index + 1
-		reports[mode]         = reports[mode].sort_index()
+			if mode == 'regression' :
+				data.extend([
+					report['evaluation/best/mse/mean'],
+					report['evaluation/best/mae/mean'],
+					report['evaluation/best/r2/mean']
+				])
+			elif mode == 'classification' :
+				data.extend([
+					report['evaluation/best/accuracy/mean'],
+					report['evaluation/best/f1/mean'],
+					report['evaluation/best/auroc/mean']
+				])
+
+			dataframe.loc[-1] = data
+			dataframe.index   = dataframe.index + 1
+			dataframe         = dataframe.sort_index()
+
+	return dataframe
+
+def load_cnn_reports (root : str) -> Dict[str, DataFrame] :
+	"""
+	Doc
+	"""
+
+	reports = {
+		'regression'     : load_cnn_reports_for(root = root, mode = 'regression'),
+		'classification' : load_cnn_reports_for(root = root, mode = 'classification')
+	}
 
 	for mode in ['regression', 'classification'] :
 		reports[mode]['Learning_Rate'] = reports[mode]['Learning_Rate'].astype(float).map('{:.9f}'.format)
@@ -263,43 +261,31 @@ def load_cnn_reports (root : str) -> Dict :
 
 	return reports
 
-def load_bert_reports (root : str, n : int = 5, show : bool = False) -> Dict[str, Dict] :
+def load_bert_reports_for (root : str, mode : str, n : int = 5, show : bool = False) -> Dict[str, DataFrame] :
 	"""
 	Doc
 	"""
 
-	reports = {
-		'regression'     : dict(),
-		'classification' : dict()
-	}
+	report = dict()
 
-	for item in itertools.product(MODES, TRANSFORMERS, FREEZED, KMERS, SEQUENCES, OPTIMIZERS, EPOCHS, TARGETS[0], TARGETS[1], TARGETS[2]) :
-		mode    = item[0]
-		model   = item[1]
-		freeze  = item[2]
-		kmer    = item[3]
-		data    = item[4]
-		optim   = item[5]
-		epoch   = item[6]
-		target0 = item[7]
-		target1 = item[8]
-		target2 = item[9]
+	if mode == 'regression'     : root = os.path.join(root, 'dnabert-regression')
+	if mode == 'classification' : root = os.path.join(root, 'dnabert-classification')
 
-		if target2 is None :
-			template = 'model-{}-{}-{:02d}-{}-{}-{}-{:04d}-{}-{}'
-			items    = [mode, model, freeze, kmer, data, optim, epoch, target0, target1]
-		else :
-			template = 'model-{}-{}-{:02d}-{}-{}-{}-{:04d}-{}-{}-{}'
-			items    = [mode, model, freeze, kmer, data, optim, epoch, target0, target1, target2]
+	bert_archs      = ['fc2', 'fc3']
+	bert_types      = ['def', 'rnn', 'cat']
+	bert_layers     = [9, 12]
+	bert_kmers      = [3, 6]
+	bert_sequences  = ['promoter', 'transcript']
+	bert_optimizers = ['adam', 'lamb']
+	bert_epochs     = [150, 250]
+	bert_targets    = TARGETS
 
-		key    = template.format(*items)
+	for config in itertools.product(bert_archs, bert_types, bert_layers, bert_kmers, bert_sequences, bert_optimizers, bert_epochs, bert_targets) :
+		key    = '{:s}-{:s}-{:02d}-{:d}-{:s}-{:s}-{:04d}-{:s}'.format(*config)
 		folder = os.path.join(root, key)
 
 		if not os.path.exists(folder) :
 			continue
-
-		if   mode[0] == 'r' : mode = 'regression'
-		elif mode[0] == 'c' : mode = 'classification'
 
 		dataframe = convert_json_to_dataframe(
 			root        = folder,
@@ -310,11 +296,21 @@ def load_bert_reports (root : str, n : int = 5, show : bool = False) -> Dict[str
 		print(folder)
 
 		if show :
-			display(format_tune_model_dataframe(
+			display(format_cnn_tune_dataframe(
 				dataframe = dataframe,
 				mode      = mode
 			).head(n = n))
 
-		reports[mode][key] = dataframe
+		report[key] = dataframe
 
-	return reports
+	return report
+
+def load_bert_reports (root : str, n : int = 5, show : bool = False) -> Dict[str, Dict] :
+	"""
+	Doc
+	"""
+
+	return {
+		'regression'     : load_bert_reports_for(root = root, n = n, show = show, mode = 'regression'),
+		'classification' : load_bert_reports_for(root = root, n = n, show = show, mode = 'classification')
+	}

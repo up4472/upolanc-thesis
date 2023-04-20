@@ -103,8 +103,9 @@ def create_run_config (config : Dict[str, Any], local_dir : str = None, verbosit
 			'valid_loss', 'valid_r2', 'valid_mae'
 		]
 
-		if   task == 'model' : pcolumns = ['dataset/batch_size', 'optimizer/name', 'scheduler/name']
-		elif task == 'data'  : pcolumns = ['boxcox/lambda']
+		if   task == 'model'   : pcolumns = ['dataset/batch_size', 'optimizer/name', 'scheduler/name']
+		elif task == 'data'    : pcolumns = ['boxcox/lambda']
+		elif task == 'feature' : pcolumns = ['dataset/batch_size', 'optimizer/name', 'scheduler/name']
 
 	elif config['model/type'].endswith('c') :
 		mcolumns = [
@@ -112,8 +113,9 @@ def create_run_config (config : Dict[str, Any], local_dir : str = None, verbosit
 			'valid_loss', 'valid_accuracy', 'valid_auroc', 'valid_f1', 'valid_matthews'
 		]
 
-		if   task == 'model' : pcolumns = ['dataset/batch_size', 'optimizer/name', 'scheduler/name']
-		elif task == 'data'  : pcolumns = ['boxcox/lambda', 'class/bins']
+		if   task == 'model'   : pcolumns = ['dataset/batch_size', 'optimizer/name', 'scheduler/name']
+		elif task == 'data'    : pcolumns = ['boxcox/lambda', 'class/bins']
+		elif task == 'feature' : pcolumns = ['dataset/batch_size', 'optimizer/name', 'scheduler/name']
 
 	reporter = reporter(
 		max_column_length    = 32,

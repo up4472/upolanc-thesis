@@ -2,7 +2,7 @@ from pandas import DataFrame
 from typing import Tuple
 from typing import List
 
-def format_tune_model_dataframe_metrics (dataframe : DataFrame, mode : str) -> Tuple[DataFrame, List] :
+def format_cnn_tune_dataframe_metrics (dataframe : DataFrame, mode : str) -> Tuple[DataFrame, List] :
 	"""
 	Doc
 	"""
@@ -70,7 +70,7 @@ def format_tune_model_dataframe_metrics (dataframe : DataFrame, mode : str) -> T
 
 	return dataframe, columns
 
-def format_tune_model_dataframe_params (dataframe : DataFrame) -> Tuple[DataFrame, List] :
+def format_cnn_tune_dataframe_params (dataframe : DataFrame) -> Tuple[DataFrame, List] :
 	"""
 	Doc
 	"""
@@ -148,7 +148,7 @@ def format_tune_model_dataframe_params (dataframe : DataFrame) -> Tuple[DataFram
 
 	return dataframe, columns
 
-def format_tune_model_dataframe (dataframe : DataFrame, mode : str) -> DataFrame :
+def format_cnn_tune_dataframe (dataframe : DataFrame, mode : str) -> DataFrame :
 	"""
 	Doc
 	"""
@@ -159,8 +159,8 @@ def format_tune_model_dataframe (dataframe : DataFrame, mode : str) -> DataFrame
 		if column in dataframe.columns :
 			columns.append(column)
 
-	dataframe, columns_metric = format_tune_model_dataframe_metrics(dataframe = dataframe, mode = mode)
-	dataframe, columns_params = format_tune_model_dataframe_params (dataframe = dataframe)
+	dataframe, columns_metric = format_cnn_tune_dataframe_metrics(dataframe = dataframe, mode = mode)
+	dataframe, columns_params = format_cnn_tune_dataframe_params (dataframe = dataframe)
 
 	columns.extend(columns_metric)
 	columns.extend(columns_params)
@@ -169,7 +169,7 @@ def format_tune_model_dataframe (dataframe : DataFrame, mode : str) -> DataFrame
 
 	return dataframe
 
-def format_tune_data_dataframe_metrics (dataframe : DataFrame, mode : str) -> Tuple[DataFrame, List] :
+def format_data_tune_dataframe_metrics (dataframe : DataFrame, mode : str) -> Tuple[DataFrame, List] :
 	"""
 	Doc
 	"""
@@ -251,7 +251,7 @@ def format_tune_data_dataframe_metrics (dataframe : DataFrame, mode : str) -> Tu
 
 	return dataframe, columns
 
-def format_tune_data_dataframe_params (dataframe : DataFrame, mode : str) -> Tuple[DataFrame, List] :
+def format_data_tune_dataframe_params (dataframe : DataFrame, mode : str) -> Tuple[DataFrame, List] :
 	"""
 	Doc
 	"""
@@ -296,7 +296,7 @@ def format_tune_data_dataframe_params (dataframe : DataFrame, mode : str) -> Tup
 
 	return dataframe, columns
 
-def format_tune_data_dataframe (dataframe : DataFrame, mode : str) -> DataFrame :
+def format_data_tune_dataframe (dataframe : DataFrame, mode : str) -> DataFrame :
 	"""
 	Doc
 	"""
@@ -307,8 +307,8 @@ def format_tune_data_dataframe (dataframe : DataFrame, mode : str) -> DataFrame 
 		if column in dataframe.columns :
 			columns.append(column)
 
-	dataframe, columns_metric = format_tune_data_dataframe_metrics(dataframe = dataframe, mode = mode)
-	dataframe, columns_params = format_tune_data_dataframe_params (dataframe = dataframe, mode = mode)
+	dataframe, columns_metric = format_data_tune_dataframe_metrics(dataframe = dataframe, mode = mode)
+	dataframe, columns_params = format_data_tune_dataframe_params (dataframe = dataframe, mode = mode)
 
 	columns.extend(columns_metric)
 	columns.extend(columns_params)
@@ -334,14 +334,14 @@ def format_bert_data_dataframe (dataframe : DataFrame, mode : str) -> DataFrame 
 		})
 
 		dataframe = dataframe.astype({
-			'Freeze' : int,
-			'Kmer'   : int,
-			'Step'   : int,
-			'Epoch'  : int
+			'Layer' : int,
+			'Kmer'  : int,
+			'Step'  : int,
+			'Epoch' : int
 		})
 
 		dataframe = dataframe[[
-			'Mode', 'Model', 'Freeze', 'Kmer', 'Sequence', 'Optimizer', 'Epochs',
+			'Mode', 'Arch', 'Type', 'Layer', 'Kmer', 'Sequence', 'Optimizer', 'Epochs',
 			'Target0', 'Target1', 'Target2',
 			'Eval_R2', 'Eval_ME', 'Eval_MAPE', 'Eval_MAE', 'Learning_Rate',
 			'Step', 'Epoch'

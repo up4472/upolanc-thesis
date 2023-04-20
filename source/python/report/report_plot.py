@@ -24,8 +24,6 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 	else                     : xcolumn = per_step
 
 	for name, dataframe in data[mode].items() :
-		name = name[16:]
-
 		py = len(dataframe)
 		px = 0
 

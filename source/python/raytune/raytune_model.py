@@ -12,6 +12,8 @@ import numpy
 import os
 import torch
 
+from source.python.cnn.models import DenseFC2
+from source.python.cnn.models import DenseFC3
 from source.python.cnn.models  import Washburn2019c
 from source.python.cnn.models  import Washburn2019r
 from source.python.cnn.models  import Zrimec2020c
@@ -126,6 +128,29 @@ def get_model (params : Dict[str, Any], config : Dict[str, Any], params_share : 
 			'model/fc3/features'   : config['model/output/size'],
 			'model/fc3/heads'      : config['model/output/heads']
 		})
+
+	elif config['model/type'] == 'densefc2' :
+		model = DenseFC2(
+			input_size  = config['model/input/features'],
+			output_size = config['model/output/size'],
+			hidden_size = [
+				params['model/fc1/features']
+			],
+			dropout    = params['model/dropout'],
+			leaky_relu = params['model/leakyrelu']
+		)
+
+	elif config['model/type'] == 'densefc3' :
+		model = DenseFC3(
+			input_size  = config['model/input/features'],
+			output_size = config['model/output/size'],
+			hidden_size = [
+				params['model/fc1/features'],
+				params['model/fc2/features']
+			],
+			dropout    = params['model/dropout'],
+			leaky_relu = params['model/leakyrelu']
+		)
 
 	else :
 		raise ValueError()

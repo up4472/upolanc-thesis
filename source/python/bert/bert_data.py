@@ -46,15 +46,13 @@ def data_prepare (sequences : Dict[str, str], features : Dict[str, Any], directo
 		('global', 'mean', False, None),
 		('global', 'max',  False, None),
 		('tissue', 'mean', False, None),
+		('tissue', 'mean', True,  None),
 		('tissue', 'mean', True, 'seedling'),
-		('tissue', 'max',  True, 'seedling'),
 		('tissue', 'mean', True, 'leaf'),
-		('tissue', 'max',  True, 'leaf'),
 		('group',  'mean', False, None),
+		('group',  'mean', True,  None),
 		('group',  'mean', True, 'young_seedling'),
-		('group',  'max',  True, 'young_seedling'),
 		('group',  'mean', True, 'mature_leaf'),
-		('group',  'max',  True, 'mature_leaf'),
 	]
 
 	for combination in combinations :
@@ -71,7 +69,7 @@ def data_prepare (sequences : Dict[str, str], features : Dict[str, Any], directo
 
 		dataframe, target_value, target_order = load_feature_targets(
 			group    = t01,
-			explode  = texplode,
+			explode  = bool(texplode),
 			filters  = {
 				'tissue'       : None,
 				'group'        : None,
@@ -135,7 +133,7 @@ def create_kmers (data : Dict[str, Dict], generator : Callable, filename : str, 
 	indices = next(generator)
 	names = ['train', 'valid', 'dev']
 
-	for kmer in range(3, 7) :
+	for kmer in [3, 6] :
 		for index, name in zip(indices, names) :
 			if index is None : continue
 

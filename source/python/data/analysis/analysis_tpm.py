@@ -35,12 +35,14 @@ def filter_samples (data : DataFrame, cutoff : Dict[str, Any] = None) -> Tuple[D
 	dictionary = dict()
 	max_cutoff = None
 	sum_cutoff = None
+	avg_cutoff = None
 	std_cutoff = None
 	px0_cutoff = None
 
 	if cutoff is not None :
 		if 'max' in cutoff.keys() and cutoff['max']    > 0.0 : max_cutoff = cutoff['max']
 		if 'sum' in cutoff.keys() and cutoff['sum']    > 0.0 : sum_cutoff = cutoff['sum']
+		if 'avg' in cutoff.keys() and cutoff['avg']    > 0.0 : avg_cutoff = cutoff['avg']
 		if 'std' in cutoff.keys() and cutoff['std']    > 0.0 : std_cutoff = cutoff['std']
 		if 'px0' in cutoff.keys() and cutoff['px0'][0] > 0.0 : px0_cutoff = cutoff['px0']
 
@@ -62,6 +64,10 @@ def filter_samples (data : DataFrame, cutoff : Dict[str, Any] = None) -> Tuple[D
 
 			if std_cutoff is not None and column.std() < std_cutoff :
 				dictionary[name] = f'std(TPM) < {std_cutoff:.1f}'
+				continue
+
+			if avg_cutoff is not None and column.mean() < avg_cutoff :
+				dictionary[name] = f'mean(TPM) < {avg_cutoff:.1f}'
 				continue
 
 			if px0_cutoff is not None :
