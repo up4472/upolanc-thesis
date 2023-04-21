@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=bert-dnabert
+#SBATCH --job-name=bert-dnabert-def
 #SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/dnabert-%j.out
 #SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/dnabert-%j.err
 #SBATCH --nodes=1
@@ -27,37 +27,43 @@ if [[ ":$PATH:" != *":$ROOT:"* ]]; then
 	export PATH="$PATH:$ROOT"
 fi
 
-export ROOT=/d/hpc/home/up4472/workspace/upolanc-thesis
-export KMER=6
-export TARGET=global-mean
-export SEQUENCE=promoter-512
+# Run script
+export DATA_KMER=6
+export DATA_TARGET=global-mean
+export DATA_SEQUENCE=promoter-512
+export DATA_FILTER=filter0
+export BERT_TYPE=def
 
-export MODELS_PATH=$ROOT/resources/dnabert/$KMER-new-12w-0
-export INPUTS_PATH=$ROOT/output/nbp05-target/default/dnabert-$KMER/$SEQUENCE/$TARGET
-export OUTPUT_PATH=$ROOT/output/nbp10-dnabert/def/$KMER/$SEQUENCE/$TARGET
-export CACHED_PATH=$ROOT/cache/def
+export PATH_ROOT=/d/hpc/home/up4472/workspace/upolanc-thesis
+export PATH_BERT=$PATH_ROOT/resources/dnabert/$DATA_KMER-new-12w-0
+export PATH_DATA=$PATH_ROOT/output/nbp05-target/$DATA_FILTER/dnabert-$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
+export PATH_OUTS=$PATH_ROOT/output/nbp10-dnabert/$DATA_FILTER/out/$BERT_TYPE/$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
+export PATH_TEMP=$PATH_ROOT/output/nbp10-dnabert/$DATA_FILTER/tmp/$BERT_TYPE/$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
+
+export NAME_MODEL=rbertfc3_$BERT_TYPE
+export NAME_TOKEN=dna$DATA_KMER
 
 python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp10-dnabert.py \
---model_type rbertfc3 \
---tokenizer_name=dna$KMER \
---model_name_or_path $MODELS_PATH \
---cache_dir $CACHED_PATH \
+--model_type "$NAME_MODEL" \
+--tokenizer_name "$NAME_TOKEN" \
+--model_name_or_path "$PATH_BERT" \
+--data_dir "$PATH_DATA" \
+--output_dir "$PATH_OUTS" \
+--cache_dir "$PATH_TEMP" \
 --task_name regression \
+--overwrite_output \
 --do_train \
 --do_eval \
---data_dir $INPUTS_PATH \
+--evaluate_during_training \
 --max_seq_length 512 \
---per_gpu_eval_batch_size=32 \
---per_gpu_train_batch_size=32 \
+--per_gpu_eval_batch_size 32 \
+--per_gpu_train_batch_size 32 \
 --learning_rate 5e-5 \
 --num_train_epochs 250 \
---output_dir $OUTPUT_PATH \
---evaluate_during_training \
 --logging_steps 100 \
 --save_steps 25000 \
 --warmup_percent 0.1 \
 --hidden_dropout_prob 0.1 \
---overwrite_output \
 --weight_decay 0.01 \
 --n_process 6 \
 --optimizer adamw \

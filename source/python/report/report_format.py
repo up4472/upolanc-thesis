@@ -334,14 +334,15 @@ def format_bert_data_dataframe (dataframe : DataFrame, mode : str) -> DataFrame 
 		})
 
 		dataframe = dataframe.astype({
-			'Layer' : int,
-			'Kmer'  : int,
-			'Step'  : int,
-			'Epoch' : int
+			'Layer'   : int,
+			'Kmer'    : int,
+			'Feature' : int,
+			'Step'    : int,
+			'Epoch'   : int
 		})
 
 		dataframe = dataframe[[
-			'Mode', 'Arch', 'Type', 'Layer', 'Kmer', 'Sequence', 'Optimizer', 'Epochs',
+			'Mode', 'Arch', 'Type', 'Layer', 'Kmer', 'Feature', 'Sequence', 'Optimizer', 'Epochs',
 			'Target0', 'Target1', 'Target2',
 			'Eval_R2', 'Eval_ME', 'Eval_MAPE', 'Eval_MAE', 'Learning_Rate',
 			'Step', 'Epoch'

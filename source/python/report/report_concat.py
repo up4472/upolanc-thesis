@@ -97,18 +97,20 @@ def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascend
 		bert_type     = tokens[1]
 		bert_layer    = tokens[2]
 		bert_kmer     = tokens[3]
-		bert_sequence = tokens[4]
-		bert_optim    = tokens[5]
-		bert_epochs   = tokens[6]
-		bert_target0  = tokens[7]
-		bert_target1  = tokens[8] if len(tokens) >=  9 else None
-		bert_target2  = tokens[9] if len(tokens) >= 10 else None
+		bert_feature  = tokens[4]
+		bert_sequence = tokens[5]
+		bert_optim    = tokens[6]
+		bert_epochs   = tokens[7]
+		bert_target0  = tokens[8]
+		bert_target1  = tokens[9]  if len(tokens) >= 10 else None
+		bert_target2  = tokens[10] if len(tokens) >= 11 else None
 
 		item['Mode']      = str(mode)
 		item['Arch']      = str(bert_arch)
 		item['Type']      = str(bert_type)
 		item['Layer']     = int(bert_layer)
 		item['Kmer']      = int(bert_kmer)
+		item['Feature']   = int(bert_feature)
 		item['Sequence']  = str(bert_sequence)
 		item['Optimizer'] = str(bert_optim)
 		item['Epochs']    = int(bert_epochs)

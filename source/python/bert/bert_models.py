@@ -26,6 +26,7 @@ class RegressionBertFC1 (BertPreTrainedModel) :
 
 		self.bert    = BertModel(config)
 		self.dropout = Dropout(config.hidden_dropout_prob)
+		self.check   = config.use_features
 
 		if config.use_features :
 			idim = config.hidden_size + config.num_features
@@ -56,7 +57,7 @@ class RegressionBertFC1 (BertPreTrainedModel) :
 
 		logits = self.dropout(logits)
 
-		if features is not None :
+		if self.check and features is not None :
 			logits = torch.cat(
 				tensors = (logits, features),
 				dim     = 1
@@ -90,6 +91,7 @@ class RegressionBertFC3 (BertPreTrainedModel) :
 
 		self.bert    = BertModel(config)
 		self.dropout = Dropout(config.hidden_dropout_prob)
+		self.check   = config.use_features
 
 		self.relu    = LeakyReLU(
 			negative_slope = 0.0,
@@ -126,7 +128,7 @@ class RegressionBertFC3 (BertPreTrainedModel) :
 		logits = outputs[1]
 		logits = self.dropout(logits)
 
-		if features is not None :
+		if self.check and features is not None :
 			logits = torch.cat(
 				tensors = (logits, features),
 				dim     = 1
@@ -167,6 +169,7 @@ class CatRegressionBertFC3 (BertPreTrainedModel) :
 
 		self.num_labels = config.num_labels
 		self.split      = config.split
+		self.check      = config.use_features
 
 		self.bert    = BertModel(config)
 		self.dropout = Dropout(config.hidden_dropout_prob)
@@ -218,7 +221,7 @@ class CatRegressionBertFC3 (BertPreTrainedModel) :
 		logits = self.relu(logits)
 		logits = self.dropout(logits)
 
-		if features is not None :
+		if self.check and features is not None :
 			logits = torch.cat(
 				tensors = (logits, features),
 				dim     = 1
@@ -258,6 +261,7 @@ class RnnRegressionBertFC3 (BertPreTrainedModel) :
 
 		self.num_labels  = config.num_labels
 		self.split       = config.split
+		self.check       = config.use_features
 		self.hidden_size = config.hidden_size
 		self.rnn_type    = config.rnn
 		self.rnn_layers  = config.num_rnn_layer
@@ -324,7 +328,7 @@ class RnnRegressionBertFC3 (BertPreTrainedModel) :
 
 		logits = self.dropout(ht.squeeze(0).sum(dim = 0))
 
-		if features is not None :
+		if self.check and features is not None :
 			logits = torch.cat(
 				tensors = (logits, features),
 				dim     = 1

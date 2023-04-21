@@ -273,15 +273,16 @@ def load_bert_reports_for (root : str, mode : str, n : int = 5, show : bool = Fa
 
 	bert_archs      = ['fc2', 'fc3']
 	bert_types      = ['def', 'rnn', 'cat']
-	bert_layers     = [9, 12]
+	bert_layers     = [9, 11, 12]
 	bert_kmers      = [3, 6]
+	bert_features   = [0, 72, 77]
 	bert_sequences  = ['promoter', 'transcript']
 	bert_optimizers = ['adam', 'lamb']
 	bert_epochs     = [150, 250]
 	bert_targets    = TARGETS
 
-	for config in itertools.product(bert_archs, bert_types, bert_layers, bert_kmers, bert_sequences, bert_optimizers, bert_epochs, bert_targets) :
-		key    = '{:s}-{:s}-{:02d}-{:d}-{:s}-{:s}-{:04d}-{:s}'.format(*config)
+	for config in itertools.product(bert_archs, bert_types, bert_layers, bert_kmers, bert_features, bert_sequences, bert_optimizers, bert_epochs, bert_targets) :
+		key    = '{:s}-{:s}-{:02d}-{:d}-{:02d}-{:s}-{:s}-{:04d}-{:s}'.format(*config)
 		folder = os.path.join(root, key)
 
 		if not os.path.exists(folder) :

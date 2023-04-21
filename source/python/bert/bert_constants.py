@@ -59,6 +59,7 @@ MODELS = {
 	# Custom
 	'rbertfc1'     : (      BertConfig,                   RegressionBertFC1,        DNATokenizer),
 	'rbertfc3'     : (      BertConfig,                   RegressionBertFC3,        DNATokenizer),
+	'rbertfc3_def' : (      BertConfig,                   RegressionBertFC3,        DNATokenizer),
 	'rbertfc3_cat' : (      BertConfig,                CatRegressionBertFC3,        DNATokenizer),
 	'rbertfc3_rnn' : (      BertConfig,                RnnRegressionBertFC3,        DNATokenizer)
 }

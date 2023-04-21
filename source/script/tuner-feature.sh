@@ -1,15 +1,15 @@
 #!/bin/bash
 
-#SBATCH --job-name=cnn-washburn
-#SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/washburn-%j.out
-#SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/washburn-%j.err
+#SBATCH --job-name=cnn-raytune-feature
+#SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/raytune-%j.out
+#SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/raytune-%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 #SBATCH --mem-per-gpu=64G
 #SBATCH --cpus-per-gpu=6
-#SBATCH --time=1-00:00:00
+#SBATCH --time=4-00:00:00
 
 # Activate conda enviorment
 source activate /d/hpc/home/up4472/anaconda3
@@ -28,10 +28,8 @@ if [[ ":$PATH:" != *":$ROOT:"* ]]; then
 fi
 
 # Run script
-python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp08-washburn-rm.py \
---target_group global \
---target_type mean \
---target_explode false \
---target_filter none \
---model_epochs 500 \
---model_params 0
+python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp06-tuner-feature.py \
+--model_epochs 50 \
+--tuner_concurrent 5 \
+--tuner_trials 1000 \
+--tuner_grace 25
