@@ -91,6 +91,8 @@ def update_params (params : Dict[str, Any] = None) -> Dict[str, Any] :
 
 		'model/fc1/features' : 128,
 		'model/fc2/features' : 256,
+
+		'model/features' : False
 	}
 
 	if params is None :
@@ -174,8 +176,10 @@ class Zrimec2020 (Module) :
 		size = compute1d(size = size, module = self.conv3)
 		size = compute1d(size = size, module = self.maxpool3)
 
-		size = size * self.params['model/conv3/filters']  # flatten (channels)
-		size = size + self.params['model/input/features'] # injects (hstack)
+		size = size * self.params['model/conv3/filters']
+
+		if self.params['model/features'] :
+			size = size + self.params['model/input/features']
 
 		self.fc1 = Linear(
 			in_features  = size,
@@ -238,7 +242,7 @@ class Zrimec2020 (Module) :
 
 		x = self.flatten(x)
 
-		if v is not None :
+		if self.params['model/features'] and v is not None :
 			x = torch.hstack((x, v))
 
 		x = self.fc1(x)

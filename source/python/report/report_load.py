@@ -20,6 +20,11 @@ TARGETS = [
 	'tissue-mean-explode'
 ]
 
+FILTERS = [
+	'f' + str(index)
+	for index in range(10)
+]
+
 def load_cnn_tune_reports_for (root : str, mode : str, n : int = 5, show : bool = False) -> Dict[str, DataFrame] :
 	"""
 	Doc
@@ -27,17 +32,18 @@ def load_cnn_tune_reports_for (root : str, mode : str, n : int = 5, show : bool 
 
 	report = dict()
 
-	if mode == 'regression'     : root = os.path.join(root, 'cnn-tune-regression')
-	if mode == 'classification' : root = os.path.join(root, 'cnn-tune-classification')
+	if mode == 'regression'     : root = os.path.join(root, 'tune', 'cnn-regression')
+	if mode == 'classification' : root = os.path.join(root, 'tune', 'cnn-classification')
 
 	cnn_archs      = ['zrimec', 'washburn']
 	cnn_sequences  = ['promoter', 'transcript']
+	cnn_filters    = FILTERS
 	cnn_trials     = [250, 500, 1000]
 	cnn_epochs     = [25, 50]
 	cnn_targets    = TARGETS
 
-	for items in itertools.product(cnn_archs, cnn_sequences, cnn_trials, cnn_epochs, cnn_targets) :
-		key    = '{:s}-{:s}-{:04d}-{:2d}-{:s}'.format(*items)
+	for items in itertools.product(cnn_archs, cnn_sequences, cnn_filters, cnn_trials, cnn_epochs, cnn_targets) :
+		key    = '{:s}-{:s}-{:s}-{:04d}-{:2d}-{:s}'.format(*items)
 		folder = os.path.join(root, key)
 
 		if not os.path.exists(folder) :
@@ -86,17 +92,18 @@ def load_data_tune_reports_for (root : str, mode : str, n : int = 5, show : bool
 
 	report = dict()
 
-	if mode == 'regression'     : root = os.path.join(root, 'data-tune-regression')
-	if mode == 'classification' : root = os.path.join(root, 'data-tune-classification')
+	if mode == 'regression'     : root = os.path.join(root, 'tune', 'data-regression')
+	if mode == 'classification' : root = os.path.join(root, 'tune', 'data-classification')
 
 	cnn_archs      = ['zrimec', 'washburn']
 	cnn_sequences  = ['promoter', 'transcript']
+	cnn_filters    = FILTERS
 	cnn_trials     = [250, 500, 1000]
 	cnn_epochs     = [25, 50]
 	cnn_targets    = TARGETS
 
-	for items in itertools.product(cnn_archs, cnn_sequences, cnn_trials, cnn_epochs, cnn_targets) :
-		key    = '{:s}-{:s}-{:04d}-{:2d}-{:s}'.format(*items)
+	for items in itertools.product(cnn_archs, cnn_sequences, cnn_filters, cnn_trials, cnn_epochs, cnn_targets) :
+		key    = '{:s}-{:s}-{:s}-{:04d}-{:2d}-{:s}'.format(*items)
 		folder = os.path.join(root, key)
 
 		if not os.path.exists(folder) :
@@ -144,7 +151,7 @@ def load_cnn_reports_for (root : str, mode : str) -> DataFrame :
 	"""
 
 	columns = [
-		'Model', 'Type', 'Epochs', 'Target_0', 'Target_1', 'Target_2',
+		'Model', 'Type', 'Filter', 'Epochs', 'Target_0', 'Target_1', 'Target_2',
 		'Optimizer', 'Learning_Rate', 'Momentum', 'Decay', 'Scheduler',
 		'Batch_Size', 'Dropout', 'Epoch'
 	]
@@ -154,28 +161,21 @@ def load_cnn_reports_for (root : str, mode : str) -> DataFrame :
 
 	dataframe = DataFrame(columns = columns)
 
-	if mode == 'regression'     : root = os.path.join(root, 'cnn-regression')
-	if mode == 'classification' : root = os.path.join(root, 'cnn-classification')
+	if mode == 'regression'     : root = os.path.join(root, 'cnn', 'regression')
+	if mode == 'classification' : root = os.path.join(root, 'cnn', 'classification')
 
 	cnn_archs      = ['zrimec', 'washburn']
 	cnn_sequences  = ['promoter', 'transcript']
+	cnn_filters    = FILTERS
 	cnn_epochs     = [250, 500, 1000]
-	cnn_targets    = [
-		'global-mean',
-		'tissue-mean',
-		'tissue-mean-seedling',
-		'tissue-mean-explode'
-	]
+	cnn_targets    = TARGETS
 
-	for items in itertools.product(cnn_archs, cnn_sequences, cnn_epochs, cnn_targets) :
-			key    = '{:s}-{:s}-{:04d}-{:s}'.format(*items)
+	for items in itertools.product(cnn_archs, cnn_sequences, cnn_filters, cnn_epochs, cnn_targets) :
+			key    = '{:s}-{:s}-{:s}-{:04d}-{:s}'.format(*items)
 			folder = os.path.join(root, key)
 
 			if not os.path.exists(folder) :
 				continue
-
-			if   mode[0] == 'r' : mode = 'regression'
-			elif mode[0] == 'c' : mode = 'classification'
 
 			config = os.path.join(folder, 'config.json')
 			report = os.path.join(folder, 'report.json')
@@ -192,6 +192,7 @@ def load_cnn_reports_for (root : str, mode : str) -> DataFrame :
 				items[0],
 				items[1],
 				items[2],
+				items[3],
 				target[0] if len(target) >= 1 else None,
 				target[1] if len(target) >= 2 else None,
 				target[2] if len(target) >= 3 else None
@@ -268,8 +269,8 @@ def load_bert_reports_for (root : str, mode : str, n : int = 5, show : bool = Fa
 
 	report = dict()
 
-	if mode == 'regression'     : root = os.path.join(root, 'dnabert-regression')
-	if mode == 'classification' : root = os.path.join(root, 'dnabert-classification')
+	if mode == 'regression'     : root = os.path.join(root, 'bert', 'regression')
+	if mode == 'classification' : root = os.path.join(root, 'bert', 'classification')
 
 	bert_archs      = ['fc2', 'fc3']
 	bert_types      = ['def', 'rnn', 'cat']
@@ -278,11 +279,12 @@ def load_bert_reports_for (root : str, mode : str, n : int = 5, show : bool = Fa
 	bert_features   = [0, 72, 77]
 	bert_sequences  = ['promoter', 'transcript']
 	bert_optimizers = ['adam', 'lamb']
+	bert_filters    = FILTERS
 	bert_epochs     = [150, 250]
 	bert_targets    = TARGETS
 
-	for config in itertools.product(bert_archs, bert_types, bert_layers, bert_kmers, bert_features, bert_sequences, bert_optimizers, bert_epochs, bert_targets) :
-		key    = '{:s}-{:s}-{:02d}-{:d}-{:02d}-{:s}-{:s}-{:04d}-{:s}'.format(*config)
+	for config in itertools.product(bert_archs, bert_types, bert_layers, bert_kmers, bert_features, bert_sequences, bert_optimizers, bert_filters, bert_epochs, bert_targets) :
+		key    = '{:s}-{:s}-{:02d}-{:d}-{:02d}-{:s}-{:s}-{:s}-{:04d}-{:s}'.format(*config)
 		folder = os.path.join(root, key)
 
 		if not os.path.exists(folder) :
@@ -298,6 +300,63 @@ def load_bert_reports_for (root : str, mode : str, n : int = 5, show : bool = Fa
 
 		if show :
 			display(format_cnn_tune_dataframe(
+				dataframe = dataframe,
+				mode      = mode
+			).head(n = n))
+
+		report[key] = dataframe
+
+	return report
+
+def load_feature_tune_reports (root : str, n : int = 5, show : bool = False) -> Dict[str, Dict] :
+	"""
+	Doc
+	"""
+
+	return {
+		'regression'     : load_feature_tune_reports_for(root = root, n = n, show = show, mode = 'regression'),
+		'classification' : load_feature_tune_reports_for(root = root, n = n, show = show, mode = 'classification')
+	}
+
+def load_feature_tune_reports_for (root : str, mode : str, n : int = 5, show : bool = False) -> Dict[str, DataFrame] :
+	"""
+	Doc
+	"""
+
+	report = dict()
+
+	if mode == 'regression'     : root = os.path.join(root, 'tune', 'feature-regression')
+	if mode == 'classification' : root = os.path.join(root, 'tune', 'feature-classification')
+
+	feature_n       = [64, 72]
+	feature_trials  = [250, 500, 1000, 2500]
+	feature_epochs  = [25, 50]
+
+	for items in itertools.product(feature_n, feature_trials, feature_epochs) :
+		key    = '{:2d}-{:04d}-{:2d}'.format(*items)
+		folder = os.path.join(root, key)
+
+		if not os.path.exists(folder) :
+			continue
+
+		filename = os.path.join(folder, 'report.csv')
+		logdir   = os.path.join(folder, 'raytune')
+
+		if not os.path.exists(filename) :
+			dataframe = recover_dataframe(logdir)
+			dataframe.to_csv(filename)
+		else :
+			dataframe = pandas.read_csv(filename, index_col = [0])
+			dataframe = dataframe.sort_values('valid_loss', ascending = True)
+			dataframe = dataframe.reset_index()
+
+		dataframe['logdir'] = dataframe['logdir'].str.split('/')
+		dataframe['logdir'] = dataframe['logdir'].str[-1]
+
+		print(filename)
+
+		if show :
+			display(format_data_tune_dataframe(
 				dataframe = dataframe,
 				mode      = mode
 			).head(n = n))

@@ -34,6 +34,8 @@ This repository contains source files for my master's degree titled, 'Deep learn
 
 #### Notable References
 
+- [Article - Normality Test - Shapiro et. al (1965)](https://www.jstor.org/stable/2333709)
+- [Article - Normality Test - D'Agostino et. al (1973)](https://www.jstor.org/stable/2335012)
 - [Article - SLURM - Yoo et. al (2003)](https://link.springer.com/chapter/10.1007/10968987_3)
 - [Article - HyperOpt - Bergstra et. al (2013)](https://arxiv.org/abs/1209.5111)
 - [Article - Bert - Vaswani et. al (2017)](https://arxiv.org/abs/1706.03762)

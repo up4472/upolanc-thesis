@@ -97,7 +97,8 @@ def get_model (params : Dict[str, Any], config : Dict[str, Any], params_share : 
 			'model/input/height'   : config['model/input/height'],
 			'model/input/width'    : config['model/input/width'],
 			'model/input/features' : config['model/input/features'],
-			'model/fc3/features'   : config['model/output/size']
+			'model/fc3/features'   : config['model/output/size'],
+			'model/features'       : config['model/features']
 		})
 
 	elif config['model/type'] == 'zrimec2020c' :
@@ -107,7 +108,8 @@ def get_model (params : Dict[str, Any], config : Dict[str, Any], params_share : 
 			'model/input/width'    : config['model/input/width'],
 			'model/input/features' : config['model/input/features'],
 			'model/fc3/features'   : config['model/output/size'],
-			'model/fc3/heads'      : config['model/output/heads']
+			'model/fc3/heads'      : config['model/output/heads'],
+			'model/features'       : config['model/features']
 		})
 
 	elif config['model/type'] == 'washburn2019r' :
@@ -116,7 +118,8 @@ def get_model (params : Dict[str, Any], config : Dict[str, Any], params_share : 
 			'model/input/height'   : config['model/input/height'],
 			'model/input/width'    : config['model/input/width'],
 			'model/input/features' : config['model/input/features'],
-			'model/fc3/features'   : config['model/output/size']
+			'model/fc3/features'   : config['model/output/size'],
+			'model/features'       : config['model/features']
 		})
 
 	elif config['model/type'] == 'washburn2019c' :
@@ -126,7 +129,8 @@ def get_model (params : Dict[str, Any], config : Dict[str, Any], params_share : 
 			'model/input/width'    : config['model/input/width'],
 			'model/input/features' : config['model/input/features'],
 			'model/fc3/features'   : config['model/output/size'],
-			'model/fc3/heads'      : config['model/output/heads']
+			'model/fc3/heads'      : config['model/output/heads'],
+			'model/features'       : config['model/features']
 		})
 
 	elif config['model/type'] == 'densefc2' :
@@ -170,9 +174,14 @@ def get_dataloaders (params : Dict[str, Any], config : Dict[str, Any], dataset :
 	if dataset is None :
 		dataset = torch.load(config['dataset/filepath'])
 
+	if 'dataset/split/generator' in config.keys() :
+		generator = config['dataset/split/generator']
+	else :
+		generator = generate_group_shuffle_split
+
 	return to_dataloaders(
 		dataset     = dataset,
-		generator   = generate_group_shuffle_split,
+		generator   = generator,
 		random_seed = config['core/random'],
 		split_size  = {
 			'valid' : config['dataset/split/valid'],

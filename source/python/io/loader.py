@@ -19,10 +19,10 @@ import torch
 
 from sklearn.preprocessing import LabelBinarizer
 
-from source.python.io._cleaner import clean_annotation
-from source.python.io._cleaner import clean_metadata
-from source.python.io._cleaner import clean_tpm
-from source.python.io.writer   import write_pickle
+from source.python.io.cleaner import clean_annotation
+from source.python.io.cleaner import clean_metadata
+from source.python.io.cleaner import clean_tpm
+from source.python.io.writer  import write_pickle
 
 def load_torch (filename : str) -> Dict[str, Any] :
 	"""

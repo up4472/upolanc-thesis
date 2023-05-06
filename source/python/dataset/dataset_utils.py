@@ -1,3 +1,5 @@
+from typing import Union
+
 from pandas           import DataFrame
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
@@ -11,6 +13,9 @@ from typing           import Tuple
 import numpy
 
 from source.python.dataset.dataset_classes import GeneDataset
+from source.python.dataset.dataset_split   import generate_group_shuffle_split
+from source.python.dataset.dataset_split   import generate_random_shuffle_split
+from source.python.dataset.dataset_split   import generate_stratified_shuffle_split
 from source.python.io.loader               import load_feature_targets
 
 def to_gene_dataset (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], expand_dims : int = None, groups : Dict[str, int] = None, onehot : bool = True) -> GeneDataset :
@@ -37,10 +42,16 @@ def to_gene_dataset (sequences : Dict[str, str], features : Dict[str, List], tar
 		onehot      = onehot
 	)
 
-def to_dataloaders (dataset : Dataset, generator : Callable, split_size : Dict[str, float], batch_size : Dict[str, int], random_seed : int = None) -> List[DataLoader] :
+def to_dataloaders (dataset : GeneDataset, generator : Union[str, Callable], split_size : Dict[str, float], batch_size : Dict[str, int], random_seed : int = None) -> List[DataLoader] :
 	"""
 	Doc
 	"""
+
+	if isinstance(generator, str) :
+		if   generator.startswith('stratified') : generator = generate_stratified_shuffle_split
+		elif generator.startswith('group')      : generator = generate_group_shuffle_split
+		elif generator.startswith('random')     : generator = generate_random_shuffle_split
+		else : raise ValueError()
 
 	generator = generator(
 		dataset     = dataset,

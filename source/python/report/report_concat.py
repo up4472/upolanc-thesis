@@ -1,6 +1,5 @@
 from pandas import DataFrame
 from typing import Any
-from typing import Callable
 from typing import Dict
 from typing import Optional
 
@@ -9,14 +8,24 @@ import pandas
 from source.python.report.report_format import format_bert_data_dataframe
 from source.python.report.report_format import format_data_tune_dataframe
 from source.python.report.report_format import format_cnn_tune_dataframe
-from source.python.report.report_utils import convert_bert_step_to_epoch
+from source.python.report.report_format import format_feature_tune_dataframe
+from source.python.report.report_utils  import convert_bert_step_to_epoch
 
-def concat_tune_reports_format (reports : Dict, formatter : Callable, mode : str, n : int = 50) -> Optional[DataFrame] :
+TUNE_FEATURE = 0
+TUNE_CNN     = 1
+TUNE_DATA    = 2
+
+def concat_tune_reports_format (reports : Dict, mode : str, tune_type : int, n : int = 50) -> Optional[DataFrame] :
 	"""
 	Doc
 	"""
 
 	data = None
+
+	if   tune_type == TUNE_FEATURE : formatter = format_feature_tune_dataframe
+	elif tune_type == TUNE_CNN     : formatter = format_cnn_tune_dataframe
+	elif tune_type == TUNE_DATA    : formatter = format_data_tune_dataframe
+	else                           : raise ValueError()
 
 	if len(reports[mode]) == 0 :
 		return None
@@ -24,18 +33,28 @@ def concat_tune_reports_format (reports : Dict, formatter : Callable, mode : str
 	for key, dataframe in reports[mode].items() :
 		keys = key.split('-')
 
-		arch     = keys[0]
-		sequence = keys[1]
-		target0  = keys[5]
-		target1  = keys[6] if len(keys) >= 7 else None
-		target2  = keys[7] if len(keys) >= 8 else None
+		if tune_type == TUNE_CNN or tune_type == TUNE_DATA :
+			arch     = keys[0]
+			sequence = keys[1]
+			filters  = keys[2]
+			target0  = keys[5]
+			target1  = keys[6] if len(keys) >= 7 else None
+			target2  = keys[7] if len(keys) >= 8 else None
 
-		dataframe = dataframe.copy()
-		dataframe.insert(0, 'Model',    arch)
-		dataframe.insert(1, 'Sequence', sequence)
-		dataframe.insert(4, 'Target0',  target0)
-		dataframe.insert(5, 'Target1',  target1)
-		dataframe.insert(5, 'Target2',  target2)
+			dataframe = dataframe.copy()
+			dataframe.insert(0, 'Model',    arch)
+			dataframe.insert(1, 'Sequence', sequence)
+			dataframe.insert(2, 'Filter',   filters)
+			dataframe.insert(4, 'Target0',  target0)
+			dataframe.insert(5, 'Target1',  target1)
+			dataframe.insert(5, 'Target2',  target2)
+
+		if tune_type == TUNE_FEATURE :
+			dataframe = dataframe.copy()
+
+			dataframe.insert(0, 'Target0', None)
+			dataframe.insert(1, 'Target1', None)
+			dataframe.insert(2, 'Target2', None)
 
 		if data is None :
 			data = dataframe
@@ -49,10 +68,22 @@ def concat_tune_reports_format (reports : Dict, formatter : Callable, mode : str
 	data = data.sort_values(sort_by, ascending = False, na_position = 'last')
 	data = data.reset_index()
 
-	return formatter(
+	data = formatter(
 		dataframe = data,
 		mode      = mode
 	).head(n = n)
+
+	if tune_type == TUNE_FEATURE :
+		target = data['Target'].tolist()
+		target = [item.split('-') for item in target]
+
+		data = data.drop(columns = ['Target'])
+
+		data['Target0'] = [item[0] if len(item) >= 1 else None for item in target]
+		data['Target1'] = [item[1] if len(item) >= 2 else None for item in target]
+		data['Target2'] = [item[2] if len(item) >= 3 else None for item in target]
+
+	return data
 
 def concat_cnn_tune_reports (reports : Dict, mode : str, n : int = 50) -> Optional[DataFrame] :
 	"""
@@ -61,9 +92,9 @@ def concat_cnn_tune_reports (reports : Dict, mode : str, n : int = 50) -> Option
 
 	return concat_tune_reports_format(
 		reports   = reports,
-		formatter = format_cnn_tune_dataframe,
 		mode      = mode,
-		n         = n
+		n         = n,
+		tune_type = TUNE_CNN
 	)
 
 def concat_data_tune_reports (reports : Dict, mode : str, n : int = 50) -> Optional[DataFrame] :
@@ -73,9 +104,22 @@ def concat_data_tune_reports (reports : Dict, mode : str, n : int = 50) -> Optio
 
 	return concat_tune_reports_format(
 		reports   = reports,
-		formatter = format_data_tune_dataframe,
 		mode      = mode,
-		n         = n
+		n         = n,
+		tune_type = TUNE_DATA
+	)
+
+
+def concat_feature_tune_reports (reports : Dict, mode : str, n : int = 50) -> Optional[DataFrame] :
+	"""
+	Doc
+	"""
+
+	return concat_tune_reports_format(
+		reports   = reports,
+		mode      = mode,
+		n         = n,
+		tune_type = TUNE_FEATURE
 	)
 
 def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascending : bool) -> DataFrame :
@@ -100,10 +144,11 @@ def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascend
 		bert_feature  = tokens[4]
 		bert_sequence = tokens[5]
 		bert_optim    = tokens[6]
-		bert_epochs   = tokens[7]
-		bert_target0  = tokens[8]
-		bert_target1  = tokens[9]  if len(tokens) >= 10 else None
-		bert_target2  = tokens[10] if len(tokens) >= 11 else None
+		bert_filter   = tokens[7]
+		bert_epochs   = tokens[8]
+		bert_target0  = tokens[9]
+		bert_target1  = tokens[10] if len(tokens) >= 11 else None
+		bert_target2  = tokens[11] if len(tokens) >= 12 else None
 
 		item['Mode']      = str(mode)
 		item['Arch']      = str(bert_arch)
@@ -111,6 +156,7 @@ def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascend
 		item['Layer']     = int(bert_layer)
 		item['Kmer']      = int(bert_kmer)
 		item['Feature']   = int(bert_feature)
+		item['Filter']    = str(bert_filter)
 		item['Sequence']  = str(bert_sequence)
 		item['Optimizer'] = str(bert_optim)
 		item['Epochs']    = int(bert_epochs)

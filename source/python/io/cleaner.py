@@ -57,13 +57,6 @@ def clean_annotation (dataframe : DataFrame) -> DataFrame :
 
 	dataframe['Length'] = numpy.absolute(dataframe['End'] - dataframe['Start'])
 
-	# dataframe['Seq']    = dataframe['Seq'].astype('category')
-	# dataframe['Strand'] = dataframe['Strand'].astype('category')
-	# dataframe['Type']   = dataframe['Type'].astype('category')
-	# dataframe['Start']  = dataframe['Strand'].astype(numpy.int32)
-	# dataframe['End']    = dataframe['Type'].astype(numpy.int32)
-	# dataframe['Length'] = dataframe['Type'].astype(numpy.int32)
-
 	return dataframe[['Seq', 'Strand', 'Type', 'Gene', 'Transcript', 'Exon', 'Parent', 'Start', 'End', 'Length']]
 
 def clean_metadata (dataframe : DataFrame) -> DataFrame :
@@ -121,17 +114,16 @@ def clean_metadata (dataframe : DataFrame) -> DataFrame :
 	dataframe['Group']  = dataframe['Group'].str.replace('mature_other tissue', 'mature_other')
 	dataframe['Group']  = dataframe['Group'].str.replace('young_other tissue', 'young_other')
 
-	dataframe['Group'] = dataframe['Group'].str.replace('seed_seed', 'mature_seed')
+	dataframe.loc[dataframe['Group'] == 'mature_seed', 'Group'] = 'mature_seed'
+	dataframe.loc[dataframe['Group'] == 'young_seed',  'Group'] = 'mature_seed'
+	dataframe.loc[dataframe['Group'] == 'seed_seed',   'Group'] = 'mature_seed'
+
+	# dataframe['Group'] = dataframe['Group'].str.replace('mature_seed', 'mature_seed')
+	# dataframe['Group'] = dataframe['Group'].str.replace('young_seed', 'mature_seed')
+	# dataframe['Group'] = dataframe['Group'].str.replace('seed_seed', 'mature_seed')
 
 	dataframe['Senescence'] = dataframe['Senescence'].fillna(value = 'no')
 	dataframe['Perturbation'] = dataframe['Perturbation'].str.split().str[0]
-
-	# dataframe['Senescence']   = dataframe['Senescence'].map({'yes' : True, 'no' : False})
-	# dataframe['Control']      = dataframe['Control'].map({'yes' : True, 'no' : False})
-	# dataframe['Tissue']       = dataframe['Tissue'].astype('category')
-	# dataframe['Age']          = dataframe['Age'].astype('category')
-	# dataframe['Perturbation'] = dataframe['Perturbation'].astype('category')
-	# dataframe['Group']        = dataframe['Group'].astype('category')
 
 	return dataframe[['Sample', 'Study', 'Control', 'Senescence', 'Age', 'Tissue', 'Group', 'Perturbation']]
 

@@ -27,6 +27,22 @@ if [[ ":$PATH:" != *":$ROOT:"* ]]; then
 	export PATH="$PATH:$ROOT"
 fi
 
+# Default params
+# --target_group     : [str] global       | tissue, group, age, global, perturbation
+# --target_type      : [str] mean         | mean, max
+# --target_explode   : [str] false        | true, false
+# --target_filter    : [str] none         | none
+# --model_name       : [str] zrimec2020   | zrimec2020, washburn2019
+# --model_type       : [str] r            | r, c
+# --model_epochs     : [int] 500          | ...
+# --tuner_search     : [str] hyperopt     | hyperopt, gridsearch
+# --tuner_concurrent : [int] 5            | ...
+# --tuner_trials     : [int] 250          | ...
+# --tuner_grace      : [int] 10           | ...
+# --filter_id        : [int] 0            | ...
+# --generator        : [str] group        | stratified, group, random
+# --features         : [str] true         | true, false
+
 # Run script
 python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp06-tuner-data.py \
 --target_group global \
@@ -36,6 +52,11 @@ python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp06-tuner-data.py 
 --model_name zrimec2020 \
 --model_type r \
 --model_epochs 25 \
+--tuner_search gridsearch \
 --tuner_concurrent 5 \
 --tuner_trials 500 \
---tuner_grace 10
+--tuner_grace 10 \
+--filter_id 0 \
+--generator group \
+--features true
+

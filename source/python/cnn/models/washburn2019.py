@@ -124,6 +124,8 @@ def update_params (params : Dict[str, Any] = None) -> Dict[str, Any] :
 
 		'model/fc1/features' : 256,
 		'model/fc2/features' : 128,
+
+		'model/features' : False
 	}
 
 	if params is None :
@@ -242,9 +244,11 @@ class Washburn2019 (Module) :
 		size = compute2d(size = size, module = self.conv6)
 		size = compute2d(size = size, module = self.maxpool3)
 
-		size = size[0] * size[1]                          # flatten (dims)
-		size = size * self.params['model/conv6/filters']  # flatten (channels)
-		size = size + self.params['model/input/features'] # injects (hstack)
+		size = size[0] * size[1]
+		size = size * self.params['model/conv6/filters']
+
+		if self.params['model/features'] :
+			size = size + self.params['model/input/features']
 
 		self.fc1 = Linear(
 			in_features  = size,
@@ -313,7 +317,7 @@ class Washburn2019 (Module) :
 
 		x = self.flatten(x)
 
-		if v is not None :
+		if self.params['model/features'] and v is not None :
 			x = torch.hstack((x, v))
 
 		x = self.fc1(x)

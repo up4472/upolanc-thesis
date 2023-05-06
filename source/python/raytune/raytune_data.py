@@ -61,8 +61,8 @@ def get_anndata (params : Dict[str, Any], config : Dict[str, Any]) -> AnnData :
 			warnings.simplefilter('ignore')
 
 			CACHE['nbp02/anndata'] = create_anndata(
-				mat = load_csv(filename = os.path.join(config['core/rootdir'], 'output', 'nbp01-analysis', config['core/subfolder'], 'tissue-tpm.csv')),
-				obs = load_csv(filename = os.path.join(config['core/rootdir'], 'output', 'nbp01-analysis', config['core/subfolder'], 'tissue-metadata.csv'))
+				mat = load_csv(filename = os.path.join(config['core/rootdir'], 'output', 'nbp01-filter', config['core/subfolder'], 'tissue-tpm.csv')),
+				obs = load_csv(filename = os.path.join(config['core/rootdir'], 'output', 'nbp01-filter', config['core/subfolder'], 'tissue-metadata.csv'))
 			)
 
 	return compute_boxcox1p(
@@ -86,7 +86,7 @@ def get_sequences_and_features (config : Dict[str, Any]) -> Tuple[Dict, Dict] :
 			lengths    = CACHE['nbp04/sequence/lengths'],
 			verbose    = False,
 			annotation = load_csv(
-				filename   = os.path.join(config['core/rootdir'], 'output', 'nbp01-analysis', config['core/subfolder'], 'gene-annotation.csv'),
+				filename   = os.path.join(config['core/rootdir'], 'output', 'nbp01-filter', config['core/subfolder'], 'gene-annotation.csv'),
 				low_memory = False
 			)
 		)
@@ -187,7 +187,9 @@ def get_targets (params : Dict[str, Any], data : AnnData, layer : str = None) ->
 		if keep is None :
 			continue
 
+		keep = [x for x in keep if x in order[key]]
 		index = [order[key].index(x) for x in keep]
+
 		order[key] = keep
 
 		for transcript in values.keys() :

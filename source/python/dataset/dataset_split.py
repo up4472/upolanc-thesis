@@ -64,7 +64,7 @@ def generate_group_shuffle_split (dataset : GeneDataset, split_size : Dict[str, 
 
 				yield train_index, valid_index, test_index
 
-def generate_shuffle_split (dataset : GeneDataset, split_size : Dict[str, float], random_seed : int = None) -> Any :
+def generate_random_shuffle_split (dataset : GeneDataset, split_size : Dict[str, float], random_seed : int = None) -> Any :
 	"""
 	Doc
 	"""

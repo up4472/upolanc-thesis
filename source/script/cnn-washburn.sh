@@ -27,11 +27,27 @@ if [[ ":$PATH:" != *":$ROOT:"* ]]; then
 	export PATH="$PATH:$ROOT"
 fi
 
+# Default params
+# --target_group   : global         : [str] tissue, group, age, global, perturbation
+# --target_type    : mean           : [str] mean, max
+# --target_explode : false          : [str] true, false
+# --target_filter  : none           : [str] none
+# --model_epochs   : 250            : [int] ...
+# --model_params   : none           : [int] none
+# --model_mode     : regression     : [str] regression, classification
+# --filter_id      : 0              : [int] ...
+# --generator      : group          : [str] stratified, group, random
+# --features       : true           : [str] true, false
+
 # Run script
-python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp08-washburn-rm.py \
+python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp08-washburn.py \
 --target_group global \
 --target_type mean \
 --target_explode false \
 --target_filter none \
 --model_epochs 500 \
---model_params 0
+--model_params 0 \
+--model_mode regression \
+--filter_id 0 \
+--generator group \
+--features true
