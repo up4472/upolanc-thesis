@@ -1,121 +1,114 @@
 from pandas import DataFrame
-from typing import Dict
 from typing import List
+from typing import Union
 
 import scipy
 import seaborn
 import matplotlib
 import numpy
 
-def create_data (data : Dict[str, Dict]) -> Dict[str, Dict] :
+from source.python.data.stats.stats_normality  import anderson
+from source.python.data.stats.stats_normality  import normaltest
+from source.python.data.stats.stats_normality  import shapiro
+from source.python.data.stats.stats_statistics import interquartile_range
+from source.python.data.stats.stats_statistics import zscore
+
+def generate_basic_statistics (data : Union[DataFrame, numpy.ndarray], transcript : List[str], tissue : str, axis : int = 1) -> DataFrame :
 	"""
 	Doc
 	"""
 
-	if data is not None :
-		return data
+	if isinstance(data, DataFrame) :
+		matrix = data.iloc[:, 1:].values.copy()
+	else :
+		matrix = data.copy()
 
-	return {
-		'Count'       : dict(),
-		'Min'         : dict(),
-		'Max'         : dict(),
-		'Mean'        : dict(),
-		'Median'      : dict(),
-		'StDev'       : dict(),
-		'Variance'    : dict(),
-		'Range'       : dict(),
-		'MAD'         : dict(),
-		'Shapiro'     : dict(),
-		'Shapiro.p'   : dict(),
-		'Anderson'    : dict(),
-		'Anderson.p'  : dict(),
-		'DAgostino'   : dict(),
-		'DAgostino.p' : dict()
+	if tissue is None : tissue = 'Global'
+	else              : tissue = tissue.title()
+
+	return DataFrame.from_dict({
+		'Transcript'    : transcript,
+		'Tissue'        : tissue,
+		'Count'         : numpy.size(matrix, axis = axis),
+		'Mean'          : numpy.mean(matrix, axis = axis),
+		'Median'        : numpy.median(matrix, axis = axis),
+		'St. Deviation' : numpy.std(matrix, axis = axis),
+		'Variance'      : numpy.var(matrix, axis = axis),
+		'Minimum'       : numpy.min(matrix, axis = axis),
+		'Maximum'       : numpy.max(matrix, axis = axis),
+		'Range'         : numpy.ptp(matrix, axis = axis),
+		'MAD'           : scipy.stats.median_abs_deviation(matrix, axis = axis, nan_policy = 'omit')
+	})
+
+def genearte_advance_statistics (data : Union[DataFrame, numpy.ndarray], transcript : List[str], tissue : str, axis : int = 1) -> DataFrame :
+	"""
+	Doc
+	"""
+
+	if isinstance(data, DataFrame) :
+		matrix = data.iloc[:, 1:].values.copy()
+	else :
+		matrix = data.copy()
+
+	if tissue is None : tissue = 'Global'
+	else              : tissue = tissue.title()
+
+	res_zscore = zscore(data = matrix, z = 3, ddof = 0, axis = axis)
+	res_iqr    = interquartile_range(data = matrix, k = 1.5, axis = axis)
+
+	return DataFrame.from_dict({
+		'Transcript'     : transcript,
+		'Tissue'         : tissue,
+		'ZScore-Lower'   : res_zscore[1],
+		'ZScore-Upper'   : res_zscore[2],
+		'ZScore-Percent' : res_zscore[3],
+		'IQR-Lower'      : res_iqr[1],
+		'IQR-Upper'      : res_iqr[2],
+		'IQR-Percent'    : res_iqr[3]
+	})
+
+def generate_normality_statistics (data : Union[DataFrame, numpy.ndarray], transcript : List[str], tissue : str) -> DataFrame :
+	"""
+	Doc
+	"""
+
+	if isinstance(data, DataFrame) :
+		matrix = data.iloc[:, 1:].values.copy()
+	else :
+		matrix = data.copy()
+
+	if tissue is None : tissue = 'Global'
+	else              : tissue = tissue.title()
+
+	data = {
+		'Transcript'             : transcript,
+		'Tissue'                 : tissue,
+		'Shapiro-Statistic'      : list(),
+		'Shapiro-pValue'         : list(),
+		'NormalTest-Statistic'   : list(),
+		'NormalTest-pValue'      : list(),
+		'Anderson-Statistic'     : list(),
+		'Anderson-CriticalValue' : list(),
+		'Anderson-Significance'  : list(),
 	}
 
-def get_statistics_for (dataframe : DataFrame, transcripts : List[str], group : str, data : Dict[str, Dict] = None, axis : int = 1) -> Dict[str, Dict] :
-	"""
-	Doc
-	"""
-
-	matrix = dataframe.iloc[:, 1:].values
-
-	if group is None : group = 'Global'
-	else             : group = group.title()
-
-	data = create_data(data = data)
-
-	mat_min      = numpy.min(matrix, axis = axis)
-	mat_max      = numpy.max(matrix, axis = axis)
-	mat_mean     = numpy.mean(matrix, axis = axis)
-	mat_median   = numpy.median(matrix, axis = axis)
-	mat_stdev    = numpy.std(matrix, axis = axis)
-	mat_variance = numpy.var(matrix, axis = axis)
-	mat_range    = numpy.ptp(matrix, axis = axis)
-	mat_mad      = scipy.stats.median_abs_deviation(matrix, axis = axis)
-
-	for index, transcript in enumerate(transcripts) :
+	for index, transcript in enumerate(transcript) :
 		array = matrix[index, :]
-		key   = (transcript, group)
 
-		data['Count'   ][key] = len(array)
-		data['Min'     ][key] = mat_min[index]
-		data['Max'     ][key] = mat_max[index]
-		data['Mean'    ][key] = mat_mean[index]
-		data['Median'  ][key] = mat_median[index]
-		data['StDev'   ][key] = mat_stdev[index]
-		data['Variance'][key] = mat_variance[index]
-		data['Range'   ][key] = mat_range[index]
-		data['MAD'     ][key] = mat_mad[index]
+		result = shapiro(data = array)
+		data['Shapiro-Statistic'].append(result[0])
+		data['Shapiro-pValue'   ].append(result[1])
 
-		if len(array) < 4 :
-			data['Shapiro'][key]   = numpy.nan
-			data['Anderson'][key]  = numpy.nan
-			data['DAgostino'][key] = numpy.nan
+		result = normaltest(data = array)
+		data['NormalTest-Statistic'].append(result[0])
+		data['NormalTest-pValue'   ].append(result[1])
 
-			data['Shapiro.p'][key]   = numpy.nan
-			data['Anderson.p'][key]  = numpy.nan
-			data['DAgostino.p'][key] = numpy.nan
+		result = anderson(data = array, dist = 'norm')
+		data['Anderson-Statistic'    ].append(result[0])
+		data['Anderson-CriticalValue'].append(result[1])
+		data['Anderson-Significance' ].append(result[2])
 
-		else :
-			shapiro   = scipy.stats.shapiro(array)
-			anderson  = scipy.stats.anderson(array, dist = 'norm')
-			dagostino = scipy.stats.normaltest(array)
-
-			curr    = anderson.statistic
-			last_sl = None
-
-			for cv, sl in zip(anderson.critical_values, anderson.significance_level) :
-				last_cv = cv
-				last_sl = sl
-
-				if last_cv >= curr :
-					break
-
-			data['Shapiro'][key]   = shapiro.statistic   # noqa
-			data['Anderson'][key]  = anderson.statistic  # noqa
-			data['DAgostino'][key] = dagostino.statistic # noqa
-
-			data['Shapiro.p'][key]   = shapiro.pvalue   # noqa
-			data['Anderson.p'][key]  = last_sl          # noqa
-			data['DAgostino.p'][key] = dagostino.pvalue # noqa
-
-	return data
-
-def get_statistics_dataframe (data : Dict[str, Dict]) -> DataFrame :
-	"""
-	Doc
-	"""
-
-	dataframe = DataFrame.from_dict(data)
-	dataframe.index = dataframe.index.set_names(['Transcript', 'Tissue'])
-
-	dataframe = dataframe.reset_index()
-
-	dataframe.set_index(['Transcript', 'Tissue'], inplace = True)
-	dataframe.sort_index(inplace = True)
-
-	return dataframe
+	return DataFrame.from_dict(data)
 
 def statistic_histplot (data : DataFrame, x : str, label : str = None, title : str = None, filename : str = None) -> None :
 	"""

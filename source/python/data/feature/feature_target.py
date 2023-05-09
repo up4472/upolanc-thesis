@@ -16,6 +16,8 @@ import seaborn
 from source.python.data.feature.feature_processing import boxcox1p_inv
 from source.python.data.feature.feature_processing import log1p_inv
 from source.python.data.feature.feature_processing import normalize_inv
+from source.python.data.stats.stats_statistics     import interquartile_range
+from source.python.data.stats.stats_statistics     import zscore
 
 def merge_dictionary (source : Dict, target : Dict) -> Dict :
 	"""
@@ -33,7 +35,7 @@ def merge_dictionary (source : Dict, target : Dict) -> Dict :
 
 	return target
 
-def extract_tpm_single (data : AnnData, group : str, function : Callable, name : str, layer : str = None) -> Tuple[Dict, List] :
+def extract_tpm_single (data : AnnData, group : str, function : Callable, name : str, layer : str = None, outlier_filter : str = None) -> Tuple[Dict, List] :
 	"""
 	Doc
 	"""
@@ -57,6 +59,12 @@ def extract_tpm_single (data : AnnData, group : str, function : Callable, name :
 	for item in order :
 		rows = samples[group] == item
 		data = matrix[rows, :]
+
+		if outlier_filter is not None :
+			if   outlier_filter == 'none'   : pass
+			elif outlier_filter == 'iqr'    : data, upper, lower, percent = interquartile_range(data = data, k = 1.5)
+			elif outlier_filter == 'zscore' : data, upper, lower, percent = zscore(data = data, z = 3.0, ddof = 0)
+			else : raise ValueError()
 
 		dataframe[item] = function(x = data)
 
