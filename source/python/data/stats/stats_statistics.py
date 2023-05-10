@@ -18,7 +18,7 @@ def interquartile_range (data : numpy.ndarray, k : float = 1.5, axis : int = Non
 	total = numpy.size(data, axis = axis)
 
 	if numpy.ndim(data) == 2 :
-		threshold = data.copy()
+		threshold = numpy.zeros_like(data, dtype = numpy.bool)
 
 		for i in range(numpy.size(data, axis = 0)) :
 			threshold_upper = data[i, :] < upper[i]

@@ -35,7 +35,7 @@ def merge_dictionary (source : Dict, target : Dict) -> Dict :
 
 	return target
 
-def extract_tpm_single (data : AnnData, group : str, function : Callable, name : str, layer : str = None, outlier_filter : str = None) -> Tuple[Dict, List] :
+def extract_tpm_single (data : AnnData, group : str, function : Callable, name : str, layer : str = None, outlier_filter : str = None, outlier_params : Dict[str, float] = None) -> Tuple[Dict, List] :
 	"""
 	Doc
 	"""
@@ -60,13 +60,38 @@ def extract_tpm_single (data : AnnData, group : str, function : Callable, name :
 		rows = samples[group] == item
 		data = matrix[rows, :]
 
-		if outlier_filter is not None :
-			if   outlier_filter == 'none'   : pass
-			elif outlier_filter == 'iqr'    : data, upper, lower, percent = interquartile_range(data = data, k = 1.5)
-			elif outlier_filter == 'zscore' : data, upper, lower, percent = zscore(data = data, z = 3.0, ddof = 0)
-			else : raise ValueError()
+		y = function(x = data, axis = 0)
+		p = 1.0
 
-		dataframe[item] = function(x = data)
+		if outlier_filter is not None :
+			if outlier_filter == 'iqr' :
+				data, _, _, p = interquartile_range(
+					data = data,
+					axis = 0,
+					k    = outlier_params['factor-iqr']
+				)
+
+			if outlier_filter == 'zscore' :
+				data, _, _, p = zscore(
+					data = data,
+					axis = 0,
+					ddof = 1,
+					z    = outlier_params['factor-zscore']
+				)
+
+		x = function(x = data, axis = 0)
+
+		if outlier_filter is not None :
+			ymean = numpy.nanmean(y)
+			xmean = numpy.nanmean(x)
+
+			p = 100.0 * (1.0 - p)
+			p = numpy.nanmean(p)
+			d = 100.0 * (abs(ymean - xmean) / ymean)
+
+			print('Filtered out [{:8.4f} %] percent with mean change [{:8.4f} %] from [{}] [{}] [{}]'.format(p, d, group, name, item))
+
+		dataframe[item] = x
 
 	name = group.lower() + '-' + name
 
@@ -78,7 +103,7 @@ def extract_tpm_single (data : AnnData, group : str, function : Callable, name :
 
 	return data, order
 
-def extract_tpm_multi (data : AnnData, groups : List[str], functions : List[Tuple[str, Callable]], layer : str = None) -> Tuple[Dict, Dict] :
+def extract_tpm_multi (data : AnnData, groups : List[str], functions : List[Tuple[str, Callable]], layer : str = None, outlier_filter : str = None, outlier_params : Dict[str, float] = None) -> Tuple[Dict, Dict] :
 	"""
 	Doc
 	"""
@@ -88,11 +113,13 @@ def extract_tpm_multi (data : AnnData, groups : List[str], functions : List[Tupl
 
 	for group, function in itertools.product(groups, functions) :
 		result = extract_tpm_single(
-			data     = data,
-			layer    = layer,
-			group    = group,
-			function = function[1],
-			name     = function[0]
+			data           = data,
+			layer          = layer,
+			group          = group,
+			function       = function[1],
+			name           = function[0],
+			outlier_filter = outlier_filter,
+			outlier_params = outlier_params
 		)
 
 		values = merge_dictionary(
@@ -114,6 +141,9 @@ def compute_percentile_bounds (data : Dict[str, Dict], group : str, classes : in
 		for value in data.values()
 	])
 
+	matrix = matrix.flatten()
+	matrix = matrix[~numpy.isnan(matrix)]
+
 	bounds = list()
 	margin = 100 / classes
 
@@ -124,8 +154,8 @@ def compute_percentile_bounds (data : Dict[str, Dict], group : str, classes : in
 		source = max(0.0, min(100.0, source))
 		target = max(0.0, min(100.0, target))
 
-		source = numpy.percentile(matrix, source)
-		target = numpy.percentile(matrix, target)
+		source = numpy.percentile(matrix, source, axis = None)
+		target = numpy.percentile(matrix, target, axis = None)
 
 		bounds.append((
 			f'level-{index}',
@@ -258,7 +288,7 @@ def compute_gridsize (n : int) -> Tuple[int, int, int] :
 
 	return n, nrows, ncols
 
-def distribution_histplot (data : Dict[str, Dict], groupby : str, discrete : bool = False, filename : str = None) -> None :
+def distribution_histplot (data : Dict[str, Dict], groupby : str, discrete : bool = False, draw_iqr : bool = False, draw_zscore : bool = False, factors : Dict[str, float] = None, filename : str = None) -> None :
 	"""
 	Doc
 	"""
@@ -300,6 +330,31 @@ def distribution_histplot (data : Dict[str, Dict], groupby : str, discrete : boo
 				discrete  = discrete,
 				alpha     = 0.9,
 			)
+
+			if draw_iqr :
+				q1 = numpy.percentile(array, 25, method = 'midpoint')
+				q3 = numpy.percentile(array, 75, method = 'midpoint')
+
+				iqr = (q3 - q1)
+
+				lower = q1 - factors['factor-iqr'] * iqr
+				upper = q3 + factors['factor-iqr'] * iqr
+
+				axis.axvline(x = q1,    ymin = 0.01, ymax = 0.99, color = 'k', ls = '--', lw = 2, alpha = 0.3)
+				axis.axvline(x = q3,    ymin = 0.01, ymax = 0.99, color = 'k', ls = '--', lw = 2, alpha = 0.3)
+				axis.axvline(x = lower, ymin = 0.01, ymax = 0.99, color = 'b', ls = '--', lw = 2, alpha = 0.5)
+				axis.axvline(x = upper, ymin = 0.01, ymax = 0.99, color = 'b', ls = '--', lw = 2, alpha = 0.5)
+
+			if draw_zscore :
+				mean = numpy.mean(array)
+				std  = numpy.std(array)
+
+				lower = mean - factors['factor-zscore'] * std
+				upper = mean + factors['factor-zscore'] * std
+
+				axis.axvline(x = mean,  ymin = 0.01, ymax = 0.99, color = 'k', ls = '--', lw = 2, alpha = 0.3)
+				axis.axvline(x = lower, ymin = 0.01, ymax = 0.99, color = 'b', ls = '--', lw = 2, alpha = 0.5)
+				axis.axvline(x = upper, ymin = 0.01, ymax = 0.99, color = 'b', ls = '--', lw = 2, alpha = 0.5)
 
 			axis.set_title(tkey.title())
 			axis.set_xlabel('')
