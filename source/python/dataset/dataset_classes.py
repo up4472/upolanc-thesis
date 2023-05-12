@@ -6,12 +6,14 @@ from typing           import Tuple
 
 import numpy
 
-from source.python.encoding.onehot import generate_onehot_mapping
-from source.python.encoding.onehot import onehot_encode
+from source.python.dataset.dataset_sequence import get_subsequences
+from source.python.dataset.dataset_sequence import get_encoding
+from source.python.encoding.onehot          import generate_onehot_mapping
+from source.python.encoding.onehot          import onehot_encode
 
 class GeneDataset (Dataset) :
 
-	def __init__ (self, names : List[str], sequences : Dict[str, str], features : Dict[str, numpy.ndarray], targets : Dict[str, numpy.ndarray], groups : List[Any] = None, expand_dims : int = None, onehot : bool = True) -> None :
+	def __init__ (self, names : List[str], sequences : Dict[str, str], features : Dict[str, numpy.ndarray], targets : Dict[str, numpy.ndarray], groups : List[Any] = None, expand_dims : int = None, onehot : bool = True, start : int = None, end : int = None) -> None :
 		"""
 		Doc
 		"""
@@ -35,17 +37,19 @@ class GeneDataset (Dataset) :
 			transpose = True
 		)
 
-		if onehot :
-			self.sequences = {
-				key : encode(value)
-				for key, value in self.sequences.items()
-			}
+		self.sequences = get_subsequences(
+			sequences = self.sequences,
+			start     = start,
+			end       = end
+		)
 
-			if expand_dims is not None and expand_dims >= 0 :
-				self.sequences = {
-					key : expand(value)
-					for key, value in self.sequences.items()
-				}
+		self.sequences = get_encoding(
+			sequences     = self.sequences,
+			should_encode = onehot,
+			expand_dims   = expand_dims,
+			encoder       = encode,
+			expander      = expand
+		)
 
 	def __getitem__ (self, index : int) -> Tuple[str, Any, numpy.ndarray, numpy.ndarray] :
 		"""

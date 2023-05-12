@@ -18,7 +18,7 @@ from source.python.dataset.dataset_split   import generate_random_shuffle_split
 from source.python.dataset.dataset_split   import generate_stratified_shuffle_split
 from source.python.io.loader               import load_feature_targets
 
-def to_gene_dataset (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], expand_dims : int = None, groups : Dict[str, int] = None, onehot : bool = True) -> GeneDataset :
+def to_gene_dataset (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], expand_dims : int = None, groups : Dict[str, int] = None, onehot : bool = True, start : int = None, end : int = None) -> GeneDataset :
 	"""
 	Doc
 	"""
@@ -39,7 +39,9 @@ def to_gene_dataset (sequences : Dict[str, str], features : Dict[str, List], tar
 		targets     = {k : numpy.array(v) for k, v in targets.items()},
 		groups      = groups,
 		expand_dims = expand_dims,
-		onehot      = onehot
+		onehot      = onehot,
+		start       = start,
+		end         = end
 	)
 
 def to_dataloaders (dataset : GeneDataset, generator : Union[str, Callable], split_size : Dict[str, float], batch_size : Dict[str, int], random_seed : int = None) -> List[DataLoader] :
@@ -112,7 +114,7 @@ def show_dataloader (dataloader : DataLoader, verbose : bool = True) -> None :
 	print(f' Batch Count : {nbatches:6,d}')
 	print(f'Sample Count : {nsamples:6,d}')
 
-def get_dataset (config : Dict[str, Any], bp2150 : Dict[str, Any], feature : Dict[str, Any], directory : str, cached : Dict[str, Any] = None) -> Tuple[GeneDataset, DataFrame, Dict, List] :
+def get_dataset (config : Dict[str, Any], bp2150 : Dict[str, Any], feature : Dict[str, Any], directory : str, cached : Dict[str, Any] = None, start : int = None, end : int = None) -> Tuple[GeneDataset, DataFrame, Dict, List] :
 	"""
 	Doc
 	"""
@@ -164,7 +166,15 @@ def get_dataset (config : Dict[str, Any], bp2150 : Dict[str, Any], feature : Dic
 		features    = feature,
 		targets     = target_value,
 		expand_dims = config['dataset/expanddim'],
-		groups      = None
+		groups      = None,
+		start       = start,
+		end         = end
 	)
+
+	if start is not None or end is not None :
+		if start is None : start = 0
+		if end   is None : end   = 2150
+
+		config['model/input/width'] = int(end - start)
 
 	return dataset, dataframe, target_value, target_order

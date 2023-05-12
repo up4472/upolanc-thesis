@@ -33,7 +33,27 @@ def concat_tune_reports_format (reports : Dict, mode : str, tune_type : int, n :
 	for key, dataframe in reports[mode].items() :
 		keys = key.split('-')
 
-		if tune_type == TUNE_CNN or tune_type == TUNE_DATA :
+		if tune_type == TUNE_CNN :
+			arch     = keys[0]
+			sequence = keys[1]
+			filters  = keys[2]
+			trials   = keys[3] # noqa
+			epochs   = keys[4] # noqa
+			features = keys[5]
+			target0  = keys[6]
+			target1  = keys[7] if len(keys) >= 8 else None
+			target2  = keys[8] if len(keys) >= 9 else None
+
+			dataframe = dataframe.copy()
+			dataframe.insert(0, 'Model',    arch)
+			dataframe.insert(1, 'Sequence', sequence)
+			dataframe.insert(2, 'Filter',   filters)
+			dataframe.insert(3, 'Features', features)
+			dataframe.insert(4, 'Target0',  target0)
+			dataframe.insert(5, 'Target1',  target1)
+			dataframe.insert(5, 'Target2',  target2)
+
+		if tune_type == TUNE_DATA :
 			arch     = keys[0]
 			sequence = keys[1]
 			filters  = keys[2]

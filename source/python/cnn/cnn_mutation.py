@@ -8,7 +8,7 @@ import numpy
 from source.python.dataset.dataset_utils import to_dataloader
 from source.python.dataset.dataset_utils import to_gene_dataset
 
-def create_dataloader (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], expand_dims : int = None) -> DataLoader :
+def create_dataloader (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], expand_dims : int = None, start : int = None, end : int = None) -> DataLoader :
 	"""
 	Doc
 	"""
@@ -17,7 +17,9 @@ def create_dataloader (sequences : Dict[str, str], features : Dict[str, List], t
 		sequences   = sequences,
 		features    = features,
 		targets     = targets,
-		expand_dims = expand_dims
+		expand_dims = expand_dims,
+		start       = start,
+		end         = end
 	)
 
 	return to_dataloader(

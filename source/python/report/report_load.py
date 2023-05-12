@@ -40,10 +40,11 @@ def load_cnn_tune_reports_for (root : str, mode : str, n : int = 5, show : bool 
 	cnn_filters    = FILTERS
 	cnn_trials     = [250, 500, 1000]
 	cnn_epochs     = [25, 50]
+	cnn_features   = [0, 72, 77]
 	cnn_targets    = TARGETS
 
-	for items in itertools.product(cnn_archs, cnn_sequences, cnn_filters, cnn_trials, cnn_epochs, cnn_targets) :
-		key    = '{:s}-{:s}-{:s}-{:04d}-{:2d}-{:s}'.format(*items)
+	for items in itertools.product(cnn_archs, cnn_sequences, cnn_filters, cnn_trials, cnn_epochs, cnn_features, cnn_targets) :
+		key    = '{:s}-{:s}-{:s}-{:04d}-{:2d}-{:02d}-{:s}'.format(*items)
 		folder = os.path.join(root, key)
 
 		if not os.path.exists(folder) :

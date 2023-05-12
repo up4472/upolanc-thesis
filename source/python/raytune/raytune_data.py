@@ -162,17 +162,22 @@ def get_targets (params : Dict[str, Any], data : AnnData, layer : str = None) ->
 		layer     = layer,
 		groups    = ['Tissue', 'Age', 'Group', 'Perturbation'],
 		functions = [
-			('max',  lambda x : numpy.max(x, axis = 0)),
-			('mean', lambda x : numpy.mean(x, axis = 0))
-		]
+			('max',  lambda x, axis : numpy.nanmax(x, axis = axis)),
+			('mean', lambda x, axis : numpy.nanmean(x, axis = axis))
+		],
+		outlier_filter = 'zscore',
+		outlier_params = {
+			'factor-zscore' : 3.0,
+			'factor-iqr'    : 1.5
+		}
 	)
 
 	if layer is None : matrix = data.X
 	else             : matrix = data.layers[layer]
 
 	for index, transcript in enumerate(data.var.index) :
-		values[transcript]['global-mean'] = [matrix[:, index].mean()]
-		values[transcript]['global-max']  = [matrix[:, index].max()]
+		values[transcript]['global-mean'] = [numpy.nanmean(matrix[:, index])]
+		values[transcript]['global-max']  = [numpy.nanmax(matrix[:, index])]
 
 	order['global'] = ['global']
 
@@ -254,16 +259,20 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 		config = core_config
 	)[0]
 
+	cached = get_targets(
+		params = tune_config,
+		data   = data,
+		layer  = 'boxcox1p'
+	)
+
 	dataset = get_dataset(
 		config    = core_config,
 		bp2150    = bp2150,
 		feature   = feature,
 		directory = core_config['core/outdir'],
-		cached    = get_targets(
-			params = tune_config,
-			data   = data,
-			layer  = 'boxcox1p'
-		)
+		cached    = cached,
+		start     = core_config['dataset/sequence/start'],
+		end       = core_config['dataset/sequence/end']
 	)[0]
 
 	dataloaders = get_dataloaders(

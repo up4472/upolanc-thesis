@@ -106,7 +106,7 @@ def data_prepare (sequences : Dict[str, str], features : Dict[str, Any], directo
 			t04
 		)
 
-def create_kmers (data : Dict[str, Dict], generator : Callable, filename : str, max_tokens : int = None, random_seed : int = None) -> None :
+def create_kmers (data : Dict[str, Dict], generator : Callable, filename : str, max_tokens : int = None, random_seed : int = None, start : int = None, end : int = None) -> None :
 	"""
 	Doc
 	"""
@@ -121,7 +121,9 @@ def create_kmers (data : Dict[str, Dict], generator : Callable, filename : str, 
 		features    = features,
 		targets     = targets,
 		onehot      = False,
-		expand_dims = None
+		expand_dims = None,
+		start       = start,
+		end         = end
 	)
 
 	generator = generator(

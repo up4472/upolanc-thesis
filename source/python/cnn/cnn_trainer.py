@@ -12,6 +12,7 @@ import torch
 
 from source.python.cnn.callbacks.savebest import SaveBestModel
 from source.python.cnn.callbacks.savelast import SaveLastModel
+from source.python.cnn.callbacks.savetime import SaveTimeModel
 
 def compute_metrics (metrics : Dict[str, FunctionType], outputs : Tensor, labels : Tensor, report : Dict[str, Dict]) -> Dict[str, Dict] :
 	"""
@@ -194,8 +195,9 @@ def train (model : Module, params : Dict[str, Any], regression : bool = False) -
 
 	model = model.to(device)
 
-	savebest = None if params['savebest'] is None else SaveBestModel(filename = params['savebest'])
-	savelast = None if params['savelast'] is None else SaveLastModel(filename = params['savelast'])
+	savebest = None if params['savebest'] is None else SaveBestModel(filename = params['savebest'], loss   = numpy.PINF)
+	savelast = None if params['savelast'] is None else SaveLastModel(filename = params['savelast'], epoch  = -1)
+	savetime = None if params['savetime'] is None else SaveTimeModel(filename = params['savetime'], modulo = 200)
 
 	report = dict()
 
@@ -235,6 +237,15 @@ def train (model : Module, params : Dict[str, Any], regression : bool = False) -
 
 		if savebest is not None :
 			savebest.update(
+				model     = model,
+				optimizer = optimizer,
+				criterion = criterion,
+				epoch     = 1 + epoch,
+				loss      = valid_loss
+			)
+
+		if savetime is not None :
+			savetime.update(
 				model     = model,
 				optimizer = optimizer,
 				criterion = criterion,
