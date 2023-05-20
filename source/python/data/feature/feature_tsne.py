@@ -2,6 +2,7 @@ from anndata  import AnnData
 from openTSNE import TSNEEmbedding
 from openTSNE import affinity
 from openTSNE import initialization
+from typing   import List
 
 import distinctipy
 import itertools
@@ -15,14 +16,17 @@ def select_genes (matrix : numpy.ndarray, threshold : float = 0.0, n : int = 100
 
 	raise NotImplementedError()
 
-def compute_tsne (data : AnnData, features : str, store_into : str = 'tsne') -> AnnData :
+def compute_tsne (data : AnnData, features : str, store_into : str = 'tsne', perplexities : List[int] = None) -> AnnData :
 	"""
 	Doc
 	"""
 
+	if perplexities is None :
+		perplexities = [50, 250]
+
 	affinities = affinity.Multiscale(
 		data = data.obsm[features],
-		perplexities = [50, 500],
+		perplexities = perplexities,
 		metric = 'cosine',
 		n_jobs = 8,
 		random_state = 3

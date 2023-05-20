@@ -37,7 +37,7 @@ def tokens_to_sequence (tokens : List[str]) -> str :
 
 	return ''.join([x[0] for x in head]) + str(last)
 
-def data_prepare (sequences : Dict[str, str], features : Dict[str, Any], directory : str, valid_split : float, test_split : float) -> Generator[Tuple[Dict, str], None, None] :
+def data_prepare (sequences : Dict[str, str], features : Dict[str, Any], directory : str, valid_split : float, test_split : float, filename : str) -> Generator[Tuple[Dict, str], None, None] :
 	"""
 	Doc
 	"""
@@ -82,7 +82,7 @@ def data_prepare (sequences : Dict[str, str], features : Dict[str, Any], directo
 				else [tfilter]
 			},
 			directory = directory,
-			filename  = 'mapping-grouped.pkl'
+			filename  = filename
 		)
 
 		if 'Feature' in dataframe.columns :

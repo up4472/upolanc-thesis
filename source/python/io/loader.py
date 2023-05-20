@@ -7,6 +7,7 @@ from typing  import Any
 from typing  import Dict
 from typing  import List
 from typing  import Tuple
+from typing  import Union
 
 import anndata
 import gff3_parser
@@ -77,7 +78,7 @@ def load_h5ad (filename : str) -> AnnData :
 
 	return anndata.read_h5ad(filename)
 
-def load_json (filename : str) -> Dict[Any, Any] :
+def load_json (filename : str) -> Union[List, Dict] :
 	"""
 	Doc
 	"""
@@ -262,3 +263,21 @@ def load_feature_targets (group : str, directory : str, filename : str, explode 
 		raise ValueError()
 
 	return dataframe, target_value, target_order
+
+def load_model_configs (filename : str, sort : bool = False, sort_on : str = 'valid_r2', reverse : bool = False) -> List[Dict] :
+	"""
+	Doc
+	"""
+
+	if not os.path.exists(filename) :
+		return []
+
+	data = load_json(filename = filename)
+
+	if isinstance(data, dict) :
+		return [data]
+
+	if sort :
+		data = sorted(data, key = lambda key : key[sort_on], reverse = reverse)
+
+	return data

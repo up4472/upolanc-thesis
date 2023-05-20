@@ -49,7 +49,7 @@ CACHE = {
 	}
 }
 
-def get_anndata (params : Dict[str, Any], config : Dict[str, Any]) -> AnnData :
+def get_anndata (core_config : Dict[str, Any], tune_config : Dict[str, Any]) -> AnnData :
 	"""
 	Doc
 	"""
@@ -61,8 +61,8 @@ def get_anndata (params : Dict[str, Any], config : Dict[str, Any]) -> AnnData :
 			warnings.simplefilter('ignore')
 
 			CACHE['nbp02/anndata'] = create_anndata(
-				mat = load_csv(filename = os.path.join(config['core/rootdir'], 'output', 'nbp01-filter', config['core/subfolder'], 'tissue-tpm.csv')),
-				obs = load_csv(filename = os.path.join(config['core/rootdir'], 'output', 'nbp01-filter', config['core/subfolder'], 'tissue-metadata.csv'))
+				mat = load_csv(filename = os.path.join(core_config['core/rootdir'], 'output', 'nbp01-filter', core_config['core/subfolder'], 'tissue-tpm.csv')),
+				obs = load_csv(filename = os.path.join(core_config['core/rootdir'], 'output', 'nbp01-filter', core_config['core/subfolder'], 'tissue-metadata.csv'))
 			)
 
 	return compute_boxcox1p(
@@ -70,10 +70,10 @@ def get_anndata (params : Dict[str, Any], config : Dict[str, Any]) -> AnnData :
 		store_into = 'boxcox1p',
 		layer      = None,
 		eps        = 1.0,
-		lmbda      = params['boxcox/lambda']
+		lmbda      = tune_config['boxcox/lambda']
 	)[0]
 
-def get_sequences_and_features (config : Dict[str, Any]) -> Tuple[Dict, Dict] :
+def get_sequences_and_features (core_config : Dict[str, Any]) -> Tuple[Dict, Dict] :
 	"""
 	Doc
 	"""
@@ -86,7 +86,7 @@ def get_sequences_and_features (config : Dict[str, Any]) -> Tuple[Dict, Dict] :
 			lengths    = CACHE['nbp04/sequence/lengths'],
 			verbose    = False,
 			annotation = load_csv(
-				filename   = os.path.join(config['core/rootdir'], 'output', 'nbp01-filter', config['core/subfolder'], 'gene-annotation.csv'),
+				filename   = os.path.join(core_config['core/rootdir'], 'output', 'nbp01-filter', core_config['core/subfolder'], 'gene-annotation.csv'),
 				low_memory = False
 			)
 		)
@@ -96,7 +96,7 @@ def get_sequences_and_features (config : Dict[str, Any]) -> Tuple[Dict, Dict] :
 			lengths   = CACHE['nbp04/sequence/lengths'],
 			verbose   = False,
 			faidx     = load_faidx(
-				filename = os.path.join(config['core/rootdir'], 'resources', 'genome', 'arabidopsis-r36', 'gene-assembly.fa')
+				filename = os.path.join(core_config['core/rootdir'], 'resources', 'genome', 'arabidopsis-r36', 'gene-assembly.fa')
 			)
 		)
 
@@ -109,6 +109,13 @@ def get_sequences_and_features (config : Dict[str, Any]) -> Tuple[Dict, Dict] :
 		features = features.set_index('Transcript', drop = False)
 		features = features.rename_axis(None, axis = 'index') # noqa :: unexpected type
 		features = features.to_dict('index')
+
+		filter_dict = load_json(
+			filename = os.path.join(core_config['core/rootdir'], 'output', 'nbp01-filter', core_config['core/subfolder'], 'filter.json'),
+		)
+
+		sequences = {k : v for k, v in sequences.items() if k in filter_dict['data']['keep_transcript']}
+		features  = {k : v for k, v in features.items()  if k in filter_dict['data']['keep_transcript']}
 
 		sequences =  sequences_extend_kvpair(
 			sequences = sequences,
@@ -152,32 +159,36 @@ def get_sequences_and_features (config : Dict[str, Any]) -> Tuple[Dict, Dict] :
 		CACHE['nbp04/features/base']
 	)
 
-def get_targets (params : Dict[str, Any], data : AnnData, layer : str = None) -> Dict :
+def get_targets (core_config : Dict[str, Any], tune_config : Dict[str, Any], data : AnnData, layer : str = None) -> Dict :
 	"""
 	Doc
 	"""
 
-	values, order = extract_tpm_multi(
-		data      = data,
-		layer     = layer,
-		groups    = ['Tissue', 'Age', 'Group', 'Perturbation'],
-		functions = [
-			('max',  lambda x, axis : numpy.nanmax(x, axis = axis)),
-			('mean', lambda x, axis : numpy.nanmean(x, axis = axis))
-		],
-		outlier_filter = 'zscore',
-		outlier_params = {
-			'factor-zscore' : 3.0,
-			'factor-iqr'    : 1.5
-		}
-	)
+	with warnings.catch_warnings() :
+		warnings.simplefilter('ignore')
+
+		values, order = extract_tpm_multi(
+			data      = data,
+			layer     = layer,
+			verbose   = False,
+			groups    = ['Tissue', 'Age', 'Group', 'Perturbation'],
+			functions = [
+				('max',  lambda x, axis : numpy.nanmax(x, axis = axis)),
+				('mean', lambda x, axis : numpy.nanmean(x, axis = axis))
+			],
+			outlier_filter = 'zscore',
+			outlier_params = {
+				'factor-zscore' : 3.0,
+				'factor-iqr'    : 1.5
+			}
+		)
 
 	if layer is None : matrix = data.X
 	else             : matrix = data.layers[layer]
 
 	for index, transcript in enumerate(data.var.index) :
-		values[transcript]['global-mean'] = [numpy.nanmean(matrix[:, index])]
-		values[transcript]['global-max']  = [numpy.nanmax(matrix[:, index])]
+		values[transcript]['global-mean'] = [numpy.nanmean(matrix[:, index], axis = None)]
+		values[transcript]['global-max']  = [numpy.nanmax(matrix[:, index], axis = None)]
 
 	order['global'] = ['global']
 
@@ -192,7 +203,7 @@ def get_targets (params : Dict[str, Any], data : AnnData, layer : str = None) ->
 		if keep is None :
 			continue
 
-		keep = [x for x in keep if x in order[key]]
+		keep  = [x for x in keep if x in order[key]]
 		index = [order[key].index(x) for x in keep]
 
 		order[key] = keep
@@ -206,14 +217,23 @@ def get_targets (params : Dict[str, Any], data : AnnData, layer : str = None) ->
 
 	labels, bounds = classify_tpm(
 		data    = values,
-		classes = params['class/bins']
+		classes = tune_config['class/bins']
 	)
 
-	return create_mapping(
+	_, features_grouped, _ = create_mapping(
 		values = values,
 		labels = labels,
 		order  = order
-	)[1]
+	)
+
+	filter_dict = load_json(
+		filename = os.path.join(core_config['core/rootdir'], 'output', 'nbp01-filter', core_config['core/subfolder'], 'filter.json'),
+	)
+
+	return {
+		key : dataframe[dataframe['Transcript'].isin(filter_dict['data']['keep_transcript'])].copy()
+		for key, dataframe in features_grouped.items()
+	}
 
 def get_model_params (config : Dict[str, Any]) -> List[Dict[str, Any]] :
 	"""
@@ -250,8 +270,14 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 
 	lock_random(seed = core_config['core/random'])
 
-	data            = get_anndata(params = tune_config, config = core_config)
-	bp2150, feature = get_sequences_and_features(config = core_config)
+	data = get_anndata(
+		core_config = core_config,
+		tune_config = tune_config
+	)
+
+	bp2150, feature = get_sequences_and_features(
+		core_config = core_config
+	)
 
 	data = data[:, list(feature.keys())].copy()
 
@@ -260,9 +286,10 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 	)[0]
 
 	cached = get_targets(
-		params = tune_config,
-		data   = data,
-		layer  = 'boxcox1p'
+		core_config = core_config,
+		tune_config = tune_config,
+		data        = data,
+		layer       = 'boxcox1p'
 	)
 
 	dataset = get_dataset(
@@ -272,18 +299,19 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 		directory = core_config['core/outdir'],
 		cached    = cached,
 		start     = core_config['dataset/sequence/start'],
-		end       = core_config['dataset/sequence/end']
+		end       = core_config['dataset/sequence/end'],
+		filename  = 'mapping-grouped-keep.pkl'
 	)[0]
 
 	dataloaders = get_dataloaders(
-		params  = core_config['params/tuner'],
-		config  = core_config,
-		dataset = dataset
+		core_config  = core_config,
+		tune_config  = core_config['params/tuner'],
+		dataset      = dataset
 	)
 
 	model = get_model(
-		params = core_config['params/tuner'],
-		config = core_config
+		core_config = core_config,
+		tune_config = core_config['params/tuner']
 	)
 
 	model_trainers = get_model_trainers(
@@ -293,7 +321,7 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 	)
 
 	main_loop(
-		config       = core_config,
+		core_config  = core_config,
 		model_params = {
 			'model'     : model,
 			'criterion' : model_trainers['criterion'],

@@ -11,7 +11,7 @@ from source.python.data.feature.feature_methods  import codon_frequency
 from source.python.data.mutation.mutation_method import mutate_exponential
 from source.python.data.mutation.mutation_method import mutate_random
 
-def generate_multi (sequences : Dict[str, Dict], rates : List[float], params : Dict[str, float], variants : int, method : str) -> Tuple[Dict, Dict] :
+def generate_multi (sequences : Dict[str, Dict], rates : List[float], params : Dict[str, float], variants : int, method : str, verbose : bool = False) -> Tuple[Dict, Dict] :
 	"""
 	Doc
 	"""
@@ -35,7 +35,8 @@ def generate_multi (sequences : Dict[str, Dict], rates : List[float], params : D
 			'Frequency' : codon_frequency(
 				sequence = m_sequences[baseline]['CDS']['seq'],
 				mrna     = baseline,
-				relative = True
+				relative = True,
+				verbose  = False
 			),
 			'Stability' : [0] * 8
 		}
@@ -60,7 +61,8 @@ def generate_multi (sequences : Dict[str, Dict], rates : List[float], params : D
 				'Frequency' : codon_frequency(
 					sequence = m_sequences[key]['CDS']['seq'],
 					mrna     = key,
-					relative = True
+					relative = True,
+					verbose  = verbose
 				),
 				'Stability' : [0] * 8
 			}

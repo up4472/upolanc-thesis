@@ -35,7 +35,7 @@ def merge_dictionary (source : Dict, target : Dict) -> Dict :
 
 	return target
 
-def extract_tpm_single (data : AnnData, group : str, function : Callable, name : str, layer : str = None, outlier_filter : str = None, outlier_params : Dict[str, float] = None) -> Tuple[Dict, List] :
+def extract_tpm_single (data : AnnData, group : str, function : Callable, name : str, layer : str = None, outlier_filter : str = None, outlier_params : Dict[str, float] = None, verbose : bool = False) -> Tuple[Dict, List] :
 	"""
 	Doc
 	"""
@@ -89,7 +89,8 @@ def extract_tpm_single (data : AnnData, group : str, function : Callable, name :
 			p = numpy.nanmean(p)
 			d = 100.0 * (abs(ymean - xmean) / ymean)
 
-			print('Filtered out [{:8.4f} %] percent with mean change [{:8.4f} %] from [{}] [{}] [{}]'.format(p, d, group, name, item))
+			if verbose :
+				print('Filtered out [{:8.4f} %] percent with mean change [{:8.4f} %] from [{}] [{}] [{}]'.format(p, d, group, name, item))
 
 		dataframe[item] = x
 
@@ -103,7 +104,7 @@ def extract_tpm_single (data : AnnData, group : str, function : Callable, name :
 
 	return data, order
 
-def extract_tpm_multi (data : AnnData, groups : List[str], functions : List[Tuple[str, Callable]], layer : str = None, outlier_filter : str = None, outlier_params : Dict[str, float] = None) -> Tuple[Dict, Dict] :
+def extract_tpm_multi (data : AnnData, groups : List[str], functions : List[Tuple[str, Callable]], layer : str = None, outlier_filter : str = None, outlier_params : Dict[str, float] = None, verbose : bool = False) -> Tuple[Dict, Dict] :
 	"""
 	Doc
 	"""
@@ -119,7 +120,8 @@ def extract_tpm_multi (data : AnnData, groups : List[str], functions : List[Tupl
 			function       = function[1],
 			name           = function[0],
 			outlier_filter = outlier_filter,
-			outlier_params = outlier_params
+			outlier_params = outlier_params,
+			verbose        = verbose
 		)
 
 		values = merge_dictionary(

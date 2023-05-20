@@ -30,130 +30,130 @@ from source.python.cnn.cnn_model           import get_model_trainers
 from source.python.cnn.cnn_model           import he_uniform_weight
 from source.python.cnn.cnn_model           import zero_bias
 
-def get_model_params (params : Dict[str, Any], config : Dict[str, Any], params_share : bool = False) -> Tuple[Dict, Dict] :
+def get_model_params (core_config : Dict[str, Any], tune_config : Dict[str, Any], params_share : bool = False) -> Tuple[Dict, Dict] :
 	"""
 	Doc
 	"""
 
 	if not params_share :
-		return params, config
+		return tune_config, core_config
 
-	if 'model/convx/kernel' not in params.keys() :
-		return params, config
+	if 'model/convx/kernel' not in tune_config.keys() :
+		return tune_config, core_config
 
-	params['model/conv2/filters']  = params['model/convx/filters']
-	params['model/conv2/kernel']   = params['model/convx/kernel']
-	params['model/conv2/padding']  = params['model/convx/padding']
-	params['model/conv2/dilation'] = params['model/convx/dilation']
-	params['model/conv3/filters']  = params['model/convx/filters']
-	params['model/conv3/kernel']   = params['model/convx/kernel']
-	params['model/conv3/padding']  = params['model/convx/padding']
-	params['model/conv3/dilation'] = params['model/convx/dilation']
+	tune_config['model/conv2/filters']  = tune_config['model/convx/filters']
+	tune_config['model/conv2/kernel']   = tune_config['model/convx/kernel']
+	tune_config['model/conv2/padding']  = tune_config['model/convx/padding']
+	tune_config['model/conv2/dilation'] = tune_config['model/convx/dilation']
+	tune_config['model/conv3/filters']  = tune_config['model/convx/filters']
+	tune_config['model/conv3/kernel']   = tune_config['model/convx/kernel']
+	tune_config['model/conv3/padding']  = tune_config['model/convx/padding']
+	tune_config['model/conv3/dilation'] = tune_config['model/convx/dilation']
 
-	if config['model/type'].startswith('washburn2019') :
-		params['model/conv4/filters']  = params['model/convx/filters']
-		params['model/conv4/kernel']   = params['model/convx/kernel']
-		params['model/conv4/padding']  = params['model/convx/padding']
-		params['model/conv4/dilation'] = params['model/convx/dilation']
-		params['model/conv5/filters']  = params['model/convx/filters']
-		params['model/conv5/kernel']   = params['model/convx/kernel']
-		params['model/conv5/padding']  = params['model/convx/padding']
-		params['model/conv5/dilation'] = params['model/convx/dilation']
-		params['model/conv6/filters']  = params['model/convx/filters']
-		params['model/conv6/kernel']   = params['model/convx/kernel']
-		params['model/conv6/padding']  = params['model/convx/padding']
-		params['model/conv6/dilation'] = params['model/convx/dilation']
+	if core_config['model/type'].startswith('washburn2019') :
+		tune_config['model/conv4/filters']  = tune_config['model/convx/filters']
+		tune_config['model/conv4/kernel']   = tune_config['model/convx/kernel']
+		tune_config['model/conv4/padding']  = tune_config['model/convx/padding']
+		tune_config['model/conv4/dilation'] = tune_config['model/convx/dilation']
+		tune_config['model/conv5/filters']  = tune_config['model/convx/filters']
+		tune_config['model/conv5/kernel']   = tune_config['model/convx/kernel']
+		tune_config['model/conv5/padding']  = tune_config['model/convx/padding']
+		tune_config['model/conv5/dilation'] = tune_config['model/convx/dilation']
+		tune_config['model/conv6/filters']  = tune_config['model/convx/filters']
+		tune_config['model/conv6/kernel']   = tune_config['model/convx/kernel']
+		tune_config['model/conv6/padding']  = tune_config['model/convx/padding']
+		tune_config['model/conv6/dilation'] = tune_config['model/convx/dilation']
 
-	params['model/maxpool1/kernel']  = params['model/maxpoolx/kernel']
-	params['model/maxpool1/padding'] = params['model/maxpoolx/padding']
-	params['model/maxpool2/kernel']  = params['model/maxpoolx/kernel']
-	params['model/maxpool2/padding'] = params['model/maxpoolx/padding']
-	params['model/maxpool3/kernel']  = params['model/maxpoolx/kernel']
-	params['model/maxpool3/padding'] = params['model/maxpoolx/padding']
+	tune_config['model/maxpool1/kernel']  = tune_config['model/maxpoolx/kernel']
+	tune_config['model/maxpool1/padding'] = tune_config['model/maxpoolx/padding']
+	tune_config['model/maxpool2/kernel']  = tune_config['model/maxpoolx/kernel']
+	tune_config['model/maxpool2/padding'] = tune_config['model/maxpoolx/padding']
+	tune_config['model/maxpool3/kernel']  = tune_config['model/maxpoolx/kernel']
+	tune_config['model/maxpool3/padding'] = tune_config['model/maxpoolx/padding']
 
-	params.pop('model/convx/filters',    None)
-	params.pop('model/convx/kernel',     None)
-	params.pop('model/convx/padding',    None)
-	params.pop('model/convx/dilation',   None)
-	params.pop('model/maxpoolx/kernel',  None)
-	params.pop('model/maxpoolx/padding', None)
+	tune_config.pop('model/convx/filters',    None)
+	tune_config.pop('model/convx/kernel',     None)
+	tune_config.pop('model/convx/padding',    None)
+	tune_config.pop('model/convx/dilation',   None)
+	tune_config.pop('model/maxpoolx/kernel',  None)
+	tune_config.pop('model/maxpoolx/padding', None)
 
-	return params, config
+	return tune_config, core_config
 
-def get_model (params : Dict[str, Any], config : Dict[str, Any], params_share : bool = False) -> Module :
+def get_model (core_config : Dict[str, Any], tune_config : Dict[str, Any], params_share : bool = False) -> Module :
 	"""
 	Doc
 	"""
 
-	params, config = get_model_params(
-		params       = params,
-		config       = config,
+	tune_config, core_config = get_model_params(
+		tune_config  = tune_config,
+		core_config  = core_config,
 		params_share = params_share
 	)
 
-	if config['model/type'] == 'zrimec2020r' :
-		model = Zrimec2020r(params = params | {
-			'model/input/channels' : config['model/input/channels'],
-			'model/input/height'   : config['model/input/height'],
-			'model/input/width'    : config['model/input/width'],
-			'model/input/features' : config['model/input/features'],
-			'model/fc3/features'   : config['model/output/size'],
-			'model/features'       : config['model/features']
+	if core_config['model/type'] == 'zrimec2020r' :
+		model = Zrimec2020r(params = tune_config | {
+			'model/input/channels' : core_config['model/input/channels'],
+			'model/input/height'   : core_config['model/input/height'],
+			'model/input/width'    : core_config['model/input/width'],
+			'model/input/features' : core_config['model/input/features'],
+			'model/fc3/features'   : core_config['model/output/size'],
+			'model/features'       : core_config['model/features']
 		})
 
-	elif config['model/type'] == 'zrimec2020c' :
-		model = Zrimec2020c(params = params | {
-			'model/input/channels' : config['model/input/channels'],
-			'model/input/height'   : config['model/input/height'],
-			'model/input/width'    : config['model/input/width'],
-			'model/input/features' : config['model/input/features'],
-			'model/fc3/features'   : config['model/output/size'],
-			'model/fc3/heads'      : config['model/output/heads'],
-			'model/features'       : config['model/features']
+	elif core_config['model/type'] == 'zrimec2020c' :
+		model = Zrimec2020c(params = tune_config | {
+			'model/input/channels' : core_config['model/input/channels'],
+			'model/input/height'   : core_config['model/input/height'],
+			'model/input/width'    : core_config['model/input/width'],
+			'model/input/features' : core_config['model/input/features'],
+			'model/fc3/features'   : core_config['model/output/size'],
+			'model/fc3/heads'      : core_config['model/output/heads'],
+			'model/features'       : core_config['model/features']
 		})
 
-	elif config['model/type'] == 'washburn2019r' :
-		model = Washburn2019r(params = params | {
-			'model/input/channels' : config['model/input/channels'],
-			'model/input/height'   : config['model/input/height'],
-			'model/input/width'    : config['model/input/width'],
-			'model/input/features' : config['model/input/features'],
-			'model/fc3/features'   : config['model/output/size'],
-			'model/features'       : config['model/features']
+	elif core_config['model/type'] == 'washburn2019r' :
+		model = Washburn2019r(params = tune_config | {
+			'model/input/channels' : core_config['model/input/channels'],
+			'model/input/height'   : core_config['model/input/height'],
+			'model/input/width'    : core_config['model/input/width'],
+			'model/input/features' : core_config['model/input/features'],
+			'model/fc3/features'   : core_config['model/output/size'],
+			'model/features'       : core_config['model/features']
 		})
 
-	elif config['model/type'] == 'washburn2019c' :
-		model = Washburn2019c(params = params | {
-			'model/input/channels' : config['model/input/channels'],
-			'model/input/height'   : config['model/input/height'],
-			'model/input/width'    : config['model/input/width'],
-			'model/input/features' : config['model/input/features'],
-			'model/fc3/features'   : config['model/output/size'],
-			'model/fc3/heads'      : config['model/output/heads'],
-			'model/features'       : config['model/features']
+	elif core_config['model/type'] == 'washburn2019c' :
+		model = Washburn2019c(params = tune_config | {
+			'model/input/channels' : core_config['model/input/channels'],
+			'model/input/height'   : core_config['model/input/height'],
+			'model/input/width'    : core_config['model/input/width'],
+			'model/input/features' : core_config['model/input/features'],
+			'model/fc3/features'   : core_config['model/output/size'],
+			'model/fc3/heads'      : core_config['model/output/heads'],
+			'model/features'       : core_config['model/features']
 		})
 
-	elif config['model/type'] == 'densefc2' :
+	elif core_config['model/type'] == 'densefc2' :
 		model = DenseFC2(
-			input_size  = config['model/input/features'],
-			output_size = config['model/output/size'],
+			input_size  = core_config['model/input/features'],
+			output_size = core_config['model/output/size'],
 			hidden_size = [
-				params['model/fc1/features']
+				tune_config['model/fc1/features']
 			],
-			dropout    = params['model/dropout'],
-			leaky_relu = params['model/leakyrelu']
+			dropout    = tune_config['model/dropout'],
+			leaky_relu = tune_config['model/leakyrelu']
 		)
 
-	elif config['model/type'] == 'densefc3' :
+	elif core_config['model/type'] == 'densefc3' :
 		model = DenseFC3(
-			input_size  = config['model/input/features'],
-			output_size = config['model/output/size'],
+			input_size  = core_config['model/input/features'],
+			output_size = core_config['model/output/size'],
 			hidden_size = [
-				params['model/fc1/features'],
-				params['model/fc2/features']
+				tune_config['model/fc1/features'],
+				tune_config['model/fc2/features']
 			],
-			dropout    = params['model/dropout'],
-			leaky_relu = params['model/leakyrelu']
+			dropout    = tune_config['model/dropout'],
+			leaky_relu = tune_config['model/leakyrelu']
 		)
 
 	else :
@@ -162,35 +162,35 @@ def get_model (params : Dict[str, Any], config : Dict[str, Any], params_share : 
 	model = model.double()
 	model = model.apply(he_uniform_weight)
 	model = model.apply(zero_bias)
-	model = model.to(config['core/device'])
+	model = model.to(core_config['core/device'])
 
 	return model
 
-def get_dataloaders (params : Dict[str, Any], config : Dict[str, Any], dataset : GeneDataset = None) -> List[DataLoader] :
+def get_dataloaders (core_config : Dict[str, Any], tune_config : Dict[str, Any], dataset : GeneDataset = None) -> List[DataLoader] :
 	"""
 	Doc
 	"""
 
 	if dataset is None :
-		dataset = torch.load(config['dataset/filepath'])
+		dataset = torch.load(core_config['dataset/filepath'])
 
-	if 'dataset/split/generator' in config.keys() :
-		generator = config['dataset/split/generator']
+	if 'dataset/split/generator' in core_config.keys() :
+		generator = core_config['dataset/split/generator']
 	else :
 		generator = generate_group_shuffle_split
 
 	return to_dataloaders(
 		dataset     = dataset,
 		generator   = generator,
-		random_seed = config['core/random'],
+		random_seed = core_config['core/random'],
 		split_size  = {
-			'valid' : config['dataset/split/valid'],
-			'test'  : config['dataset/split/test']
+			'valid' : core_config['dataset/split/valid'],
+			'test'  : core_config['dataset/split/test']
 		},
 		batch_size  = {
-			'train' : params['dataset/batch_size'],
-			'valid' : params['dataset/batch_size'],
-			'test'  : params['dataset/batch_size']
+			'train' : tune_config['dataset/batch_size'],
+			'valid' : tune_config['dataset/batch_size'],
+			'test'  : tune_config['dataset/batch_size']
 		}
 	)
 
@@ -258,7 +258,7 @@ def tune_report (train_report : Dict[str, Any], valid_report : Dict[str, Any], l
 			lr             = lr
 		)
 
-def main_loop (model_params : Dict[str, Any], config : Dict[str, Any]) -> None :
+def main_loop (model_params : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 	"""
 	Doc
 	"""
@@ -268,7 +268,7 @@ def main_loop (model_params : Dict[str, Any], config : Dict[str, Any]) -> None :
 	optimizer = model_params['optimizer']
 	scheduler = model_params['scheduler']
 
-	for epoch in range(config['model/epochs']) :
+	for epoch in range(core_config['model/epochs']) :
 		current_lr = optimizer.param_groups[0]['lr']
 
 		train_report = train_epoch(
@@ -290,7 +290,7 @@ def main_loop (model_params : Dict[str, Any], config : Dict[str, Any]) -> None :
 			else :
 				scheduler.step()
 
-		if config['tuner/checkpoint'] :
+		if core_config['tuner/checkpoint'] :
 			with tune.checkpoint_dir(epoch) as checkpoint :
 				path = os.path.join(checkpoint, 'checkpoint')
 				data = (
@@ -304,7 +304,7 @@ def main_loop (model_params : Dict[str, Any], config : Dict[str, Any]) -> None :
 			train_report = train_report,
 			valid_report = valid_report,
 			lr           = current_lr,
-			mode         = config['model/mode']
+			mode         = core_config['model/mode']
 		)
 
 def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
@@ -315,14 +315,14 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 	lock_random(seed = core_config['core/random'])
 
 	dataloaders = get_dataloaders(
-		params  = tune_config,
-		config  = core_config,
-		dataset = None
+		core_config = core_config,
+		tune_config = tune_config,
+		dataset     = None
 	)
 
 	model = get_model(
-		params       = tune_config,
-		config       = core_config,
+		core_config  = core_config,
+		tune_config  = tune_config,
 		params_share = core_config['params/share']
 	)
 
@@ -333,7 +333,7 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 	)
 
 	main_loop(
-		config       = core_config,
+		core_config  = core_config,
 		model_params = {
 			'model'     : model,
 			'criterion' : model_trainers['criterion'],

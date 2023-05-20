@@ -84,7 +84,7 @@ def filter_samples (data : DataFrame, cutoff : Dict[str, Any] = None) -> Tuple[D
 	if len(dictionary) > 0 :
 		item = list(dictionary.keys())[0]
 
-		print(f'Problematic items found : {len(dictionary)} --> {item} ; {dictionary[item]}')
+		print(f'Problematic items found : {len(dictionary):5d} --> {item} ; {dictionary[item]}')
 	else :
 		print(f'Problematic items found : 0')
 
@@ -138,7 +138,7 @@ def filter_genes_per_group (metadata : DataFrame, tpm : DataFrame, group : str =
 
 	if len(common) > 0 :
 		print()
-		print(f'Problematic items found : {len(common)} --> {common[0]} ; {dictionary[common[0]]}')
+		print(f'Problematic items found : {len(common):5d} --> {common[0]} ; {dictionary[common[0]]}')
 	else :
 		print()
 		print(f'Problematic items found : 0')

@@ -11,7 +11,7 @@ def normaltest (data : numpy.ndarray) -> Tuple[float, float, float] :
 	statistic = numpy.nan
 	pvalue    = numpy.nan
 
-	if len(data) > 3 :
+	if len(data) > 10 :
 		result = scipy.stats.normaltest(data, axis = None, nan_policy = 'omit')
 
 		statistic = result.statistic # noqa
@@ -27,7 +27,7 @@ def shapiro (data : numpy.ndarray) -> Tuple[float, float, float] :
 	statistic = numpy.nan
 	pvalue = numpy.nan
 
-	if len(data) > 3 :
+	if len(data) > 5 :
 		result = scipy.stats.shapiro(data)
 
 		statistic = result.statistic # noqa
@@ -44,7 +44,7 @@ def anderson (data : numpy.ndarray, dist : str = 'norm') -> Tuple[float, float, 
 	critical     = numpy.nan
 	significance = numpy.nan
 
-	if len(data) > 3 :
+	if len(data) > 5 :
 		result = scipy.stats.anderson(data, dist = dist)
 
 		statistic    = result.statistic

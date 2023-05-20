@@ -114,7 +114,7 @@ def show_dataloader (dataloader : DataLoader, verbose : bool = True) -> None :
 	print(f' Batch Count : {nbatches:6,d}')
 	print(f'Sample Count : {nsamples:6,d}')
 
-def get_dataset (config : Dict[str, Any], bp2150 : Dict[str, Any], feature : Dict[str, Any], directory : str, cached : Dict[str, Any] = None, start : int = None, end : int = None) -> Tuple[GeneDataset, DataFrame, Dict, List] :
+def get_dataset (config : Dict[str, Any], bp2150 : Dict[str, Any], feature : Dict[str, Any], directory : str, filename : str, cached : Dict[str, Any] = None, start : int = None, end : int = None) -> Tuple[GeneDataset, DataFrame, Dict, List] :
 	"""
 	Doc
 	"""
@@ -141,7 +141,7 @@ def get_dataset (config : Dict[str, Any], bp2150 : Dict[str, Any], feature : Dic
 		explode   = target_explode,
 		filters   = filters,
 		directory = directory,
-		filename  = 'mapping-grouped.pkl',
+		filename  = filename,
 		mode      = config['model/mode'],
 		cached    = cached
 	)

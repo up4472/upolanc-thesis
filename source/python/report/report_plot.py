@@ -12,6 +12,10 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 	Doc
 	"""
 
+	if data is None         : return
+	if data[mode] is None   : return
+	if len(data[mode]) == 0 : return
+
 	_, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
 
 	per_step  = ('step', 'Step')

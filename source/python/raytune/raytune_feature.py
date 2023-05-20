@@ -54,12 +54,12 @@ def get_sequences_and_features (tune_config : Dict[str, Any], core_config : Dict
 	res_nbp05 = os.path.join(out, 'nbp05-target',  tune_config['gs/filter'])
 
 	sequence_bp2150 = load_fasta(
-		filename = os.path.join(res_nbp04, 'sequences-bp2150.fasta'),
+		filename = os.path.join(res_nbp04, 'sequences-bp2150-keep.fasta'),
 		to_string = True
 	)
 
 	feature_base = load_npz(
-		filename = os.path.join(res_nbp04, 'features-base.npz')
+		filename = os.path.join(res_nbp04, 'features-base-keep.npz')
 	)
 
 	return sequence_bp2150, feature_base, res_nbp05
@@ -87,18 +87,19 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 		bp2150    = sequence_bp2150,
 		feature   = feature_base,
 		directory = directory,
-		cached    = None
+		cached    = None,
+		filename  = 'mapping-grouped-keep.pkl'
 	)[0]
 
 	dataloaders = get_dataloaders(
-		params  = tune_config,
-		config  = core_config,
-		dataset = dataset
+		core_config = core_config,
+		tune_config = tune_config,
+		dataset     = dataset
 	)
 
 	model = get_model(
-		params       = tune_config,
-		config       = core_config,
+		core_config  = core_config,
+		tune_config  = tune_config,
 		params_share = False
 	)
 
@@ -109,7 +110,7 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 	)
 
 	main_loop(
-		config       = core_config,
+		core_config  = core_config,
 		model_params = {
 			'model'     : model,
 			'criterion' : model_trainers['criterion'],

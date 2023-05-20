@@ -42,6 +42,8 @@ fi
 # --filter_id        : 0            : [int] ...
 # --generator        : group        : [str] stratified, group, random
 # --features         : true         : [str] true, false
+# --sequence_start   : none         : [int] none
+# --sequence_end     : none         : [int] none
 
 # Run script
 python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp06-tuner-model.py \
@@ -58,4 +60,6 @@ python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp06-tuner-model.py
 --param_share false \
 --filter_id 0 \
 --generator group \
---features true
+--features true \
+--sequence_start none \
+--sequence_end none

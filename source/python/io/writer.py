@@ -41,7 +41,7 @@ def write_json (data : Dict[Any, Any], filename : str) -> None :
 	"""
 
 	with open(filename, mode = 'w') as handle :
-		json.dump(data, handle, indent = '\t', separators = (',', ' : '))
+		json.dump(data, handle, sort_keys = True, indent = '\t', separators = (',', ' : '))
 
 def write_npz (data : Dict[Any, Any], filename : str) -> None :
 	"""

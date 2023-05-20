@@ -27,8 +27,9 @@ def concat_tune_reports_format (reports : Dict, mode : str, tune_type : int, n :
 	elif tune_type == TUNE_DATA    : formatter = format_data_tune_dataframe
 	else                           : raise ValueError()
 
-	if len(reports[mode]) == 0 :
-		return None
+	if reports is None         : return None
+	if reports[mode] is None   : return None
+	if len(reports[mode]) == 0 : return None
 
 	for key, dataframe in reports[mode].items() :
 		keys = key.split('-')
@@ -142,12 +143,16 @@ def concat_feature_tune_reports (reports : Dict, mode : str, n : int = 50) -> Op
 		tune_type = TUNE_FEATURE
 	)
 
-def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascending : bool) -> DataFrame :
+def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascending : bool) -> Optional[DataFrame] :
 	"""
 	Doc
 	"""
 
-	array = []
+	if data is None         : return None
+	if data[mode] is None   : return None
+	if len(data[mode]) == 0 : return None
+
+	array = list()
 
 	for key, dataframe in data[mode].items() :
 		dataframe = dataframe.sort_values(metric, ascending = ascending)

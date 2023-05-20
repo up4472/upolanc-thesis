@@ -292,7 +292,6 @@ def regions_to_features (faidx : Fasta, dataframe : DataFrame, lengths : Dict[st
 			utr5_length = row['UTR5_Length'],
 			utr3_length = row['UTR3_Length'],
 			cds_length  = row['CDS_Length']
-
 		)
 
 	sequences = sequences.dropna().reset_index(drop = True)

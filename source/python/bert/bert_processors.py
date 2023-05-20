@@ -18,19 +18,19 @@ class RegressionProcessor (DataProcessor) :
 
 		raise NotImplementedError()
 
-	def get_train_examples (self, data_dir) :
+	def get_train_examples (self, data_dir, suffix = '-keep') :
 		"""
 		Doc
 		"""
 
-		return self._create_examples(self._read_tsv(os.path.join(data_dir, 'train.tsv')), 'train')
+		return self._create_examples(self._read_tsv(os.path.join(data_dir, 'train{}.tsv'.format(suffix))), 'train')
 
-	def get_dev_examples (self, data_dir) :
+	def get_dev_examples (self, data_dir, suffix = '-keep') :
 		"""
 		Doc
 		"""
 
-		return self._create_examples(self._read_tsv(os.path.join(data_dir, 'dev.tsv')), 'dev')
+		return self._create_examples(self._read_tsv(os.path.join(data_dir, 'dev{}.tsv'.format(suffix))), 'dev')
 
 	def get_labels (self) : # noqa U100 :: method may be static
 		"""
