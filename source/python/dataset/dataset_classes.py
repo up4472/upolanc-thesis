@@ -13,7 +13,7 @@ from source.python.encoding.onehot          import onehot_encode
 
 class GeneDataset (Dataset) :
 
-	def __init__ (self, names : List[str], sequences : Dict[str, str], features : Dict[str, numpy.ndarray], targets : Dict[str, numpy.ndarray], groups : List[Any] = None, expand_dims : int = None, onehot : bool = True, start : int = None, end : int = None) -> None :
+	def __init__ (self, names : List[str], sequences : Dict[str, Any], features : Dict[str, numpy.ndarray], targets : Dict[str, numpy.ndarray], groups : List[Any] = None, expand_dims : int = None, onehot : bool = True, start : int = None, end : int = None) -> None :
 		"""
 		Doc
 		"""

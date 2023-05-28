@@ -65,7 +65,7 @@ def train_epoch (model : Module, params : Dict[str, Any], desc : str = 'Progress
 	progbar = tqdm(dataloader, disable = not verbose)
 	progbar.set_description_str(desc = desc)
 
-	for batch_index, batch in enumerate(progbar, start = 1) :
+	for batch_index, batch in enumerate(progbar, start = 1) : # noqa
 		ids, inputs, features, labels = batch
 
 		inputs   = inputs.to(device)
@@ -138,7 +138,7 @@ def evaluate_epoch (model : Module, params : Dict[str, Any], desc : str = 'Progr
 	progbar.set_description_str(desc = desc)
 
 	with torch.no_grad() :
-		for batch_index, batch in enumerate(progbar, start = 1) :
+		for batch_index, batch in enumerate(progbar, start = 1) : # noqa
 			ids, inputs, features, labels = batch
 
 			inputs   = inputs.to(device)

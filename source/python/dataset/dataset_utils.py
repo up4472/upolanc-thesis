@@ -18,7 +18,7 @@ from source.python.dataset.dataset_split   import generate_random_shuffle_split
 from source.python.dataset.dataset_split   import generate_stratified_shuffle_split
 from source.python.io.loader               import load_feature_targets
 
-def to_gene_dataset (sequences : Dict[str, str], features : Dict[str, List], targets : Dict[str, List], expand_dims : int = None, groups : Dict[str, int] = None, onehot : bool = True, start : int = None, end : int = None) -> GeneDataset :
+def to_gene_dataset (sequences : Dict[str, Any], features : Dict[str, List], targets : Dict[str, List], expand_dims : int = None, groups : Dict[str, int] = None, onehot : bool = True, start : int = None, end : int = None) -> GeneDataset :
 	"""
 	Doc
 	"""
@@ -113,8 +113,9 @@ def show_dataloader (dataloader : DataLoader, verbose : bool = True) -> None :
 	print(f' Batch Size  : {batch_size:6,d}')
 	print(f' Batch Count : {nbatches:6,d}')
 	print(f'Sample Count : {nsamples:6,d}')
+	print()
 
-def get_dataset (config : Dict[str, Any], bp2150 : Dict[str, Any], feature : Dict[str, Any], directory : str, filename : str, cached : Dict[str, Any] = None, start : int = None, end : int = None) -> Tuple[GeneDataset, DataFrame, Dict, List] :
+def get_dataset (config : Dict[str, Any], sequence : Dict[str, Any], feature : Dict[str, Any], directory : str, filename : str, cached : Dict[str, Any] = None, start : int = None, end : int = None) -> Tuple[GeneDataset, DataFrame, Dict, List] :
 	"""
 	Doc
 	"""
@@ -162,7 +163,7 @@ def get_dataset (config : Dict[str, Any], bp2150 : Dict[str, Any], feature : Dic
 		config['model/input/features'] = len(list(feature.values())[0])
 
 	dataset = to_gene_dataset(
-		sequences   = bp2150,
+		sequences   = sequence,
 		features    = feature,
 		targets     = target_value,
 		expand_dims = config['dataset/expanddim'],
@@ -171,10 +172,12 @@ def get_dataset (config : Dict[str, Any], bp2150 : Dict[str, Any], feature : Dic
 		end         = end
 	)
 
-	if start is not None or end is not None :
-		if start is None : start = 0
-		if end   is None : end   = 2150
+	if start is None : start = 0
+	if end   is None : end   = len(list(sequence.values())[0])
 
-		config['model/input/width'] = int(end - start)
+	if start >= end :
+		raise ValueError()
+
+	config['model/input/width'] = int(end - start)
 
 	return dataset, dataframe, target_value, target_order

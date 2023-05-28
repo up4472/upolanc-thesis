@@ -53,8 +53,8 @@ def get_sequences_and_features (tune_config : Dict[str, Any], core_config : Dict
 	res_nbp04 = os.path.join(out, 'nbp04-feature', tune_config['gs/filter'])
 	res_nbp05 = os.path.join(out, 'nbp05-target',  tune_config['gs/filter'])
 
-	sequence_bp2150 = load_fasta(
-		filename = os.path.join(res_nbp04, 'sequences-bp2150-keep.fasta'),
+	sequence = load_fasta(
+		filename = os.path.join(res_nbp04, 'sequences-2150-keep.fasta'),
 		to_string = True
 	)
 
@@ -62,7 +62,7 @@ def get_sequences_and_features (tune_config : Dict[str, Any], core_config : Dict
 		filename = os.path.join(res_nbp04, 'features-base-keep.npz')
 	)
 
-	return sequence_bp2150, feature_base, res_nbp05
+	return sequence, feature_base, res_nbp05
 
 def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 	"""
@@ -77,18 +77,20 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 		core_config = core_config
 	)
 
-	sequence_bp2150, feature_base, directory = get_sequences_and_features(
+	sequence, feature_base, directory = get_sequences_and_features(
 		tune_config = tune_config,
 		core_config = core_config
 	)
 
 	dataset = get_dataset(
 		config    = core_config,
-		bp2150    = sequence_bp2150,
+		sequence  = sequence,
 		feature   = feature_base,
 		directory = directory,
 		cached    = None,
-		filename  = 'mapping-grouped-keep.pkl'
+		filename  = 'mapping-grouped-keep.pkl',
+		start     = None,
+		end       = None
 	)[0]
 
 	dataloaders = get_dataloaders(

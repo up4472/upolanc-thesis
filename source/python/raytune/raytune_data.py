@@ -73,20 +73,26 @@ def get_anndata (core_config : Dict[str, Any], tune_config : Dict[str, Any]) -> 
 		lmbda      = tune_config['boxcox/lambda']
 	)[0]
 
-def get_sequences_and_features (core_config : Dict[str, Any]) -> Tuple[Dict, Dict] :
+def get_sequences_and_features (core_config : Dict[str, Any], prom_length : int = 1000) -> Tuple[Dict, Dict] :
 	"""
 	Doc
 	"""
 
-	cached_sequence = 'nbp04/sequence/bp2150' in CACHE.keys()
-	cached_features = 'nbp04/features/base'   in CACHE.keys()
+	CACHE['nbp04/sequence/lengths']['prom'] = int(prom_length)
+
+	cached_sequence = 'nbp04/sequence/full' in CACHE.keys()
+	cached_features = 'nbp04/features/base' in CACHE.keys()
 
 	if not (cached_sequence and cached_features) :
+		file1 = os.path.join(core_config['core/rootdir'], 'output', 'nbp01-filter', core_config['core/subfolder'], 'gene-annotation.csv')
+		file2 = os.path.join(core_config['core/rootdir'], 'resources', 'genome', 'arabidopsis-r36', 'gene-assembly.fa')
+		file3 = os.path.join(core_config['core/rootdir'], 'output', 'nbp01-filter', core_config['core/subfolder'], 'filter.json')
+
 		regions = annotation_to_regions(
 			lengths    = CACHE['nbp04/sequence/lengths'],
 			verbose    = False,
 			annotation = load_csv(
-				filename   = os.path.join(core_config['core/rootdir'], 'output', 'nbp01-filter', core_config['core/subfolder'], 'gene-annotation.csv'),
+				filename   = file1,
 				low_memory = False
 			)
 		)
@@ -96,7 +102,7 @@ def get_sequences_and_features (core_config : Dict[str, Any]) -> Tuple[Dict, Dic
 			lengths   = CACHE['nbp04/sequence/lengths'],
 			verbose   = False,
 			faidx     = load_faidx(
-				filename = os.path.join(core_config['core/rootdir'], 'resources', 'genome', 'arabidopsis-r36', 'gene-assembly.fa')
+				filename = file2
 			)
 		)
 
@@ -111,7 +117,7 @@ def get_sequences_and_features (core_config : Dict[str, Any]) -> Tuple[Dict, Dic
 		features = features.to_dict('index')
 
 		filter_dict = load_json(
-			filename = os.path.join(core_config['core/rootdir'], 'output', 'nbp01-filter', core_config['core/subfolder'], 'filter.json'),
+			filename = file3,
 		)
 
 		sequences = {k : v for k, v in sequences.items() if k in filter_dict['data']['keep_transcript']}
@@ -123,13 +129,13 @@ def get_sequences_and_features (core_config : Dict[str, Any]) -> Tuple[Dict, Dic
 			header    = '{} | {} | {}:{}-{} | {}'
 		)
 
-		sequences = merge_and_pad_sequences(
+		sequences, _ = merge_and_pad_sequences(
 			sequences = sequences,
 			lengths   = CACHE['nbp04/sequence/lengths'],
 			padding   = CACHE['nbp04/sequence/padding'],
 		)
 
-		CACHE['nbp04/sequence/bp2150'] = {
+		CACHE['nbp04/sequence/full'] = {
 			k.split()[0] : v
 			for k, v in sequences.items()
 		}
@@ -155,7 +161,7 @@ def get_sequences_and_features (core_config : Dict[str, Any]) -> Tuple[Dict, Dic
 		CACHE['nbp04/features/base'] = features_base
 
 	return (
-		CACHE['nbp04/sequence/bp2150'],
+		CACHE['nbp04/sequence/full'],
 		CACHE['nbp04/features/base']
 	)
 
@@ -275,7 +281,7 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 		tune_config = tune_config
 	)
 
-	bp2150, feature = get_sequences_and_features(
+	sequence, feature = get_sequences_and_features(
 		core_config = core_config
 	)
 
@@ -294,7 +300,7 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 
 	dataset = get_dataset(
 		config    = core_config,
-		bp2150    = bp2150,
+		sequence  = sequence,
 		feature   = feature,
 		directory = core_config['core/outdir'],
 		cached    = cached,

@@ -8,19 +8,6 @@ import seaborn
 
 from source.python.io.loader import load_csv
 
-def format_float_tick (label : str) -> str :
-	"""
-	Doc
-	"""
-
-	if len(label) >= 1 and label[0] != '-' :
-		label = ' ' + label
-
-	while len(label) < 8 :
-		label = label + '0'
-
-	return '{:8s}'.format(label[:8])
-
 def trials_lineplot (dataframe : DataFrame, y : str, ylabel : str, ascending : bool, max_trials : int = 10, alpha : float = 0.9, filename : str = None) -> None :
 	"""
 	Doc

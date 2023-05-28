@@ -37,23 +37,13 @@ def tokens_to_sequence (tokens : List[str]) -> str :
 
 	return ''.join([x[0] for x in head]) + str(last)
 
-def data_prepare (sequences : Dict[str, str], features : Dict[str, Any], directory : str, valid_split : float, test_split : float, filename : str) -> Generator[Tuple[Dict, str], None, None] :
+def data_prepare (sequences : Dict[str, str], features : Dict[str, Any], directory : str, valid_split : float, test_split : float, filename : str, combinations : List[Tuple] = None) -> Generator[Tuple[Dict, str], None, None] :
 	"""
 	Doc
 	"""
 
-	combinations = [
-		('global', 'mean', False, None),
-		('global', 'max',  False, None),
-		('tissue', 'mean', False, None),
-		('tissue', 'mean', True,  None),
-		('tissue', 'mean', True, 'seedling'),
-		('tissue', 'mean', True, 'leaf'),
-		('group',  'mean', False, None),
-		('group',  'mean', True,  None),
-		('group',  'mean', True, 'young_seedling'),
-		('group',  'mean', True, 'mature_leaf'),
-	]
+	if combinations is None :
+		combinations = [('global', 'mean', False, None)]
 
 	for combination in combinations :
 		tgroup   = combination[0]

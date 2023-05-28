@@ -131,18 +131,26 @@ def annotation_to_regions (annotation : DataFrame, lengths : Dict[str, Union[int
 
 	s = tss - LEN_PROM + 1
 	e = tss
+	s[s < 1] = 1
+	e[e < 1] = 1
 	dataframe.loc[dataframe['Strand'] == '+', 'Prom'] = pandas.concat([s, e], axis = 1).apply(lambda1, axis = 1).apply(lambda2)
 
 	s = tts
 	e = tts + LEN_TERM - 1
+	s[s < 1] = 1
+	e[e < 1] = 1
 	dataframe.loc[dataframe['Strand'] == '+', 'Term'] = pandas.concat([s, e], axis = 1).apply(lambda1, axis = 1).apply(lambda2)
 
 	s = tss - LEN_PROM_FULL[0] + 1
 	e = tss + LEN_PROM_FULL[1]
+	s[s < 1] = 1
+	e[e < 1] = 1
 	dataframe.loc[dataframe['Strand'] == '+', 'Prom_Full'] = pandas.concat([s, e], axis = 1).apply(lambda1, axis = 1).apply(lambda2)
 
 	s = tts - LEN_TERM_FULL[0]
 	e = tts + LEN_TERM_FULL[1] - 1
+	s[s < 1] = 1
+	e[e < 1] = 1
 	dataframe.loc[dataframe['Strand'] == '+', 'Term_Full'] = pandas.concat([s, e], axis = 1).apply(lambda1, axis = 1).apply(lambda2)
 
 	tss = dataframe[dataframe['Strand'] == '-']['Start']
@@ -153,18 +161,26 @@ def annotation_to_regions (annotation : DataFrame, lengths : Dict[str, Union[int
 
 	s = tss - LEN_TERM + 1
 	e = tss
+	s[s < 1] = 1
+	e[e < 1] = 1
 	dataframe.loc[dataframe['Strand'] == '-', 'Term'] = pandas.concat([s, e], axis = 1).apply(lambda1, axis = 1).apply(lambda2)
 
 	s = tts
 	e = tts + LEN_PROM - 1
+	s[s < 1] = 1
+	e[e < 1] = 1
 	dataframe.loc[dataframe['Strand'] == '-', 'Prom'] = pandas.concat([s, e], axis = 1).apply(lambda1, axis = 1).apply(lambda2)
 
 	s = tss - LEN_TERM_FULL[1] + 1
 	e = tss + LEN_TERM_FULL[0]
+	s[s < 1] = 1
+	e[e < 1] = 1
 	dataframe.loc[dataframe['Strand'] == '-', 'Term_Full'] = pandas.concat([s, e], axis = 1).apply(lambda1, axis = 1).apply(lambda2)
 
 	s = tts - LEN_PROM_FULL[1]
 	e = tts + LEN_PROM_FULL[0] - 1
+	s[s < 1] = 1
+	e[e < 1] = 1
 	dataframe.loc[dataframe['Strand'] == '-', 'Prom_Full'] = pandas.concat([s, e], axis = 1).apply(lambda1, axis = 1).apply(lambda2)
 
 	dataframe['CDS_Length']  = dataframe[ 'CDS'].apply(lambda x : 0 if numpy.any(pandas.isna(x)) else sum(numpy.diff(x))[0])
@@ -353,7 +369,7 @@ def print_extracted_sequence (transcript : str, sequences : Dict[str, Dict], wid
 	Doc
 	"""
 
-	for r in ['Prom', 'UTR5', 'CDS', 'UTR3', 'Term'] :
+	for r in ['Prom_Full', 'Prom', 'UTR5', 'CDS', 'UTR3', 'Term', 'Term_Full'] :
 		key = sequences[transcript][r]['key']
 		seq = sequences[transcript][r]['seq']
 
@@ -435,14 +451,22 @@ def pad_multiple (sequences : Dict[str, str], length : Union[int, List[int]], si
 		for key, value in sequences.items()
 	}
 
-def merge_and_pad_sequences (sequences : Dict[str, Dict], lengths : Dict[str, Union[int, List[int]]], padding : Dict[str, str]) -> Dict[str, str] :
+def merge_and_pad_sequences (sequences : Dict[str, Dict], lengths : Dict[str, Union[int, List[int]]], padding : Dict[str, str]) -> Tuple[Dict[str, str], Dict[str, str]] :
 	"""
 	Doc
 	"""
 
-	data = dict()
+	data_large = dict()
+	data_small = dict()
 
 	for key, value in sequences.items() :
+		prom_full = pad_single(
+			sequence  = value['Prom_Full']['seq'],
+			side      = padding['prom_full'],
+			length    = lengths['prom_full'][0] + lengths['prom_full'][1],
+			pad_value = None
+		)
+
 		prom = pad_single(
 			sequence  = value['Prom']['seq'],
 			side      = padding['prom'],
@@ -471,19 +495,37 @@ def merge_and_pad_sequences (sequences : Dict[str, Dict], lengths : Dict[str, Un
 			pad_value = None
 		)
 
+		term_full = pad_single(
+			sequence  = value['Term_Full']['seq'],
+			side      = padding['term_full'],
+			length    = lengths['term_full'][0] + lengths['term_full'][1],
+			pad_value = None
+		)
+
 		strand = value['CDS']['key'].split(' | ')[1]
 		seqid  = value['CDS']['key'].split(' | ')[2].split(':')[0]
 
 		if strand == '+' :
-			start = value['Prom']['key'].split(' | ')[2].split(':')[1].split('-')[0]
-			end   = value['Term']['key'].split(' | ')[2].split(':')[1].split('-')[1]
+			large_0 = value['Prom_Full']['key'].split(' | ')[2].split(':')[1].split('-')[0]
+			large_1 = value['Term_Full']['key'].split(' | ')[2].split(':')[1].split('-')[1]
+
+			small_0 = value['Prom']['key'].split(' | ')[2].split(':')[1].split('-')[0]
+			small_1 = value['Term']['key'].split(' | ')[2].split(':')[1].split('-')[1]
 		else :
-			start = value['Term']['key'].split(' | ')[2].split(':')[1].split('-')[0]
-			end   = value['Prom']['key'].split(' | ')[2].split(':')[1].split('-')[1]
+			large_0 = value['Term_Full']['key'].split(' | ')[2].split(':')[1].split('-')[0]
+			large_1 = value['Prom_Full']['key'].split(' | ')[2].split(':')[1].split('-')[1]
 
-		seq = prom + utr5 + utr3 + term
-		key = '{} | {} | {}:{}-{} | {}'.format(key, strand, seqid, start, end, len(seq))
+			small_0 = value['Term']['key'].split(' | ')[2].split(':')[1].split('-')[0]
+			small_1 = value['Prom']['key'].split(' | ')[2].split(':')[1].split('-')[1]
 
-		data[key] = seq
+		seq_small = prom + utr5 + utr3 + term
+		key_small = '{} | {} | {}:{}-{} | {}'.format(key, strand, seqid, small_0, small_1, len(seq_small))
 
-	return data
+		data_small[key_small] = seq_small
+
+		seq_large = prom_full + utr5 + utr3 + term_full
+		key_large = '{} | {} | {}:{}-{} | {}'.format(key, strand, seqid, large_0, large_1, len(seq_large))
+
+		data_large[key_large] = seq_large
+
+	return data_small, data_large

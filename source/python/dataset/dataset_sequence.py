@@ -10,7 +10,7 @@ def get_subsequences (sequences : Dict[str, str], start : int = None, end : int 
 		return sequences
 
 	if start is None : start = 0
-	if end   is None : end   = 2150
+	if end   is None : end   = len(list(sequences.values())[0])
 
 	return {
 		key : value[start:end]
@@ -22,13 +22,11 @@ def get_encoding (sequences : Dict[str, str], should_encode : bool, expand_dims 
 	Doc
 	"""
 
-	if not should_encode :
-		return sequences
-
-	sequences = {
-		key : encoder(value)
-		for key, value in sequences.items()
-	}
+	if should_encode :
+		sequences = {
+			key : encoder(value)
+			for key, value in sequences.items()
+		}
 
 	if expand_dims is not None and expand_dims >= 0 :
 		sequences = {
