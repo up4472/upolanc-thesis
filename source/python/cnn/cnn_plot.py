@@ -15,12 +15,12 @@ def get_regression_limits (report : Dict[str, Dict]) -> Dict[str, Tuple] :
 	"""
 
 	limits = {
-		'r2'    : (-2.0,  1.0),
-		'mae'   : ( 0.0, 15.0),
-		'mse'   : ( 0.0, 25.0),
-		'mape'  : ( 0.0,  2.0),
-		'wmape' : ( 0.0,  2.0),
-		'loss'  : ( 0.0, 25.0)
+		'r2'    : (-1.0, 1.0),
+		'mae'   : ( 0.0, 5.0),
+		'mse'   : ( 0.0, 5.0),
+		'mape'  : ( 0.0, 2.0),
+		'wmape' : ( 0.0, 2.0),
+		'loss'  : ( 0.0, 5.0)
 	}
 
 	for key in limits.keys() :
@@ -70,17 +70,27 @@ def compute_gridsize (n : int) -> Tuple[int, int, int] :
 
 	return n, nrows, ncols
 
-def lineplot (values : List[Union[List, numpy.ndarray]], labels : List[str], xlabel : str, ylabel : str, title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None) -> None :
+def lineplot (values : List[Union[List, numpy.ndarray]], labels : List[str], xlabel : str, ylabel : str, title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None) -> None :
 	"""
 	Doc
 	"""
 
 	_, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
 
+	if start_index is None :
+		start_index = 0
+	elif start_index >= len(values[0]) :
+		start_index = 0
+
 	x = numpy.arange(1, 1 + len(values[0]))
 
 	for y, label in zip(values, labels) :
-		seaborn.lineplot(x = x, y = y, label = label, ax = ax)
+		seaborn.lineplot(
+			x     = x[start_index:],
+			y     = y[start_index:],
+			label = label,
+			ax    = ax
+		)
 
 	ax.set_xlabel(xlabel)
 	ax.set_ylabel(ylabel)
@@ -333,7 +343,7 @@ def show_linear_regression (report : Dict[str, Dict], order : List[str], group :
 			format = 'png'
 		)
 
-def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename : str = None, apply_limits : bool = False) -> None :
+def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename : str = None, apply_limits : bool = False, start_index : int = None) -> None :
 	"""
 	Doc
 	"""
@@ -341,6 +351,9 @@ def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename :
 	metrics = list(report[mode]['metric'].keys())
 	names   = list()
 	limits  = None
+
+	if start_index is None :
+		start_index = 0
 
 	if apply_limits :
 		if 'r2' in report[mode]['metric'].keys() :
@@ -393,9 +406,15 @@ def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename :
 		else :
 			axis = ax[index // ncols, index % ncols]
 
+		x = numpy.arange(1, 1 + len(metric))
+		y = metric
+
+		if start_index >= len(metric) :
+			start_index = 0
+
 		seaborn.lineplot(
-			x  = numpy.arange(1, 1 + len(metric)),
-			y  = metric,
+			x   = x[start_index:],
+			y   = y[start_index:],
 			ax  = axis
 		)
 
@@ -424,7 +443,7 @@ def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename :
 			format = 'png'
 		)
 
-def show_metric (report : Dict[str, Dict], mode : str, metric : str, title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None) -> None :
+def show_metric (report : Dict[str, Dict], mode : str, metric : str, title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None) -> None :
 	"""
 	Doc
 	"""
@@ -433,17 +452,18 @@ def show_metric (report : Dict[str, Dict], mode : str, metric : str, title : str
 	values = numpy.array([x.mean() for x in values]).flatten()
 
 	lineplot(
-		values    = [values],
-		labels    = [mode.title()],
-		title     = title,
-		xlabel    = 'Epoch',
-		ylabel    = 'Loss',
-		filename  = filename + '-' + metric,
-		limit_bot = limit_bot,
-		limit_top = limit_top
+		values      = [values],
+		labels      = [mode.title()],
+		title       = title,
+		xlabel      = 'Epoch',
+		ylabel      = 'Loss',
+		filename    = filename + '-' + metric,
+		limit_bot   = limit_bot,
+		limit_top   = limit_top,
+		start_index = start_index
 	)
 
-def show_loss (report : Dict[str, Dict], title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None) -> None :
+def show_loss (report : Dict[str, Dict], title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None) -> None :
 	"""
 	Doc
 	"""
@@ -452,17 +472,18 @@ def show_loss (report : Dict[str, Dict], title : str = None, filename : str = No
 	valid_loss = report['valid']['loss']
 
 	lineplot(
-		values    = [train_loss, valid_loss],
-		labels    = ['Train', 'Valid'],
-		title     = title,
-		xlabel    = 'Epoch',
-		ylabel    = 'Loss',
-		filename  = filename + '-loss',
-		limit_bot = limit_bot,
-		limit_top = limit_top
+		values      = [train_loss, valid_loss],
+		labels      = ['Train', 'Valid'],
+		title       = title,
+		xlabel      = 'Epoch',
+		ylabel      = 'Loss',
+		filename    = filename + '-loss',
+		limit_bot   = limit_bot,
+		limit_top   = limit_top,
+		start_index = start_index
 	)
 
-def show_r2 (report : Dict[str, Dict], title : str = None, filename : str = None, limit_bot : float = -2.0, limit_top : float = 1.0) -> None :
+def show_r2 (report : Dict[str, Dict], title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None) -> None :
 	"""
 	Doc
 	"""
@@ -474,17 +495,18 @@ def show_r2 (report : Dict[str, Dict], title : str = None, filename : str = None
 	valid_r2 = numpy.array([r2.mean() for r2 in valid_r2])
 
 	lineplot(
-		values    = [train_r2, valid_r2],
-		labels    = ['Train', 'Valid'],
-		title     = title,
-		xlabel    = 'Epoch',
-		ylabel    = 'R2 Score',
-		filename  = filename + '-r2',
-		limit_bot = limit_bot,
-		limit_top = limit_top
+		values      = [train_r2, valid_r2],
+		labels      = ['Train', 'Valid'],
+		title       = title,
+		xlabel      = 'Epoch',
+		ylabel      = 'R2 Score',
+		filename    = filename + '-r2',
+		limit_bot   = limit_bot,
+		limit_top   = limit_top,
+		start_index = start_index
 	)
 
-def show_accuracy (report : Dict[str, Dict], title : str = None, filename : str = None, limit_bot : float = 0.0, limit_top : float = 1.0) -> None :
+def show_accuracy (report : Dict[str, Dict], title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None) -> None :
 	"""
 	Doc
 	"""
@@ -496,17 +518,18 @@ def show_accuracy (report : Dict[str, Dict], title : str = None, filename : str 
 	valid_acc = numpy.array([acc.mean() for acc in valid_acc])
 
 	lineplot(
-		values    = [train_acc, valid_acc],
-		labels    = ['Train', 'Valid'],
-		title     = title,
-		xlabel    = 'Epoch',
-		ylabel    = 'Accuracy',
-		filename  = filename + '-accuracy',
-		limit_bot = limit_bot,
-		limit_top = limit_top
+		values      = [train_acc, valid_acc],
+		labels      = ['Train', 'Valid'],
+		title       = title,
+		xlabel      = 'Epoch',
+		ylabel      = 'Accuracy',
+		filename    = filename + '-accuracy',
+		limit_bot   = limit_bot,
+		limit_top   = limit_top,
+		start_index = start_index
 	)
 
-def show_lr (report : Dict[str, Dict], title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None) -> None :
+def show_lr (report : Dict[str, Dict], title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None) -> None :
 	"""
 	Doc
 	"""
@@ -515,12 +538,13 @@ def show_lr (report : Dict[str, Dict], title : str = None, filename : str = None
 	valid_lr = report['valid']['lr']
 
 	lineplot(
-		values    = [train_lr, valid_lr],
-		labels    = ['Train', 'Valid'],
-		title     = title,
-		xlabel    = 'Epoch',
-		ylabel    = 'Learning Rate',
-		filename  = filename + '-lr',
-		limit_bot = limit_bot,
-		limit_top = limit_top
+		values      = [train_lr, valid_lr],
+		labels      = ['Train', 'Valid'],
+		title       = title,
+		xlabel      = 'Epoch',
+		ylabel      = 'Learning Rate',
+		filename    = filename + '-lr',
+		limit_bot   = limit_bot,
+		limit_top   = limit_top,
+		start_index = start_index
 	)
