@@ -3,7 +3,38 @@ from typing import Tuple
 import scipy
 import numpy
 
-def interquartile_range (data : numpy.ndarray, k : float = 1.5, axis : int = None) -> Tuple[numpy.ndarray, float, float, float] :
+def sanity_check_filter (data : numpy.ndarray, threshold : numpy.ndarray, axis : int = None, n : int = None) -> Tuple[numpy.ndarray, numpy.ndarray] :
+	"""
+	Doc
+	"""
+
+	total = numpy.size(data, axis = axis)
+
+	if n is None or n <= 0 :
+		keep = numpy.sum(threshold, axis = axis)
+		data = numpy.where(threshold, data, numpy.nan)
+
+		return data, keep / total
+
+	keep = numpy.sum(threshold, axis = axis)
+	keep = keep / total
+	flag = keep > (n / total)
+
+	if flag.all() :
+		data = numpy.where(threshold, data, numpy.nan)
+
+		return data, keep
+
+	index = numpy.where(flag == True)
+
+	data[:, index] = numpy.where(threshold[:, index], data[:, index], numpy.nan)
+
+	nonnan  = numpy.count_nonzero(~numpy.isnan(data), axis = axis)
+	percent = nonnan / total
+
+	return data, percent
+
+def interquartile_range (data : numpy.ndarray, k : float = 1.5, axis : int = None, n : int = None) -> Tuple[numpy.ndarray, float, float, numpy.ndarray] :
 	"""
 	Doc
 	"""
@@ -15,7 +46,6 @@ def interquartile_range (data : numpy.ndarray, k : float = 1.5, axis : int = Non
 
 	upper = q3 + k * iqr
 	lower = q1 - k * iqr
-	total = numpy.size(data, axis = axis)
 
 	if numpy.ndim(data) == 2 :
 		threshold = numpy.zeros_like(data, dtype = numpy.bool)
@@ -35,12 +65,16 @@ def interquartile_range (data : numpy.ndarray, k : float = 1.5, axis : int = Non
 	else :
 		raise ValueError()
 
-	data = numpy.where(threshold, data, numpy.nan)
-	keep = numpy.sum(threshold, axis = axis)
+	data, keep = sanity_check_filter(
+		data      = data,
+		threshold = threshold,
+		axis      = axis,
+		n         = n
+	)
 
-	return data, lower, upper, keep / total
+	return data, lower, upper, keep
 
-def zscore (data : numpy.ndarray, z : float = 3, axis : int = None, ddof : int = 0) -> Tuple[numpy.ndarray, float, float, float] :
+def zscore (data : numpy.ndarray, z : float = 3, axis : int = None, ddof : int = 0, n : int = None) -> Tuple[numpy.ndarray, float, float, numpy.ndarray] :
 	"""
 	Doc
 	"""
@@ -52,11 +86,14 @@ def zscore (data : numpy.ndarray, z : float = 3, axis : int = None, ddof : int =
 
 	upper = mean + z * std
 	lower = mean - z * std
-	total = numpy.size(data, axis = axis)
 
 	threshold = score < z
 
-	data = numpy.where(threshold, data, numpy.nan)
-	keep = numpy.sum(threshold, axis = axis)
+	data, keep = sanity_check_filter(
+		data      = data,
+		threshold = threshold,
+		axis      = axis,
+		n         = n
+	)
 
-	return data, lower, upper, keep / total
+	return data, lower, upper, keep

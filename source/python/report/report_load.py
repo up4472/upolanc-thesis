@@ -7,23 +7,24 @@ import itertools
 import pandas
 import os
 
-from source.python.io.loader            import load_json
-from source.python.report.report_format import format_cnn_tune_dataframe
-from source.python.report.report_format import format_data_tune_dataframe
-from source.python.report.report_utils  import convert_json_to_dataframe
-from source.python.report.report_utils  import recover_dataframe
-
-TARGETS = [
-	'global-mean',
-	'tissue-mean',
-	'tissue-mean-seedling',
-	'tissue-mean-explode'
-]
-
-FILTERS = [
-	'f' + str(index)
-	for index in range(10)
-]
+from source.python.report.report_constants import BERT_ARCH
+from source.python.report.report_constants import BERT_LAYERS
+from source.python.report.report_constants import BERT_OUTPUT
+from source.python.report.report_constants import CNNS
+from source.python.report.report_constants import EPOCHS
+from source.python.report.report_constants import FEATURES
+from source.python.report.report_constants import FILTERS
+from source.python.report.report_constants import FLOAT_FORMAT
+from source.python.report.report_constants import KMERS
+from source.python.report.report_constants import OPTIMIZERS
+from source.python.report.report_constants import SEQUENCES
+from source.python.report.report_constants import TARGETS
+from source.python.report.report_constants import TRIALS
+from source.python.io.loader               import load_json
+from source.python.report.report_format    import format_cnn_tune_dataframe
+from source.python.report.report_format    import format_data_tune_dataframe
+from source.python.report.report_utils     import convert_json_to_dataframe
+from source.python.report.report_utils     import recover_dataframe
 
 def load_cnn_tune_reports_for (root : str, mode : str, n : int = 5, show : bool = False) -> Dict[str, DataFrame] :
 	"""
@@ -32,18 +33,10 @@ def load_cnn_tune_reports_for (root : str, mode : str, n : int = 5, show : bool 
 
 	report = dict()
 
-	if mode == 'regression'     : root = os.path.join(root, 'tune', 'cnn-regression')
-	if mode == 'classification' : root = os.path.join(root, 'tune', 'cnn-classification')
+	if mode == 'regression'     : root = os.path.join(root, 'regression-tuner-cnn')
+	if mode == 'classification' : root = os.path.join(root, 'classification-tuner-cnn')
 
-	cnn_archs      = ['zrimec', 'washburn']
-	cnn_sequences  = ['promoter', 'transcript']
-	cnn_filters    = FILTERS
-	cnn_trials     = [250, 500, 1000, 2000]
-	cnn_epochs     = [25, 50]
-	cnn_features   = [0, 72, 77]
-	cnn_targets    = TARGETS
-
-	for items in itertools.product(cnn_archs, cnn_sequences, cnn_filters, cnn_trials, cnn_epochs, cnn_features, cnn_targets) :
+	for items in itertools.product(CNNS, SEQUENCES, FILTERS, TRIALS, EPOCHS, FEATURES, TARGETS) :
 		key    = '{:s}-{:s}-{:s}-{:04d}-{:2d}-{:02d}-{:s}'.format(*items)
 		folder = os.path.join(root, key)
 
@@ -93,17 +86,10 @@ def load_data_tune_reports_for (root : str, mode : str, n : int = 5, show : bool
 
 	report = dict()
 
-	if mode == 'regression'     : root = os.path.join(root, 'tune', 'data-regression')
-	if mode == 'classification' : root = os.path.join(root, 'tune', 'data-classification')
+	if mode == 'regression'     : root = os.path.join(root, 'regression-tuner-data')
+	if mode == 'classification' : root = os.path.join(root, 'classification-tuner-data')
 
-	cnn_archs      = ['zrimec', 'washburn']
-	cnn_sequences  = ['promoter', 'transcript']
-	cnn_filters    = FILTERS
-	cnn_trials     = [250, 500, 1000]
-	cnn_epochs     = [25, 50]
-	cnn_targets    = TARGETS
-
-	for items in itertools.product(cnn_archs, cnn_sequences, cnn_filters, cnn_trials, cnn_epochs, cnn_targets) :
+	for items in itertools.product(CNNS, SEQUENCES, FILTERS, TRIALS, EPOCHS, TARGETS) :
 		key    = '{:s}-{:s}-{:s}-{:04d}-{:2d}-{:s}'.format(*items)
 		folder = os.path.join(root, key)
 
@@ -152,27 +138,21 @@ def load_cnn_reports_for (root : str, mode : str) -> DataFrame :
 	"""
 
 	columns = [
-		'Model', 'Type', 'Filter', 'Epochs', 'Target_0', 'Target_1', 'Target_2',
-		'Optimizer', 'Learning_Rate', 'Momentum', 'Decay', 'Scheduler',
-		'Batch_Size', 'Dropout', 'Epoch'
+		'Model', 'Sequence', 'Filter', 'Epochs', 'Features', 'Target0', 'Target1', 'Target2',
+		'Optimizer', 'LR', 'Beta1', 'Beta2', 'Decay', 'Dropout', 'Scheduler', 'Gamma',
+		'Batch', 'Epoch'
 	]
 
-	if mode == 'regression'     : columns.extend(['Valid_MSE', 'Eval_MSE', 'Eval_MAE', 'Eval_R2'])
-	if mode == 'classification' : columns.extend(['Valid_Entropy', 'Eval_Entropy', 'Eval_Accuracy', 'Eval_F1', 'Eval_AUROC'])
+	if mode == 'regression'     : columns.extend(['MSE', 'R2'])
+	if mode == 'classification' : columns.extend(['Entropy', 'Accuracy'])
 
 	dataframe = DataFrame(columns = columns)
 
-	if mode == 'regression'     : root = os.path.join(root, 'cnn', 'regression')
-	if mode == 'classification' : root = os.path.join(root, 'cnn', 'classification')
+	if mode == 'regression'     : root = os.path.join(root, 'regression-cnn')
+	if mode == 'classification' : root = os.path.join(root, 'classification-cnn')
 
-	cnn_archs      = ['zrimec', 'washburn']
-	cnn_sequences  = ['promoter', 'transcript']
-	cnn_filters    = FILTERS
-	cnn_epochs     = [250, 500, 1000]
-	cnn_targets    = TARGETS
-
-	for items in itertools.product(cnn_archs, cnn_sequences, cnn_filters, cnn_epochs, cnn_targets) :
-			key    = '{:s}-{:s}-{:s}-{:04d}-{:s}'.format(*items)
+	for items in itertools.product(CNNS, SEQUENCES, FILTERS, EPOCHS, FEATURES, TARGETS) :
+			key    = '{:s}-{:s}-{:s}-{:04d}-{:02d}-{:s}'.format(*items)
 			folder = os.path.join(root, key)
 
 			if not os.path.exists(folder) :
@@ -190,10 +170,11 @@ def load_cnn_reports_for (root : str, mode : str) -> DataFrame :
 			target = items[-1].split('-')
 
 			data = [
-				items[0],
-				items[1],
-				items[2],
-				items[3],
+				str(items[0]),
+				str(items[1]),
+				str(items[2]),
+				int(items[3]),
+				int(items[4]),
 				target[0] if len(target) >= 1 else None,
 				target[1] if len(target) >= 2 else None,
 				target[2] if len(target) >= 3 else None
@@ -202,27 +183,21 @@ def load_cnn_reports_for (root : str, mode : str) -> DataFrame :
 			data.extend([
 				config['optimizer/name'],
 				config['optimizer/lr'],
-				config['optimizer/momentum'],
+				config['optimizer/beta1'],
+				config['optimizer/beta2'],
 				config['optimizer/decay'],
-				config['scheduler/name'],
-				config['dataset/batch/train'],
 				config['model/dropout'],
+				config['scheduler/name'],
+				config['scheduler/exponential/factor'],
+				config['dataset/batch/train'],
 				report['evaluation/best/epoch'],
 				report['evaluation/best/loss']
 			])
 
 			if mode == 'regression' :
-				data.extend([
-					report['evaluation/best/mse/mean'],
-					report['evaluation/best/mae/mean'],
-					report['evaluation/best/r2/mean']
-				])
+				data.extend([report['evaluation/best/r2/mean']])
 			elif mode == 'classification' :
-				data.extend([
-					report['evaluation/best/accuracy/mean'],
-					report['evaluation/best/f1/mean'],
-					report['evaluation/best/auroc/mean']
-				])
+				data.extend([report['evaluation/best/accuracy/mean']])
 
 			dataframe.loc[-1] = data
 			dataframe.index   = dataframe.index + 1
@@ -241,25 +216,22 @@ def load_cnn_reports (root : str) -> Dict[str, DataFrame] :
 	}
 
 	for mode in ['regression', 'classification'] :
-		reports[mode]['Learning_Rate'] = reports[mode]['Learning_Rate'].astype(float).map('{:.9f}'.format)
-		reports[mode]['Momentum'     ] = reports[mode]['Momentum'     ].astype(float).map('{:.9f}'.format)
-		reports[mode]['Decay'        ] = reports[mode]['Decay'        ].astype(float).map('{:.9f}'.format)
-		reports[mode]['Dropout'      ] = reports[mode]['Dropout'      ].astype(float).map('{:.3f}'.format)
+		reports[mode]['LR'     ] = reports[mode]['LR'     ].astype(float).map(FLOAT_FORMAT.format)
+		reports[mode]['Beta1'  ] = reports[mode]['Beta1'  ].astype(float).map(FLOAT_FORMAT.format)
+		reports[mode]['Beta2'  ] = reports[mode]['Beta2'  ].astype(float).map(FLOAT_FORMAT.format)
+		reports[mode]['Decay'  ] = reports[mode]['Decay'  ].astype(float).map(FLOAT_FORMAT.format)
+		reports[mode]['Gamma'  ] = reports[mode]['Gamma'  ].astype(float).map(FLOAT_FORMAT.format)
+		reports[mode]['Dropout'] = reports[mode]['Dropout'].astype(float).map(FLOAT_FORMAT.format)
 
-	reports['regression']['Valid_MSE'] = reports['regression']['Valid_MSE'].astype(float).map('{:.9f}'.format)
-	reports['regression']['Eval_MSE' ] = reports['regression']['Eval_MSE' ].astype(float).map('{:.9f}'.format)
-	reports['regression']['Eval_MAE' ] = reports['regression']['Eval_MAE' ].astype(float).map('{:.9f}'.format)
-	reports['regression']['Eval_R2'  ] = reports['regression']['Eval_R2'  ].astype(float).map('{:.9f}'.format)
+	reports['regression']['MSE'] = reports['regression']['MSE'].astype(float).map(FLOAT_FORMAT.format)
+	reports['regression']['R2' ] = reports['regression']['R2' ].astype(float).map(FLOAT_FORMAT.format)
 
-	reports['regression'] = reports['regression'].sort_values('Eval_R2', ascending = False)
+	reports['regression'] = reports['regression'].sort_values('R2', ascending = False)
 
-	reports['classification']['Valid_Entropy'] = reports['classification']['Valid_Entropy'].astype(float).map('{:.9f}'.format)
-	reports['classification']['Eval_Entropy' ] = reports['classification']['Eval_Entropy' ].astype(float).map('{:.9f}'.format)
-	reports['classification']['Eval_Accuracy'] = reports['classification']['Eval_Accuracy'].astype(float).map('{:.9f}'.format)
-	reports['classification']['Eval_F1'      ] = reports['classification']['Eval_F1'      ].astype(float).map('{:.9f}'.format)
-	reports['classification']['Eval_AUROC'   ] = reports['classification']['Eval_AUROC'   ].astype(float).map('{:.9f}'.format)
+	reports['classification']['Entropy' ] = reports['classification']['Entropy' ].astype(float).map(FLOAT_FORMAT.format)
+	reports['classification']['Accuracy'] = reports['classification']['Accuracy'].astype(float).map(FLOAT_FORMAT.format)
 
-	reports['classification'] = reports['classification'].sort_values('Eval_Accuracy', ascending = False)
+	reports['classification'] = reports['classification'].sort_values('Accuracy', ascending = False)
 
 	return reports
 
@@ -270,21 +242,10 @@ def load_bert_reports_for (root : str, mode : str, n : int = 5, show : bool = Fa
 
 	report = dict()
 
-	if mode == 'regression'     : root = os.path.join(root, 'bert', 'regression')
-	if mode == 'classification' : root = os.path.join(root, 'bert', 'classification')
+	if mode == 'regression'     : root = os.path.join(root, 'regression-bert')
+	if mode == 'classification' : root = os.path.join(root, 'classification-bert')
 
-	bert_archs      = ['fc2', 'fc3']
-	bert_types      = ['def', 'rnn', 'cat']
-	bert_layers     = [9, 11, 12]
-	bert_kmers      = [3, 6]
-	bert_features   = [0, 72, 77]
-	bert_sequences  = ['promoter', 'transcript']
-	bert_optimizers = ['adam', 'lamb']
-	bert_filters    = FILTERS
-	bert_epochs     = [150, 250]
-	bert_targets    = TARGETS
-
-	for config in itertools.product(bert_archs, bert_types, bert_layers, bert_kmers, bert_features, bert_sequences, bert_optimizers, bert_filters, bert_epochs, bert_targets) :
+	for config in itertools.product(BERT_OUTPUT, BERT_ARCH, BERT_LAYERS, KMERS, FEATURES, SEQUENCES, OPTIMIZERS, FILTERS, EPOCHS, TARGETS) :
 		key    = '{:s}-{:s}-{:02d}-{:d}-{:02d}-{:s}-{:s}-{:s}-{:04d}-{:s}'.format(*config)
 		folder = os.path.join(root, key)
 
@@ -326,14 +287,10 @@ def load_feature_tune_reports_for (root : str, mode : str, n : int = 5, show : b
 
 	report = dict()
 
-	if mode == 'regression'     : root = os.path.join(root, 'tune', 'feature-regression')
-	if mode == 'classification' : root = os.path.join(root, 'tune', 'feature-classification')
+	if mode == 'regression'     : root = os.path.join(root, 'regression-tuner-feature')
+	if mode == 'classification' : root = os.path.join(root, 'classification-tuner-feature')
 
-	feature_n       = [64, 72]
-	feature_trials  = [250, 500, 1000, 2500]
-	feature_epochs  = [25, 50]
-
-	for items in itertools.product(feature_n, feature_trials, feature_epochs) :
+	for items in itertools.product(FEATURES, TRIALS, EPOCHS) :
 		key    = '{:2d}-{:04d}-{:2d}'.format(*items)
 		folder = os.path.join(root, key)
 

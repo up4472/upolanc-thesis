@@ -68,7 +68,8 @@ def extract_tpm_single (data : AnnData, group : str, function : Callable, name :
 				data, _, _, p = interquartile_range(
 					data = data,
 					axis = 0,
-					k    = outlier_params['factor-iqr']
+					k    = outlier_params['factor-iqr'],
+					n    = 1
 				)
 
 			if outlier_filter == 'zscore' :
@@ -76,7 +77,8 @@ def extract_tpm_single (data : AnnData, group : str, function : Callable, name :
 					data = data,
 					axis = 0,
 					ddof = 1,
-					z    = outlier_params['factor-zscore']
+					z    = outlier_params['factor-zscore'],
+					n    = 1
 				)
 
 		x = function(x = data, axis = 0)
