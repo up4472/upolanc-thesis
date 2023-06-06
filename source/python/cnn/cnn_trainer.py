@@ -193,7 +193,8 @@ def train (model : Module, params : Dict[str, Any], regression : bool = False) -
 	device    = params['device']
 	epochs    = params['epochs']
 
-	model = model.to(device)
+	model     = model.to(device)
+	criterion = criterion.to(device)
 
 	savebest = None if params['savebest'] is None else SaveBestModel(filename = params['savebest'], loss   = numpy.PINF)
 	savelast = None if params['savelast'] is None else SaveLastModel(filename = params['savelast'], epoch  = -1)

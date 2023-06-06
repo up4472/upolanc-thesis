@@ -20,6 +20,7 @@ from source.python.bert.bert_constants  import MODELS
 from source.python.bert.bert_constants  import MODES
 from source.python.bert.bert_constants  import PROCESSORS
 from source.python.bert.bert_finetune   import evaluate
+from source.python.bert.bert_finetune import extract
 from source.python.bert.bert_finetune   import predict
 from source.python.bert.bert_finetune   import train
 from source.python.bert.bert_finetune   import visualize
@@ -64,9 +65,10 @@ def bert_init_args (args : Any, logger : Optional[Any]) -> Any :
 			args.local_rank, device, args.n_gpu, bool(args.local_rank != -1), args.fp16
 		)
 
-	args.train_batch_size = args.per_gpu_train_batch_size * max(1, args.n_gpu)
-	args.eval_batch_size  = args.per_gpu_eval_batch_size  * max(1, args.n_gpu)
-	args.pred_batch_size  = args.per_gpu_pred_batch_size  * max(1, args.n_gpu)
+	args.train_batch_size   = args.per_gpu_train_batch_size * max(1, args.n_gpu)
+	args.eval_batch_size    = args.per_gpu_eval_batch_size  * max(1, args.n_gpu)
+	args.pred_batch_size    = args.per_gpu_pred_batch_size  * max(1, args.n_gpu)
+	args.extract_batch_size = args.per_gpu_pred_batch_size  * max(1, args.n_gpu)
 
 	args.task_name  = args.task_name.lower()
 	args.model_type = args.model_type.lower()
@@ -326,6 +328,41 @@ def bert_predict (args : Any, model_cls : Any, tokenizer_cls : Any, logger : Opt
 	)
 
 	return model, tokenizer, results
+
+def bert_extract (args : Any, model_cls : Any, tokenizer_cls : Any, logger : Optional[Any]) -> None :
+	"""
+	Doc
+	"""
+
+	if not (args.do_extract and args.local_rank in [-1, 0]) :
+		return
+
+	tokenizer = tokenizer_cls.from_pretrained(
+		args.output_dir,
+		do_lower_case = args.do_lower_case
+	)
+
+	if logger is not None :
+		logger.info('Extracting using the following checkpoint: %s', args.output_dir)
+
+	model = model_cls.from_pretrained(args.output_dir)
+	model.to(args.device)
+
+	extract(
+		args            = args,
+		model           = model,
+		tokenizer       = tokenizer,
+		prefix          = 'on [train] dataset',
+		should_evaluate = False
+	)
+
+	extract(
+		args            = args,
+		model           = model,
+		tokenizer       = tokenizer,
+		prefix          = 'on [dev] dataset',
+		should_evaluate = True
+	)
 
 def bert_visualize (args : Any, model_cls : Any, tokenizer_cls : Any, config_cls : Any, num_labels : int, logger : Optional[Any], use_features : bool = False) -> None :
 	"""

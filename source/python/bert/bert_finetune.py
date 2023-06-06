@@ -12,19 +12,20 @@ import random
 import torch
 import torch.distributed
 
-from source.python.bert.bert_cache  import load_and_cache_examples
-from source.python.bert.bert_helper import log_result
-from source.python.bert.bert_helper import prepare_bert_inputs
-from source.python.bert.bert_helper import process_bert_clip_grad
-from source.python.bert.bert_helper import process_bert_loss
-from source.python.bert.bert_helper import process_results
-from source.python.bert.bert_helper import save_model_checkpoint
-from source.python.bert.bert_utils  import freeze_bert
-from source.python.bert.bert_utils  import get_dataloader
-from source.python.bert.bert_utils  import get_optimizer
-from source.python.bert.bert_utils  import get_scheduler
-from source.python.bert.bert_utils  import prepare_eval_model
-from source.python.bert.bert_utils  import prepare_train_model
+from source.python.bert.bert_cache      import load_and_cache_examples
+from source.python.bert.bert_extraction import process_extraction_result
+from source.python.bert.bert_helper     import log_result
+from source.python.bert.bert_helper     import prepare_bert_inputs
+from source.python.bert.bert_helper     import process_bert_clip_grad
+from source.python.bert.bert_helper     import process_bert_loss
+from source.python.bert.bert_helper     import process_results
+from source.python.bert.bert_helper     import save_model_checkpoint
+from source.python.bert.bert_utils      import freeze_bert
+from source.python.bert.bert_utils      import get_dataloader
+from source.python.bert.bert_utils      import get_optimizer
+from source.python.bert.bert_utils      import get_scheduler
+from source.python.bert.bert_utils      import prepare_eval_model
+from source.python.bert.bert_utils      import prepare_train_model
 
 logger = logging.getLogger(__name__)
 
@@ -392,6 +393,71 @@ def predict (args : Any, model : Module, tokenizer : Any, prefix : str = '', use
 		)
 
 		return result
+
+def extract (args : Any, model : Module, tokenizer : Any, prefix : str = '', should_evaluate : bool = False) -> None :
+	"""
+	Doc
+	"""
+
+	#
+	# Loop to handle MNLI double evaluation (matched, mis-matched)
+	#
+
+	task_names  = (args.task_name,)
+	output_dirs = (args.output_dir,)
+
+	if not os.path.exists(args.output_dir) :
+		os.makedirs(args.output_dir)
+
+	for task_name, output_dir in zip(task_names, output_dirs) :
+		dataset = load_and_cache_examples(
+			args            = args,
+			task            = task_name,
+			tokenizer       = tokenizer,
+			should_evaluate = should_evaluate,
+			use_features    = False
+		)
+
+		if not os.path.exists(output_dir) and args.local_rank in [-1, 0] :
+			os.makedirs(output_dir)
+
+		dataloader = get_dataloader(
+			dataset    = dataset,
+			mode       = 'extract',
+			local_rank = args.local_rank,
+			batch_size = args.extract_batch_size
+		)
+
+		model = prepare_eval_model(
+			model = model,
+			args  = args
+		)
+
+		#
+		# Start extraction
+		#
+
+		logger.info('***** Running extraction {} *****'.format(prefix))
+
+		for batch in tqdm(dataloader, desc = 'Extracting', disable = True) :
+			model.eval()
+			batch = tuple(t.to(args.device) for t in batch)
+
+			with torch.no_grad() :
+				inputs = prepare_bert_inputs(
+					model_type = args.model_type,
+					batch      = batch
+				)
+
+				outputs = model(**inputs)
+
+				process_extraction_result(
+					inputs         = batch,
+					outputs        = outputs,
+					directory      = output_dir,
+					mode           = 'append',
+					should_evalute = should_evaluate
+				)
 
 def visualize (args : Any, model : Module, tokenizer : Any, kmer : int, prefix : str = '', use_features : bool = False) :
 	"""

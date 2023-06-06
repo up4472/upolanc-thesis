@@ -37,6 +37,8 @@ from source.python.cnn.metric import Metric_Accuracy
 from source.python.cnn.metric import Metric_AP
 from source.python.cnn.metric import Metric_AUROC
 from source.python.cnn.metric import Metric_Confusion
+from source.python.cnn.metric import Metric_Corrected_MSE
+from source.python.cnn.metric import Metric_Corrected_RMSE
 from source.python.cnn.metric import Metric_KL
 from source.python.cnn.metric import Metric_F1
 from source.python.cnn.metric import Metric_Jaccardi
@@ -154,22 +156,24 @@ def get_model_trainers (model : Module, config : Dict[str, Any], epochs : int) -
 	Doc
 	"""
 
-	if config['criterion/name'] == 'mse' :
-		if isinstance(model, (Zrimec2020c, Washburn2019c)) :
-			config['criterion/name'] = 'entropy'
+	if config['criterion/name'] == 'mse'     and isinstance(model, (Zrimec2020c, Washburn2019c)) : config['criterion/name'] = 'entropy'
+	if config['criterion/name'] == 'entropy' and isinstance(model, (Zrimec2020r, Washburn2019r)) : config['criterion/name'] = 'mse'
+	if config['criterion/name'] == 'bce'     and isinstance(model, (Zrimec2020r, Washburn2019r)) : config['criterion/name'] = 'mse'
 
-	elif config['criterion/name'] == 'entropy' :
-		if isinstance(model, (Zrimec2020r, Washburn2019r)) :
-			config['criterion/name'] = 'mse'
+	criterion_args = {
+		'query'     : config['criterion/name'],
+		'reduction' : config['criterion/reduction'],
+		'weights'   : None
+	}
 
-	elif config['criterion/name'] == 'bce' :
-		if isinstance(model, (Zrimec2020r, Washburn2019r)) :
-			config['criterion/name'] = 'mse'
+	if config['criterion/name'].startswith('corrected-') :
+		if 'criterion/threshold' in config.keys() :
+			criterion_args['threshold'] = config['criterion/threshold']
+		else :
+			criterion_args['threshold'] = 0.0
 
 	criterion = get_criterion(
-		query     = config['criterion/name'],
-		reduction = config['criterion/reduction'],
-		weights   = None
+		**criterion_args
 	)
 
 	optimizer = _get_optimizer(
@@ -199,27 +203,29 @@ def get_criterion (query : str, reduction : str = 'mean', weights : Union[numpy.
 
 	query = query.lower()
 
-	if   query == 'accuracy'   : callable_criterion = Metric_Accuracy
-	elif query == 'ap'         : callable_criterion = Metric_AP
-	elif query == 'auroc'      : callable_criterion = Metric_AUROC
-	elif query == 'bce'        : callable_criterion = BCELoss
-	elif query == 'confusion'  : callable_criterion = Metric_Confusion
-	elif query == 'entropy'    : callable_criterion = CrossEntropyLoss
-	elif query == 'f1'         : callable_criterion = Metric_F1
-	elif query == 'huber'      : callable_criterion = HuberLoss
-	elif query == 'jaccardi'   : callable_criterion = Metric_Jaccardi
-	elif query == 'kl'         : callable_criterion = Metric_KL
-	elif query == 'mae'        : callable_criterion = L1Loss
-	elif query == 'mape'       : callable_criterion = Metric_MAPE
-	elif query == 'matthews'   : callable_criterion = Metric_Matthews
-	elif query == 'mse'        : callable_criterion = MSELoss
-	elif query == 'nll'        : callable_criterion = NLLLoss
-	elif query == 'pearson'    : callable_criterion = Metric_Pearson
-	elif query == 'r2'         : callable_criterion = Metric_R2
-	elif query == 'smae'       : callable_criterion = SmoothL1Loss
-	elif query == 'smape'      : callable_criterion = Metric_SMAPE
-	elif query == 'spearman'   : callable_criterion = Metric_Spearman
-	elif query == 'wmape'      : callable_criterion = Metric_WMAPE
+	if   query == 'accuracy'       : callable_criterion = Metric_Accuracy
+	elif query == 'ap'             : callable_criterion = Metric_AP
+	elif query == 'auroc'          : callable_criterion = Metric_AUROC
+	elif query == 'bce'            : callable_criterion = BCELoss
+	elif query == 'confusion'      : callable_criterion = Metric_Confusion
+	elif query == 'corrected-mse'  : callable_criterion = Metric_Corrected_MSE
+	elif query == 'corrected-rmse' : callable_criterion = Metric_Corrected_RMSE
+	elif query == 'entropy'        : callable_criterion = CrossEntropyLoss
+	elif query == 'f1'             : callable_criterion = Metric_F1
+	elif query == 'huber'          : callable_criterion = HuberLoss
+	elif query == 'jaccardi'       : callable_criterion = Metric_Jaccardi
+	elif query == 'kl'             : callable_criterion = Metric_KL
+	elif query == 'mae'            : callable_criterion = L1Loss
+	elif query == 'mape'           : callable_criterion = Metric_MAPE
+	elif query == 'matthews'       : callable_criterion = Metric_Matthews
+	elif query == 'mse'            : callable_criterion = MSELoss
+	elif query == 'nll'            : callable_criterion = NLLLoss
+	elif query == 'pearson'        : callable_criterion = Metric_Pearson
+	elif query == 'r2'             : callable_criterion = Metric_R2
+	elif query == 'smae'           : callable_criterion = SmoothL1Loss
+	elif query == 'smape'          : callable_criterion = Metric_SMAPE
+	elif query == 'spearman'       : callable_criterion = Metric_Spearman
+	elif query == 'wmape'          : callable_criterion = Metric_WMAPE
 	else : raise ValueError()
 
 	return Metric_Weighted(

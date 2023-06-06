@@ -118,10 +118,6 @@ def clean_metadata (dataframe : DataFrame) -> DataFrame :
 	dataframe.loc[dataframe['Group'] == 'young_seed',  'Group'] = 'mature_seed'
 	dataframe.loc[dataframe['Group'] == 'seed_seed',   'Group'] = 'mature_seed'
 
-	# dataframe['Group'] = dataframe['Group'].str.replace('mature_seed', 'mature_seed')
-	# dataframe['Group'] = dataframe['Group'].str.replace('young_seed', 'mature_seed')
-	# dataframe['Group'] = dataframe['Group'].str.replace('seed_seed', 'mature_seed')
-
 	dataframe['Senescence'] = dataframe['Senescence'].fillna(value = 'no')
 	dataframe['Perturbation'] = dataframe['Perturbation'].str.split().str[0]
 
