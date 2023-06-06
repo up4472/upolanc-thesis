@@ -1,6 +1,5 @@
-from typing import Union
-
 from pandas           import DataFrame
+from torch            import Tensor
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 from torch.utils.data import SubsetRandomSampler
@@ -9,6 +8,7 @@ from typing           import Callable
 from typing           import Dict
 from typing           import List
 from typing           import Tuple
+from typing           import Union
 
 import numpy
 
@@ -18,7 +18,7 @@ from source.python.dataset.dataset_split   import generate_random_shuffle_split
 from source.python.dataset.dataset_split   import generate_stratified_shuffle_split
 from source.python.io.loader               import load_feature_targets
 
-def to_gene_dataset (sequences : Dict[str, Any], features : Dict[str, List], targets : Dict[str, List], expand_dims : int = None, groups : Dict[str, int] = None, onehot : bool = True, start : int = None, end : int = None) -> GeneDataset :
+def to_gene_dataset (sequences : Dict[str, Any], features : Dict[str, List], targets : Dict[str, List], expand_dims : int = None, groups : Dict[str, Union[int, float]] = None, onehot : bool = True, start : int = None, end : int = None) -> GeneDataset :
 	"""
 	Doc
 	"""
@@ -30,7 +30,7 @@ def to_gene_dataset (sequences : Dict[str, Any], features : Dict[str, List], tar
 	if groups is None :
 		groups = [transcript_key(x) for x in names]
 	else :
-		groups = [groups[transcript_key(x)] for x in names]
+		groups = [int(groups[transcript_key(x)]) for x in names]
 
 	return GeneDataset(
 		names       = names,
@@ -95,14 +95,21 @@ def show_dataloader (dataloader : DataLoader, verbose : bool = True) -> None :
 	batch_size = 0
 
 	for batch in dataloader :
-		t_keys, t_sequences, t_features, t_targets = batch
+		batch_size = numpy.shape(batch[0])[0]
+		batch_item = [
+			('Key',      batch[0]),
+			('Sequence', batch[1]),
+			('Feature',  batch[2]),
+			('Target',   batch[3])
+		]
 
-		batch_size = numpy.shape(t_keys)[0]
+		for name, item in batch_item :
+			dtype = '-'
 
-		print(f'     Key Shape : {numpy.shape(t_keys)}')
-		print(f'Sequence Shape : {numpy.shape(t_sequences)}')
-		print(f' Feature Shape : {numpy.shape(t_features)}')
-		print(f'  Target Shape : {numpy.shape(t_targets)}')
+			if isinstance(item, Tensor) :
+				dtype = str(item.dtype)
+
+			print('{:8s} : {:13s} | {}'.format(name, dtype, ', '.join(str(x) for x in numpy.shape(item))))
 
 		break
 
@@ -110,9 +117,9 @@ def show_dataloader (dataloader : DataLoader, verbose : bool = True) -> None :
 	nsamples = nbatches * batch_size
 
 	print()
-	print(f' Batch Size  : {batch_size:6,d}')
-	print(f' Batch Count : {nbatches:6,d}')
-	print(f'Sample Count : {nsamples:6,d}')
+	print(f'Batch Size : {batch_size:6,d}')
+	print(f'Batches    : {nbatches:6,d}')
+	print(f'Samples    : {nsamples:6,d}')
 	print()
 
 def get_dataset (config : Dict[str, Any], sequence : Dict[str, Any], feature : Dict[str, Any], directory : str, filename : str, cached : Dict[str, Any] = None, start : int = None, end : int = None) -> Tuple[GeneDataset, DataFrame, Dict, List] :

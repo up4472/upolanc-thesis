@@ -28,22 +28,22 @@ if [[ ":$PATH:" != *":$ROOT:"* ]]; then
 fi
 
 # Default params
-# --target_group     : global       : [str] tissue, group, age, global, perturbation
-# --target_type      : mean         : [str] mean, max
-# --target_explode   : false        : [str] true, false
-# --target_filter    : none         : [str] none
-# --model_name       : zrimec2020   : [str] zrimec2020, washburn2019
-# --model_type       : r            : [str] r, c
-# --model_epochs     : 500          : [int] ...
-# --tuner_concurrent : 5            : [int] ...
-# --tuner_trials     : 250          : [int] ...
-# --tuner_grace      : 10           : [int] ...
-# --param_share      : false        : [str] true, false
-# --filter_id        : 0            : [int] ...
-# --generator        : group        : [str] stratified, group, random
-# --features         : true         : [str] true, false
-# --sequence_start   : none         : [int] none
-# --sequence_end     : none         : [int] none
+# --target_group     : global         : [str] tissue, group, age, global, perturbation
+# --target_type      : mean           : [str] mean, max
+# --target_explode   : false          : [str] true, false
+# --target_filter    : none           : [str] none
+# --model_arch       : zrimec         : [str] zrimec, washburn
+# --model_mode       : regression     : [str] regression, classification
+# --model_epochs     : 500            : [int] ...
+# --tuner_concurrent : 5              : [int] ...
+# --tuner_trials     : 250            : [int] ...
+# --tuner_grace      : 10             : [int] ...
+# --param_share      : false          : [str] true, false
+# --filter_id        : 0              : [int] ...
+# --generator        : group          : [str] stratified, group, random
+# --features         : true           : [str] true, false
+# --sequence_start   : none           : [int] none
+# --sequence_end     : none           : [int] none
 
 # Run script
 python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp06-tuner-model.py \
@@ -51,14 +51,14 @@ python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp06-tuner-model.py
 --target_type mean \
 --target_explode false \
 --target_filter none \
---model_name washburn2019 \
---model_type r \
+--model_arch washburn \
+--model_mode regression \
 --model_epochs 25 \
 --tuner_concurrent 5 \
 --tuner_trials 500 \
 --tuner_grace 10 \
 --param_share false \
---filter_id 0 \
+--filter_id 2 \
 --generator group \
 --features true \
 --sequence_start none \

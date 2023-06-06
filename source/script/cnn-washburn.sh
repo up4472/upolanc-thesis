@@ -42,7 +42,7 @@ fi
 # --sequence_end   : none           : [int] none
 
 # Run script
-python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp08-washburn.py \
+python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp08-cnn.py \
 --target_group global \
 --target_type mean \
 --target_explode false \
@@ -50,7 +50,7 @@ python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp08-washburn.py \
 --model_epochs 500 \
 --model_params 0 \
 --model_mode regression \
---filter_id 0 \
+--filter_id 2 \
 --generator group \
 --features true \
 --sequence_start none \

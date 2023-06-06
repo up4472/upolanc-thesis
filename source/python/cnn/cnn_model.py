@@ -1,4 +1,5 @@
 from torch                    import Tensor
+from torch.nn                 import BCELoss
 from torch.nn                 import Conv1d
 from torch.nn                 import Conv2d
 from torch.nn                 import CrossEntropyLoss
@@ -35,6 +36,7 @@ import torch
 from source.python.cnn.metric import Metric_Accuracy
 from source.python.cnn.metric import Metric_AP
 from source.python.cnn.metric import Metric_AUROC
+from source.python.cnn.metric import Metric_Confusion
 from source.python.cnn.metric import Metric_KL
 from source.python.cnn.metric import Metric_F1
 from source.python.cnn.metric import Metric_Jaccardi
@@ -160,6 +162,10 @@ def get_model_trainers (model : Module, config : Dict[str, Any], epochs : int) -
 		if isinstance(model, (Zrimec2020r, Washburn2019r)) :
 			config['criterion/name'] = 'mse'
 
+	elif config['criterion/name'] == 'bce' :
+		if isinstance(model, (Zrimec2020r, Washburn2019r)) :
+			config['criterion/name'] = 'mse'
+
 	criterion = get_criterion(
 		query     = config['criterion/name'],
 		reduction = config['criterion/reduction'],
@@ -196,11 +202,13 @@ def get_criterion (query : str, reduction : str = 'mean', weights : Union[numpy.
 	if   query == 'accuracy'   : callable_criterion = Metric_Accuracy
 	elif query == 'ap'         : callable_criterion = Metric_AP
 	elif query == 'auroc'      : callable_criterion = Metric_AUROC
-	elif query == 'kl'         : callable_criterion = Metric_KL
+	elif query == 'bce'        : callable_criterion = BCELoss
+	elif query == 'confusion'  : callable_criterion = Metric_Confusion
 	elif query == 'entropy'    : callable_criterion = CrossEntropyLoss
 	elif query == 'f1'         : callable_criterion = Metric_F1
 	elif query == 'huber'      : callable_criterion = HuberLoss
 	elif query == 'jaccardi'   : callable_criterion = Metric_Jaccardi
+	elif query == 'kl'         : callable_criterion = Metric_KL
 	elif query == 'mae'        : callable_criterion = L1Loss
 	elif query == 'mape'       : callable_criterion = Metric_MAPE
 	elif query == 'matthews'   : callable_criterion = Metric_Matthews
@@ -208,8 +216,8 @@ def get_criterion (query : str, reduction : str = 'mean', weights : Union[numpy.
 	elif query == 'nll'        : callable_criterion = NLLLoss
 	elif query == 'pearson'    : callable_criterion = Metric_Pearson
 	elif query == 'r2'         : callable_criterion = Metric_R2
+	elif query == 'smae'       : callable_criterion = SmoothL1Loss
 	elif query == 'smape'      : callable_criterion = Metric_SMAPE
-	elif query == 'smooth-mae' : callable_criterion = SmoothL1Loss
 	elif query == 'spearman'   : callable_criterion = Metric_Spearman
 	elif query == 'wmape'      : callable_criterion = Metric_WMAPE
 	else : raise ValueError()

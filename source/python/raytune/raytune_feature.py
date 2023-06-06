@@ -39,7 +39,7 @@ def update_core_config (tune_config : Dict[str, Any], core_config : Dict[str, An
 	core_config['model/output/filter']  = output_filter
 	core_config['model/output/explode'] = output_explode
 
-	core_config['model/type'] = tune_config['gs/model']
+	core_config['model/name'] = tune_config['gs/model']
 
 	return core_config
 

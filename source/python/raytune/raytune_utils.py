@@ -97,7 +97,7 @@ def create_run_config (config : Dict[str, Any], local_dir : str = None, verbosit
 	pcolumns = None
 	mcolumns = None
 
-	if config['model/type'].endswith('r') :
+	if config['model/mode'] == 'regression' :
 		mcolumns = [
 			'train_loss', 'train_r2', 'train_mae',
 			'valid_loss', 'valid_r2', 'valid_mae'
@@ -107,7 +107,7 @@ def create_run_config (config : Dict[str, Any], local_dir : str = None, verbosit
 		elif task == 'data'    : pcolumns = ['boxcox/lambda']
 		elif task == 'feature' : pcolumns = ['dataset/batch_size', 'optimizer/name', 'scheduler/name']
 
-	elif config['model/type'].endswith('c') :
+	elif config['model/mode'] == 'classification' :
 		mcolumns = [
 			'train_loss', 'train_accuracy', 'train_auroc', 'train_f1', 'train_matthews',
 			'valid_loss', 'valid_accuracy', 'valid_auroc', 'valid_f1', 'valid_matthews'

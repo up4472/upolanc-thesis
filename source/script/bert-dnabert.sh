@@ -31,19 +31,19 @@ fi
 export DATA_KMER=6
 export DATA_TARGET=global-mean
 export DATA_SEQUENCE=promoter-512
-export DATA_FILTER=filter0
+export DATA_FILTER=filter2
 export BERT_TYPE=def
 
 export PATH_ROOT=/d/hpc/home/up4472/workspace/upolanc-thesis
 export PATH_BERT=$PATH_ROOT/resources/dnabert/$DATA_KMER-new-12w-0
 export PATH_DATA=$PATH_ROOT/output/nbp05-target/$DATA_FILTER/dnabert-$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
-export PATH_OUTS=$PATH_ROOT/output/nbp10-dnabert/$DATA_FILTER/out/$BERT_TYPE/$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
-export PATH_TEMP=$PATH_ROOT/output/nbp10-dnabert/$DATA_FILTER/tmp/$BERT_TYPE/$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
+export PATH_OUTS=$PATH_ROOT/output/nbp12-dnabert/$DATA_FILTER/out/$BERT_TYPE/$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
+export PATH_TEMP=$PATH_ROOT/output/nbp12-dnabert/$DATA_FILTER/tmp/$BERT_TYPE/$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
 
 export NAME_MODEL=rbertfc3_$BERT_TYPE
 export NAME_TOKEN=dna$DATA_KMER
 
-python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp10-dnabert.py \
+python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp12-dnabert.py \
 --model_type "$NAME_MODEL" \
 --tokenizer_name "$NAME_TOKEN" \
 --model_name_or_path "$PATH_BERT" \

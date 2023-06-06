@@ -50,7 +50,7 @@ def get_model_params (core_config : Dict[str, Any], tune_config : Dict[str, Any]
 	tune_config['model/conv3/padding']  = tune_config['model/convx/padding']
 	tune_config['model/conv3/dilation'] = tune_config['model/convx/dilation']
 
-	if core_config['model/type'].startswith('washburn2019') :
+	if core_config['model/name'].startswith('washburn') :
 		tune_config['model/conv4/filters']  = tune_config['model/convx/filters']
 		tune_config['model/conv4/kernel']   = tune_config['model/convx/kernel']
 		tune_config['model/conv4/padding']  = tune_config['model/convx/padding']
@@ -80,7 +80,7 @@ def get_model_params (core_config : Dict[str, Any], tune_config : Dict[str, Any]
 
 	return tune_config, core_config
 
-def get_model (core_config : Dict[str, Any], tune_config : Dict[str, Any], params_share : bool = False) -> Module :
+def get_model (core_config : Dict[str, Any], tune_config : Dict[str, Any], params_share : bool = False, binary : bool = True) -> Module :
 	"""
 	Doc
 	"""
@@ -91,49 +91,57 @@ def get_model (core_config : Dict[str, Any], tune_config : Dict[str, Any], param
 		params_share = params_share
 	)
 
-	if core_config['model/type'] == 'zrimec2020r' :
-		model = Zrimec2020r(params = tune_config | {
-			'model/input/channels' : core_config['model/input/channels'],
-			'model/input/height'   : core_config['model/input/height'],
-			'model/input/width'    : core_config['model/input/width'],
-			'model/input/features' : core_config['model/input/features'],
-			'model/fc3/features'   : core_config['model/output/size'],
-			'model/features'       : core_config['model/features']
-		})
+	if core_config['model/name'] == 'zrimec' :
+		if core_config['model/mode'] == 'regression' :
+			model = Zrimec2020r(params = tune_config | {
+				'model/input/channels' : core_config['model/input/channels'],
+				'model/input/height'   : core_config['model/input/height'],
+				'model/input/width'    : core_config['model/input/width'],
+				'model/input/features' : core_config['model/input/features'],
+				'model/fc3/features'   : core_config['model/output/size'],
+				'model/features'       : core_config['model/features']
+			})
 
-	elif core_config['model/type'] == 'zrimec2020c' :
-		model = Zrimec2020c(params = tune_config | {
-			'model/input/channels' : core_config['model/input/channels'],
-			'model/input/height'   : core_config['model/input/height'],
-			'model/input/width'    : core_config['model/input/width'],
-			'model/input/features' : core_config['model/input/features'],
-			'model/fc3/features'   : core_config['model/output/size'],
-			'model/fc3/heads'      : core_config['model/output/heads'],
-			'model/features'       : core_config['model/features']
-		})
+		elif core_config['model/mode'] == 'classification' :
+			model = Zrimec2020c(params = tune_config | {
+				'model/input/channels' : core_config['model/input/channels'],
+				'model/input/height'   : core_config['model/input/height'],
+				'model/input/width'    : core_config['model/input/width'],
+				'model/input/features' : core_config['model/input/features'],
+				'model/fc3/features'   : core_config['model/output/size'],
+				'model/fc3/heads'      : core_config['model/output/heads'],
+				'model/features'       : core_config['model/features']
+			}, binary = binary)
 
-	elif core_config['model/type'] == 'washburn2019r' :
-		model = Washburn2019r(params = tune_config | {
-			'model/input/channels' : core_config['model/input/channels'],
-			'model/input/height'   : core_config['model/input/height'],
-			'model/input/width'    : core_config['model/input/width'],
-			'model/input/features' : core_config['model/input/features'],
-			'model/fc3/features'   : core_config['model/output/size'],
-			'model/features'       : core_config['model/features']
-		})
+		else :
+			raise ValueError()
 
-	elif core_config['model/type'] == 'washburn2019c' :
-		model = Washburn2019c(params = tune_config | {
-			'model/input/channels' : core_config['model/input/channels'],
-			'model/input/height'   : core_config['model/input/height'],
-			'model/input/width'    : core_config['model/input/width'],
-			'model/input/features' : core_config['model/input/features'],
-			'model/fc3/features'   : core_config['model/output/size'],
-			'model/fc3/heads'      : core_config['model/output/heads'],
-			'model/features'       : core_config['model/features']
-		})
+	elif core_config['model/name'] == 'washburn' :
+		if core_config['model/mode'] == 'regression' :
+			model = Washburn2019r(params = tune_config | {
+				'model/input/channels' : core_config['model/input/channels'],
+				'model/input/height'   : core_config['model/input/height'],
+				'model/input/width'    : core_config['model/input/width'],
+				'model/input/features' : core_config['model/input/features'],
+				'model/fc3/features'   : core_config['model/output/size'],
+				'model/features'       : core_config['model/features']
+			})
 
-	elif core_config['model/type'] == 'densefc2' :
+		elif core_config['model/mode'] == 'classification' :
+			model = Washburn2019c(params = tune_config | {
+				'model/input/channels' : core_config['model/input/channels'],
+				'model/input/height'   : core_config['model/input/height'],
+				'model/input/width'    : core_config['model/input/width'],
+				'model/input/features' : core_config['model/input/features'],
+				'model/fc3/features'   : core_config['model/output/size'],
+				'model/fc3/heads'      : core_config['model/output/heads'],
+				'model/features'       : core_config['model/features']
+			}, binary = binary)
+
+		else :
+			raise ValueError()
+
+	elif core_config['model/name'] == 'densefc2' :
 		model = DenseFC2(
 			input_size  = core_config['model/input/features'],
 			output_size = core_config['model/output/size'],
@@ -144,7 +152,7 @@ def get_model (core_config : Dict[str, Any], tune_config : Dict[str, Any], param
 			leaky_relu = tune_config['model/leakyrelu']
 		)
 
-	elif core_config['model/type'] == 'densefc3' :
+	elif core_config['model/name'] == 'densefc3' :
 		model = DenseFC3(
 			input_size  = core_config['model/input/features'],
 			output_size = core_config['model/output/size'],
@@ -203,19 +211,23 @@ def get_metrics (config : Dict[str, Any], n_classes : int = 3) -> Dict[str, Modu
 
 	if config['model/mode'] == 'regression' :
 		metrics = {
-			'r2'    : get_criterion(reduction = 'mean', weights = None, query = 'r2', output_size = config['model/output/size']),
-			'mae'   : get_criterion(reduction = 'mean', weights = None, query = 'mae'),
-			'mape'  : get_criterion(reduction = 'mean', weights = None, query = 'mape'),
-			'wmape' : get_criterion(reduction = 'mean', weights = None, query = 'wmape')
+			'mse'   : get_criterion(reduction = 'none', weights = None, query = 'mse'),
+			'mae'   : get_criterion(reduction = 'none', weights = None, query = 'mae'),
+			'smae'  : get_criterion(reduction = 'none', weights = None, query = 'smae'),
+			'mape'  : get_criterion(reduction = 'none', weights = None, query = 'mape',  output_size = config['model/output/size']),
+			'wmape' : get_criterion(reduction = 'none', weights = None, query = 'wmape', output_size = config['model/output/size']),
+			'r2'    : get_criterion(reduction = 'none', weights = None, query = 'r2',    output_size = config['model/output/size']),
 		}
 
 	if config['model/mode'] == 'classification' :
 		metrics = {
-			'entropy'  : get_criterion(reduction = 'mean', weights = None, query = 'entropy'),
-			'accuracy' : get_criterion(reduction = 'mean', weights = None, query = 'accuracy', n_classes = n_classes),
-			'auroc'    : get_criterion(reduction = 'mean', weights = None, query = 'auroc',    n_classes = n_classes),
-			'f1'       : get_criterion(reduction = 'mean', weights = None, query = 'f1',       n_classes = n_classes),
-			'matthews' : get_criterion(reduction = 'mean', weights = None, query = 'matthews', n_classes = n_classes)
+			'entropy'   : get_criterion(reduction = 'none', weights = None, query = 'entropy'),
+			'accuracy'  : get_criterion(reduction = 'none', weights = None, query = 'accuracy',  task = 'multiclass', n_classes = n_classes),
+			'auroc'     : get_criterion(reduction = 'none', weights = None, query = 'auroc',     task = 'multiclass', n_classes = n_classes),
+			'confusion' : get_criterion(reduction = 'none', weights = None, query = 'confusion', task = 'multiclass', n_classes = n_classes),
+			'f1'        : get_criterion(reduction = 'none', weights = None, query = 'f1',        task = 'multiclass', n_classes = n_classes),
+			'jaccardi'  : get_criterion(reduction = 'none', weights = None, query = 'jaccardi',  task = 'multiclass', n_classes = n_classes),
+			'matthews'  : get_criterion(reduction = 'none', weights = None, query = 'matthews',  task = 'multiclass', n_classes = n_classes)
 		}
 
 	return {

@@ -45,7 +45,7 @@ def display_regression_predictions (report : Dict[str, Any], n : int = 5) -> Non
 		print(f'  R2 : [' + '   '.join('{: .5f}'.format(x) for x in r2)  + ']')
 		print()
 
-def display_classification_predictions (report : Dict[str, Any], n : int = 5) -> None :
+def display_classification_predictions (report : Dict[str, Any], n : int = 5, binary : bool = True) -> None :
 	"""
 	Doc
 	"""
@@ -73,13 +73,16 @@ def display_classification_predictions (report : Dict[str, Any], n : int = 5) ->
 
 		if len(item) == 5 :
 			ytrue = item[3]
-			ypred = item[4].argmax(axis = 0)
+			ypred = item[4]
 
-			print(f'    True : [' + ' '.join('{:}'.format(x) for x in ytrue) + ']')
-			print(f'    Pred : [' + ' '.join('{:}'.format(x) for x in ypred) + ']')
+			if not binary :
+				ypred = ypred.argmax(axis = 0)
 
-		print(f' Entropy : [' + '   '.join('{:.5f}'.format(x) for x in entropy)  + ']')
-		print(f'Accuracy : [' + '   '.join('{:.5f}'.format(x) for x in accuracy) + ']')
+			print(f'    True : [' + ' '.join('{: .5f}'.format(x) for x in ytrue) + ']')
+			print(f'    Pred : [' + ' '.join('{: .5f}'.format(x) for x in ypred) + ']')
+
+		print(f' Entropy : [' + '   '.join('{: .5f}'.format(x) for x in entropy)  + ']')
+		print(f'Accuracy : [' + '   '.join('{: .5f}'.format(x) for x in accuracy) + ']')
 		print()
 
 def display_regression_accuracy (report : Dict[str, Any], order : List[str], threshold : Dict[str, numpy.ndarray]) -> DataFrame :

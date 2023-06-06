@@ -41,5 +41,5 @@ python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp06-tuner-feature.
 --tuner_trials 1000 \
 --tuner_grace 25 \
 --model_epochs 50 \
---filter_id 0 \
+--filter_id 2 \
 --generator group

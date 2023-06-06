@@ -249,23 +249,27 @@ def get_model_params (config : Dict[str, Any]) -> List[Dict[str, Any]] :
 	folder = config['params/filepath']
 	params = [{}]
 
-	if config['model/type'].startswith('zrimec2020') :
-		if 'params/zrimec2020' not in CACHE.keys() :
-			filename = os.path.join(folder, 'zrimec2020.json')
+	if config['model/name'].startswith('zrimec') :
+		if 'params/zrimec' not in CACHE.keys() :
+			filename = os.path.join(folder, 'zrimec.json')
 
 			if os.path.exists(filename) :
-				CACHE['params/zrimec2020'] = load_json(filename = filename)
+				CACHE['params/zrimec'] = load_json(filename = filename)
+			else :
+				CACHE['params/zrimec'] = None
 
-		params = CACHE['params/zrimec2020']
+		params = CACHE['params/zrimec']
 
-	if config['model/type'].startswith('washburn2019') :
-		if 'params/washburn2019' not in CACHE.keys() :
-			filename = os.path.join(folder, 'washburn2019.json')
+	if config['model/name'].startswith('washburn') :
+		if 'params/washburn' not in CACHE.keys() :
+			filename = os.path.join(folder, 'washburn.json')
 
 			if os.path.exists(filename) :
-				CACHE['params/washburn2019'] = load_json(filename = filename)
+				CACHE['params/washburn'] = load_json(filename = filename)
+			else :
+				CACHE['params/washburn'] = None
 
-		params = CACHE['params/washburn2019']
+		params = CACHE['params/washburn']
 
 	return params
 
@@ -287,9 +291,14 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 
 	data = data[:, list(feature.keys())].copy()
 
-	core_config['params/tuner'] = get_model_params(
+	params = get_model_params(
 		config = core_config
-	)[0]
+	)
+
+	if params is None :
+		raise ValueError()
+
+	core_config['params/tuner'] = params[0]
 
 	cached = get_targets(
 		core_config = core_config,
