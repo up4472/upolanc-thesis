@@ -1,8 +1,9 @@
-from torch        import Tensor
-from torch.nn     import Module
-from torchmetrics import SymmetricMeanAbsolutePercentageError
+from torch    import Tensor
+from torch.nn import Module
 
 import torch
+
+from source.python.cnn.metric.regression.metric_functional import compute_smape
 
 class Metric_SMAPE (Module) :
 
@@ -13,7 +14,8 @@ class Metric_SMAPE (Module) :
 
 		super(Metric_SMAPE, self).__init__()
 
-		self.module = SymmetricMeanAbsolutePercentageError()
+		self.reduction = reduction.lower()
+		self.eps       = 1e-7
 
 	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor :
 		"""
@@ -24,4 +26,14 @@ class Metric_SMAPE (Module) :
 			inputs = torch.flatten(inputs)
 			labels = torch.flatten(labels)
 
-		return self.module(inputs, labels)
+		p = compute_smape(
+			inputs = inputs,
+			labels = labels,
+			eps    = self.eps
+		)
+
+		if   self.reduction == 'mean' : return torch.mean(p)
+		elif self.reduction == 'sum'  : return torch.sum(p)
+		elif self.reduction == 'none' : return p
+
+		raise ValueError()

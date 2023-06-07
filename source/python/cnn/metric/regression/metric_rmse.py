@@ -1,9 +1,10 @@
-from torch        import Tensor
-from torch.nn     import Module
-from torchmetrics import MeanSquaredError
-from torchmetrics import MeanAbsolutePercentageError
+from torch    import Tensor
+from torch.nn import Module
+from torch.nn import MSELoss
 
 import torch
+
+from source.python.cnn.metric.regression.metric_functional import compute_mape
 
 class Metric_Corrected_RMSE (Module) :
 
@@ -14,13 +15,11 @@ class Metric_Corrected_RMSE (Module) :
 
 		super(Metric_Corrected_RMSE, self).__init__()
 
-		if reduction.lower() != 'mean' :
-			raise ValueError()
-
-		self.module_se = MeanSquaredError(squared = False)
-		self.module_pe = MeanAbsolutePercentageError()
-
+		self.reduction = reduction.lower()
 		self.threshold = threshold
+		self.eps       = 1e-7
+
+		self.module = MSELoss(reduction = 'none')
 
 	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor :
 		"""
@@ -31,9 +30,20 @@ class Metric_Corrected_RMSE (Module) :
 			inputs = torch.flatten(inputs)
 			labels = torch.flatten(labels)
 
-		score_se = self.module_se(inputs, labels)
-		score_pe = self.module_pe(inputs, labels)
+		x = self.module(inputs, labels)
 
-		score = torch.where(score_pe > self.threshold, score_se, 0.0)
+		y = compute_mape(
+			inputs = inputs,
+			labels = labels,
+			eps    = self.eps
+		)
 
-		return score
+		x = torch.sqrt(input = x)
+
+		score = torch.where(y > self.threshold, x, 0.0)
+
+		if   self.reduction == 'mean' : return torch.mean(score)
+		elif self.reduction == 'sum'  : return torch.sum(score)
+		elif self.reduction == 'none' : return score
+
+		raise ValueError()

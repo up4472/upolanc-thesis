@@ -27,7 +27,8 @@ class Metric_Spearman (Module) :
 
 		score = self.module(inputs, labels)
 
-		if self.reduction == 'mean' :
-			score = torch.mean(score)
+		if   self.reduction == 'mean' : return torch.mean(score)
+		elif self.reduction == 'sum'  : return torch.sum(score)
+		elif self.reduction == 'none' : return score
 
-		return score
+		raise ValueError()

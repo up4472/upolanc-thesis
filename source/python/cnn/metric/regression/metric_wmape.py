@@ -1,8 +1,9 @@
-from torch        import Tensor
-from torch.nn     import Module
-from torchmetrics import WeightedMeanAbsolutePercentageError
+from torch    import Tensor
+from torch.nn import Module
 
 import torch
+
+from source.python.cnn.metric.regression.metric_functional import compute_wmape
 
 class Metric_WMAPE (Module) :
 
@@ -13,7 +14,8 @@ class Metric_WMAPE (Module) :
 
 		super(Metric_WMAPE, self).__init__()
 
-		self.module = WeightedMeanAbsolutePercentageError()
+		self.reduction = reduction.lower()
+		self.eps       = 1e-7
 
 	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor :
 		"""
@@ -24,4 +26,15 @@ class Metric_WMAPE (Module) :
 			inputs = torch.flatten(inputs)
 			labels = torch.flatten(labels)
 
-		return self.module(inputs, labels)
+		p = compute_wmape(
+			inputs = inputs,
+			labels = labels,
+			eps    = self.eps
+		)
+
+		if   self.reduction == 'mean' : return torch.mean(p)
+		elif self.reduction == 'sum'  : return torch.sum(p)
+		elif self.reduction == 'none' : return p
+
+		raise ValueError()
+
