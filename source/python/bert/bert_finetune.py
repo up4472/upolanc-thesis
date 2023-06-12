@@ -394,70 +394,66 @@ def predict (args : Any, model : Module, tokenizer : Any, prefix : str = '', use
 
 		return result
 
-def extract (args : Any, model : Module, tokenizer : Any, prefix : str = '', should_evaluate : bool = False) -> None :
+def extract (args : Any, model : Module, dataset : TensorDataset, mode : str = 'train') -> None :
 	"""
 	Doc
 	"""
 
+	dataloader = get_dataloader(
+		dataset    = dataset,
+		mode       = mode,
+		local_rank = args.local_rank,
+		batch_size = args.per_gpu_train_batch_size * max(1, args.n_gpu)
+	)
+
+	optimizer = get_optimizer(
+		model = model,
+		args  = args
+	)
+
+	scheduler = get_scheduler(
+		optimizer  = optimizer,
+		dataloader = dataloader,
+		args       = args
+	)
+
+	can_load_optimizer = os.path.isfile(os.path.join(args.model_name_or_path, 'optimizer.pt'))
+	can_load_scheduler = os.path.isfile(os.path.join(args.model_name_or_path, 'scheduler.pt'))
+
+	if can_load_optimizer and can_load_scheduler :
+		optimizer.load_state_dict(torch.load(os.path.join(args.model_name_or_path, 'optimizer.pt')))
+		scheduler.load_state_dict(torch.load(os.path.join(args.model_name_or_path, 'scheduler.pt')))
+
+	model = prepare_train_model(
+		model     = model,
+		optimizer = optimizer,
+		args      = args
+	)
+
 	#
-	# Loop to handle MNLI double evaluation (matched, mis-matched)
+	# Start extraction
 	#
 
-	task_names  = (args.task_name,)
-	output_dirs = (args.output_dir,)
+	logger.info('***** Running extraction {} *****'.format(mode))
 
-	if not os.path.exists(args.output_dir) :
-		os.makedirs(args.output_dir)
+	for index, batch in enumerate(tqdm(dataloader, desc = 'Extracting', disable = True)) :
+		model.eval()
 
-	for task_name, output_dir in zip(task_names, output_dirs) :
-		dataset = load_and_cache_examples(
-			args            = args,
-			task            = task_name,
-			tokenizer       = tokenizer,
-			should_evaluate = should_evaluate,
-			use_features    = False
-		)
+		with torch.no_grad() :
+			inputs = prepare_bert_inputs(
+				model_type = args.model_type,
+				batch      = tuple(t.to(args.device) for t in batch)
+			)
 
-		if not os.path.exists(output_dir) and args.local_rank in [-1, 0] :
-			os.makedirs(output_dir)
+			outputs = model(**inputs)
 
-		dataloader = get_dataloader(
-			dataset    = dataset,
-			mode       = 'extract',
-			local_rank = args.local_rank,
-			batch_size = args.extract_batch_size
-		)
-
-		model = prepare_eval_model(
-			model = model,
-			args  = args
-		)
-
-		#
-		# Start extraction
-		#
-
-		logger.info('***** Running extraction {} *****'.format(prefix))
-
-		for batch in tqdm(dataloader, desc = 'Extracting', disable = True) :
-			model.eval()
-			batch = tuple(t.to(args.device) for t in batch)
-
-			with torch.no_grad() :
-				inputs = prepare_bert_inputs(
-					model_type = args.model_type,
-					batch      = batch
-				)
-
-				outputs = model(**inputs)
-
-				process_extraction_result(
-					inputs         = batch,
-					outputs        = outputs,
-					directory      = output_dir,
-					mode           = 'append',
-					should_evalute = should_evaluate
-				)
+			process_extraction_result(
+				inputs      = inputs,
+				outputs     = outputs,
+				batch_index = index,
+				directory   = args.output_dir,
+				mode        = mode
+			)
 
 def visualize (args : Any, model : Module, tokenizer : Any, kmer : int, prefix : str = '', use_features : bool = False) :
 	"""

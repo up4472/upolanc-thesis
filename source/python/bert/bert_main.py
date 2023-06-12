@@ -329,7 +329,7 @@ def bert_predict (args : Any, model_cls : Any, tokenizer_cls : Any, logger : Opt
 
 	return model, tokenizer, results
 
-def bert_extract (args : Any, model_cls : Any, tokenizer_cls : Any, logger : Optional[Any]) -> None :
+def bert_extract (args : Any, model : Module, tokenizer : Any, use_features : bool = False) -> None :
 	"""
 	Doc
 	"""
@@ -337,31 +337,30 @@ def bert_extract (args : Any, model_cls : Any, tokenizer_cls : Any, logger : Opt
 	if not (args.do_extract and args.local_rank in [-1, 0]) :
 		return
 
-	tokenizer = tokenizer_cls.from_pretrained(
-		args.output_dir,
-		do_lower_case = args.do_lower_case
-	)
-
-	if logger is not None :
-		logger.info('Extracting using the following checkpoint: %s', args.output_dir)
-
-	model = model_cls.from_pretrained(args.output_dir)
-	model.to(args.device)
-
 	extract(
-		args            = args,
-		model           = model,
-		tokenizer       = tokenizer,
-		prefix          = 'on [train] dataset',
-		should_evaluate = False
+		args    = args,
+		model   = model,
+		mode    = 'train',
+		dataset = load_and_cache_examples(
+			args            = args,
+			task            = args.task_name,
+			tokenizer       = tokenizer,
+			should_evaluate = False,
+			use_features    = use_features
+		)
 	)
 
 	extract(
-		args            = args,
-		model           = model,
-		tokenizer       = tokenizer,
-		prefix          = 'on [dev] dataset',
-		should_evaluate = True
+		args    = args,
+		model   = model,
+		mode    = 'dev',
+		dataset = load_and_cache_examples(
+			args            = args,
+			task            = args.task_name,
+			tokenizer       = tokenizer,
+			should_evaluate = True,
+			use_features    = use_features
+		)
 	)
 
 def bert_visualize (args : Any, model_cls : Any, tokenizer_cls : Any, config_cls : Any, num_labels : int, logger : Optional[Any], use_features : bool = False) -> None :

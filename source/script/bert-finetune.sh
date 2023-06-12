@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name=bert-dnabert-def
-#SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/dnabert-%j.out
-#SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/dnabert-%j.err
+#SBATCH --job-name=bert-finetune
+#SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/bert-finetune-%j.out
+#SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/bert-finetune-%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --partition=gpu
@@ -27,23 +27,28 @@ if [[ ":$PATH:" != *":$ROOT:"* ]]; then
 	export PATH="$PATH:$ROOT"
 fi
 
+# KMER     : 3, 6
+# TARGET   : global-mean, tissue-mean-explode, tissue-mean-seedling, group-mean-explode
+# SEQUENCE : promoter-512, promoter-4096, promoter-utr5-4096, transcript-2150
+# FILTER   : filter1, filter2, filter3, filter4, filter5
+# MODELS   : febert, rbertfc1, rbertfc3, rbertfc3_def, rbertfc3_rnn, rbertfc3_cat
+
 # Run script
-export DATA_KMER=6
+export DATA_KMER=3
 export DATA_TARGET=global-mean
 export DATA_SEQUENCE=promoter-512
 export DATA_FILTER=filter2
-export BERT_TYPE=def
+
+export NAME_MODEL=rbertfc3_def
+export NAME_TOKEN=dna$DATA_KMER
 
 export PATH_ROOT=/d/hpc/home/up4472/workspace/upolanc-thesis
 export PATH_BERT=$PATH_ROOT/resources/dnabert/$DATA_KMER-new-12w-0
 export PATH_DATA=$PATH_ROOT/output/nbp05-target/$DATA_FILTER/dnabert-$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
-export PATH_OUTS=$PATH_ROOT/output/nbp12-dnabert/$DATA_FILTER/out/$BERT_TYPE/$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
-export PATH_TEMP=$PATH_ROOT/output/nbp12-dnabert/$DATA_FILTER/tmp/$BERT_TYPE/$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
+export PATH_OUTS=$PATH_ROOT/output/nbp12-bert/$DATA_FILTER/out/$NAME_MODEL/$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
+export PATH_TEMP=$PATH_ROOT/output/nbp12-bert/$DATA_FILTER/tmp/$NAME_MODEL/$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
 
-export NAME_MODEL=rbertfc3_$BERT_TYPE
-export NAME_TOKEN=dna$DATA_KMER
-
-python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp12-dnabert.py \
+python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp12-bert.py \
 --model_type "$NAME_MODEL" \
 --tokenizer_name "$NAME_TOKEN" \
 --model_name_or_path "$PATH_BERT" \
