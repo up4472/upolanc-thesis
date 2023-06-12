@@ -30,15 +30,17 @@ from source.python.runtime                        import lock_random
 
 CACHE = {
 	'nbp04/sequence/lengths' : {
-		'prom_full' : [int(1000), int(500)],
-		'prom'      :  int(1000),
-		'utr5'      :  int( 300),
-		'cds'       :  int(9999),
-		'utr3'      :  int( 350),
-		'term'      :  int( 500),
-		'term_full' : [int( 500), int(500)]
+		'prom_utr5' : [int( 5000), int(  0)],
+		'prom_full' : [int( 5000), int(  0)],
+		'prom'      :  int( 1000),
+		'utr5'      :  int(  300),
+		'cds'       :  int(10000),
+		'utr3'      :  int(  350),
+		'term'      :  int(  500),
+		'term_full' : [int(    0), int(500)]
 	},
 	'nbp04/sequence/padding' : {
+		'prom_utr5' : 'left',
 		'prom_full' : 'left',
 		'prom'      : 'left',
 		'utr5'      : 'left',
@@ -96,6 +98,25 @@ def get_sequences_and_features (core_config : Dict[str, Any], prom_length : int 
 				low_memory = False
 			)
 		)
+
+		regions['UTR_Min'] = regions[['Start', 'End']].min(axis = 1)
+		regions['UTR_Max'] = regions[['Start', 'End']].max(axis = 1)
+
+		regions.drop(columns = ['Start', 'End'])
+
+		regions['CDS_Min'] = regions['CDS'].apply(lambda x : numpy.min(x) - 1)
+		regions['CDS_Max'] = regions['CDS'].apply(lambda x : numpy.max(x) - 1)
+
+		regions['Prom_UTR5'] = None
+
+		posx = lambda x : max(x - CACHE['nbp04/sequence/lengths']['prom_utr5'][0], 1)
+		posy = lambda x :     x + CACHE['nbp04/sequence/lengths']['prom_utr5'][1]
+
+		negx = lambda x : max(x - CACHE['nbp04/sequence/lengths']['prom_utr5'][1], 1)
+		negy = lambda x :     x + CACHE['nbp04/sequence/lengths']['prom_utr5'][0]
+
+		regions.loc[regions['Strand'] == '+', 'Prom_UTR5'] = regions[regions['Strand'] == '+']['CDS_Min'].apply(lambda x : [[posx(x), posy(x)]])
+		regions.loc[regions['Strand'] == '-', 'Prom_UTR5'] = regions[regions['Strand'] == '-']['CDS_Max'].apply(lambda x : [[negx(x), negy(x)]])
 
 		sequences, features = regions_to_features(
 			dataframe = regions,
@@ -295,10 +316,8 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 		config = core_config
 	)
 
-	if params is None :
-		raise ValueError()
-
-	core_config['params/tuner'] = params[0]
+	if params is not None : core_config['params/tuner'] = params
+	else                  : core_config['params/tuner'] = None
 
 	cached = get_targets(
 		core_config = core_config,

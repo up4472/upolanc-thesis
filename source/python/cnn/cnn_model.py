@@ -169,8 +169,6 @@ def get_model_trainers (model : Module, config : Dict[str, Any], epochs : int) -
 	if config['criterion/name'].startswith('corrected-') :
 		if 'criterion/threshold' in config.keys() :
 			criterion_args['threshold'] = config['criterion/threshold']
-		else :
-			criterion_args['threshold'] = 0.0
 
 	criterion = get_criterion(
 		**criterion_args

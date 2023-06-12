@@ -8,7 +8,7 @@ from source.python.cnn.metric.regression.metric_functional import compute_mape
 
 class Metric_Corrected_MSE (Module) :
 
-	def __init__ (self, reduction : str = 'mean', threshold : float = 0.0, **kwargs) -> None : # noqa : unused argument **kwargs
+	def __init__ (self, reduction : str = 'mean', threshold : float = 0.15, **kwargs) -> None : # noqa : unused argument **kwargs
 		"""
 		Doc
 		"""

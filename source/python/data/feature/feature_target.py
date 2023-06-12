@@ -292,12 +292,12 @@ def compute_gridsize (n : int) -> Tuple[int, int, int] :
 
 	return n, nrows, ncols
 
-def distribution_histplot (data : Dict[str, Dict], groupby : str, discrete : bool = False, draw_iqr : bool = False, draw_zscore : bool = False, factors : Dict[str, float] = None, filename : str = None) -> None :
+def distribution_histplot (data : List[Dict], names : List[str], groupby : str, discrete : bool = False, filename : str = None) -> None :
 	"""
 	Doc
 	"""
 
-	for gkey, group in data.items() :
+	for gkey, group in data[0].items() :
 		if groupby != gkey :
 			continue
 
@@ -311,64 +311,42 @@ def distribution_histplot (data : Dict[str, Dict], groupby : str, discrete : boo
 			'figsize' : (ncols * 16, nrows * 10)
 		}
 
-		if ncols > 1 :
-			_, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
-		else :
-			_, ax = matplotlib.pyplot.subplots(ncols, **kwargs)
+		if ncols > 1 : _, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
+		else         : _, ax = matplotlib.pyplot.subplots(       ncols, **kwargs)
 
-		for index, (tkey, array) in enumerate(group.items()) :
-			dataframe = DataFrame.from_dict({'Data' : array})
+		for index, tkey in enumerate(group.keys()) :
+			if   nrows == 1 and ncols == 1 : axis = ax
+			elif nrows == 1  or ncols == 1 : axis = ax[index]
+			else                           : axis = ax[index // ncols, index % ncols]
 
-			if nrows == 1 and ncols == 1 :
-				axis = ax
-			elif nrows == 1 or ncols == 1 :
-				axis = ax[index]
-			else :
-				axis = ax[index // ncols, index % ncols]
+			dictionary = {
+				'Value' : list(),
+				'Group' : list()
+			}
+
+			for i, x in enumerate(data) :
+				values = x[gkey][tkey]
+				groups = [names[i] for _ in values]
+
+				dictionary['Value'].extend(values)
+				dictionary['Group'].extend(groups)
 
 			seaborn.histplot(
-				x         = 'Data',
-				data      = dataframe,
-				ax        = axis,
-				color     = '#799FCB',
-				discrete  = discrete,
-				alpha     = 0.9,
+				x        = 'Value',
+				hue      = 'Group',
+				data     = DataFrame.from_dict(dictionary),
+				ax       = axis,
+				discrete = discrete,
+				alpha    = 0.65
 			)
-
-			if draw_iqr :
-				q1 = numpy.percentile(array, 25, method = 'midpoint')
-				q3 = numpy.percentile(array, 75, method = 'midpoint')
-
-				iqr = (q3 - q1)
-
-				lower = q1 - factors['factor-iqr'] * iqr
-				upper = q3 + factors['factor-iqr'] * iqr
-
-				axis.axvline(x = q1,    ymin = 0.01, ymax = 0.99, color = 'k', ls = '--', lw = 2, alpha = 0.3)
-				axis.axvline(x = q3,    ymin = 0.01, ymax = 0.99, color = 'k', ls = '--', lw = 2, alpha = 0.3)
-				axis.axvline(x = lower, ymin = 0.01, ymax = 0.99, color = 'b', ls = '--', lw = 2, alpha = 0.5)
-				axis.axvline(x = upper, ymin = 0.01, ymax = 0.99, color = 'b', ls = '--', lw = 2, alpha = 0.5)
-
-			if draw_zscore :
-				mean = numpy.mean(array)
-				std  = numpy.std(array)
-
-				lower = mean - factors['factor-zscore'] * std
-				upper = mean + factors['factor-zscore'] * std
-
-				axis.axvline(x = mean,  ymin = 0.01, ymax = 0.99, color = 'k', ls = '--', lw = 2, alpha = 0.3)
-				axis.axvline(x = lower, ymin = 0.01, ymax = 0.99, color = 'b', ls = '--', lw = 2, alpha = 0.5)
-				axis.axvline(x = upper, ymin = 0.01, ymax = 0.99, color = 'b', ls = '--', lw = 2, alpha = 0.5)
 
 			axis.set_title(tkey.title())
 			axis.set_xlabel('')
 			axis.set_ylabel('')
 
 		for index in range(n, nrows * ncols) :
-			if nrows == 1 or ncols == 1 :
-				axis = ax[index]
-			else :
-				axis = ax[index // ncols, index % ncols]
+			if nrows == 1 or ncols == 1 : axis = ax[index]
+			else                        : axis = ax[index // ncols, index % ncols]
 
 			axis.axis('off')
 

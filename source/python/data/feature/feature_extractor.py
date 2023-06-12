@@ -236,15 +236,15 @@ def regions_to_features (faidx : Fasta, dataframe : DataFrame, lengths : Dict[st
 	Doc
 	"""
 
-	LEN_PROM      = lengths['prom']
-	LEN_UTR5      = lengths['utr5']
-	LEN_UTR3      = lengths['utr3']
-	LEN_TERM      = lengths['term']
+	LEN_PROM = lengths['prom']
+	LEN_UTR5 = lengths['utr5']
+	LEN_UTR3 = lengths['utr3']
+	LEN_TERM = lengths['term']
 
 	dataframe = dataframe.copy(deep = True)
 	dataframe.reset_index(drop = True, inplace = True)
 
-	seqcols = ['Gene', 'Transcript', 'Prom_Full', 'Prom', 'UTR5', 'CDS', 'UTR3', 'Term', 'Term_Full']
+	seqcols = ['Gene', 'Transcript', 'Prom_UTR5', 'Prom_Full', 'Prom', 'UTR5', 'CDS', 'UTR3', 'Term', 'Term_Full']
 	varcols = ['Gene', 'Transcript', 'Frequency', 'Stability']
 
 	sequences = DataFrame(columns = seqcols)
@@ -256,24 +256,23 @@ def regions_to_features (faidx : Fasta, dataframe : DataFrame, lengths : Dict[st
 		if seq.lower() in ['mt'] :
 			continue
 
+		utr_min = int(dataframe.at[index, 'UTR_Min'])
+		utr_max = int(dataframe.at[index, 'UTR_Max'])
+
 		if dataframe.at[index, 'Strand'] == '+' :
-			start = int(dataframe.at[index, 'Start'])
-			end   = int(dataframe.at[index, 'End'])
-
-			if start - LEN_PROM < 0 or end + LEN_TERM > len(faidx[seq]) :
-				if verbose :
-					print('[{:12s}]'.format(row['Transcript']) + ' : out of bounds at sequence start')
-
-				continue
+			xmin = utr_min - LEN_PROM
+			xmax = utr_max + LEN_TERM
 		else :
-			start = int(dataframe.at[index, 'End'])
-			end   = int(dataframe.at[index, 'Start'])
+			xmin = utr_min - LEN_TERM
+			xmax = utr_max + LEN_PROM
 
-			if start + LEN_PROM > len(faidx[seq]) or end - LEN_TERM < 0 :
-				if verbose :
-					print('[{:12s}]'.format(row['Transcript']) + ' : out of bounds at sequence end')
+		if xmin <= 0 or xmax > len(faidx[seq]) :
+			if verbose :
+				print('[{:12s}] : out of bounds | [{:7d}] [{:7d}] for [{:7d}] [{:7d}]'.format(
+					row['Transcript'], xmin, xmax, 0, len(faidx[seq]))
+				)
 
-				continue
+			continue
 
 		sequences.at[index, 'Gene'] = row['Gene']
 		variables.at[index, 'Gene'] = row['Gene']
@@ -281,7 +280,7 @@ def regions_to_features (faidx : Fasta, dataframe : DataFrame, lengths : Dict[st
 		sequences.at[index, 'Transcript'] = row['Transcript']
 		variables.at[index, 'Transcript'] = row['Transcript']
 
-		for name in ['Prom_Full', 'Prom', 'CDS', 'Term', 'Term_Full'] :
+		for name in ['Prom_UTR5', 'Prom_Full', 'Prom', 'CDS', 'Term', 'Term_Full'] :
 			sequences.at[index, name] = extract_region_from_list(
 				chromosome = faidx[seq],
 				region     = row[name],
@@ -334,7 +333,7 @@ def sequences_extend_kvpair (sequences : Dict[str, Dict], regions : DataFrame, h
 		seqid  = str(region['Seq'].iloc[0])
 
 		for region_key, region_seq in region_dict.items() :
-			if region_key not in ['Prom_Full', 'Prom', 'UTR5', 'CDS', 'UTR3', 'Term', 'Term_Full'] :
+			if region_key not in ['Prom_UTR5', 'Prom_Full', 'Prom', 'UTR5', 'CDS', 'UTR3', 'Term', 'Term_Full'] :
 				continue
 
 			x = -1
@@ -369,7 +368,7 @@ def print_extracted_sequence (transcript : str, sequences : Dict[str, Dict], wid
 	Doc
 	"""
 
-	for r in ['Prom_Full', 'Prom', 'UTR5', 'CDS', 'UTR3', 'Term', 'Term_Full'] :
+	for r in ['Prom_UTR5', 'Prom_Full', 'Prom', 'UTR5', 'CDS', 'UTR3', 'Term', 'Term_Full'] :
 		key = sequences[transcript][r]['key']
 		seq = sequences[transcript][r]['seq']
 
