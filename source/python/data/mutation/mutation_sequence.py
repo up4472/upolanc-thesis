@@ -24,7 +24,7 @@ def generate_multi (sequences : Dict[str, Dict], rates : List[float], params : D
 
 	total = len(transcripts) * len(rates)
 
-	for transcript, rate in tqdm(itertools.product(transcripts, rates), total = total) :
+	for transcript, rate in tqdm(itertools.product(transcripts, rates), total = total) : # noqa
 		params['mutation_rate'] = rate
 
 		# Keep orignal as well

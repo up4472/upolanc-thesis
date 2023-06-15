@@ -9,7 +9,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mem-per-gpu=64G
 #SBATCH --cpus-per-gpu=6
-#SBATCH --time=1-00:00:00
+#SBATCH --time=2-00:00:00
 
 # Activate conda enviorment
 source activate /d/hpc/home/up4472/anaconda3
@@ -28,18 +28,20 @@ if [[ ":$PATH:" != *":$ROOT:"* ]]; then
 fi
 
 # Default params
-# --target_group   : global         : [str] tissue, group, age, global, perturbation
-# --target_type    : mean           : [str] mean, max
-# --target_explode : false          : [str] true, false
-# --target_filter  : none           : [str] none
-# --model_epochs   : 250            : [int] ...
-# --model_params   : none           : [int] none
-# --model_mode     : regression     : [str] regression, classification
-# --filter_id      : 0              : [int] ...
-# --generator      : group          : [str] stratified, group, random
-# --features       : true           : [str] true, false
-# --sequence_start : none           : [int] none
-# --sequence_end   : none           : [int] none
+# --target_group   : global          : [str] tissue, group, age, global, perturbation
+# --target_type    : mean            : [str] mean, max
+# --target_explode : false           : [str] true, false
+# --target_filter  : none            : [str] none
+# --model_arch     : zrimec          : [str] zrimec, washburn
+# --model_epochs   : 50              : [int] ...
+# --model_params   : none            : [int] none
+# --model_mode     : regression      : [str] regression, classification
+# --filter_id      : 0               : [int] ...
+# --generator      : group           : [str] stratified, group, random
+# --features       : true            : [str] true, false
+# --sequence_start : none            : [int] none
+# --sequence_end   : none            : [int] none
+# --sequence_type  : transcript-2150 : [str] transcript-2150, transcript-6150, promoter-full-5000, promoter-utr5-5000
 
 # Run script
 python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp08-cnn.py \
@@ -47,11 +49,13 @@ python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp08-cnn.py \
 --target_type mean \
 --target_explode false \
 --target_filter none \
---model_epochs 500 \
+--model_arch washburn \
+--model_epochs 250 \
 --model_params 0 \
 --model_mode regression \
 --filter_id 2 \
 --generator group \
 --features true \
 --sequence_start none \
---sequence_end none
+--sequence_end none \
+--sequence_type transcript-2150
