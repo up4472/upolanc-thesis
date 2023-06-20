@@ -1,3 +1,5 @@
+import os
+
 from torch                    import Tensor
 from torch.nn                 import BCELoss
 from torch.nn                 import Conv1d
@@ -57,6 +59,7 @@ from source.python.cnn.models import Zrimec2020r
 
 from source.python.cnn.cnn_trainer import evaluate
 from source.python.cnn.cnn_trainer import train
+from source.python.io.loader       import load_torch
 
 def _get_optimizer (model : Module, config : Dict[str, Any]) -> Optimizer :
 	"""
@@ -339,3 +342,31 @@ def eval_classifier (model : Module, params : Dict[str, Any]) -> Dict[str, Dict]
 	"""
 
 	return evaluate(model = model, params = params, regression = False)
+
+def load_from_pretrained (filename : str, model : Module, strict : bool = True) -> Module :
+	"""
+	Doc
+	"""
+
+	if os.path.exists(filename) :
+		checkpoint = load_torch(
+			filename = filename
+		)
+
+		model.load_state_dict(
+			state_dict = checkpoint['models'],
+			strict     = strict
+		)
+
+		print('Sucessfully loaded pretrained model : {}'.format(filename))
+		print()
+
+	else :
+		model = model.double()
+		model = model.apply(he_uniform_weight)
+		model = model.apply(zero_bias)
+
+		print('Could not load pretrained model : {}'.format(filename))
+		print()
+
+	return model

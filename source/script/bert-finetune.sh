@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #SBATCH --job-name=bert-finetune
-#SBATCH --output=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/bert-finetune-%j.out
-#SBATCH --error=/d/hpc/home/up4472/workspace/upolanc-thesis/slurm/bert-finetune-%j.err
+#SBATCH --output=/d/hpc/projects/FRI/up4472/upolanc-thesis/slurm/bert-finetune-%j.out
+#SBATCH --error=/d/hpc/projects/FRI/up4472/upolanc-thesis/slurm/bert-finetune-%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --partition=gpu
@@ -12,10 +12,10 @@
 #SBATCH --time=4-00:00:00
 
 # Activate conda enviorment
-source activate /d/hpc/home/up4472/anaconda3
+source activate /d/hpc/projects/FRI/up4472/anaconda3
 
 # Define root path
-ROOT="/d/hpc/home/up4472/workspace/upolanc-thesis/"
+ROOT="/d/hpc/projects/FRI/up4472/upolanc-thesis/"
 
 # Ensure PYTHONPATH contains root
 if [[ ":$PYTHONPATH:" != *":$ROOT:"* ]]; then
@@ -42,13 +42,13 @@ export DATA_FILTER=filter2
 export NAME_MODEL=rbertfc3_def
 export NAME_TOKEN=dna$DATA_KMER
 
-export PATH_ROOT=/d/hpc/home/up4472/workspace/upolanc-thesis
+export PATH_ROOT=/d/hpc/projects/FRI/up4472/upolanc-thesis
 export PATH_BERT=$PATH_ROOT/resources/dnabert/$DATA_KMER-new-12w-0
 export PATH_DATA=$PATH_ROOT/output/nbp05-target/$DATA_FILTER/dnabert-$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
 export PATH_OUTS=$PATH_ROOT/output/nbp12-bert/$DATA_FILTER/out/$NAME_MODEL/$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
 export PATH_TEMP=$PATH_ROOT/output/nbp12-bert/$DATA_FILTER/tmp/$NAME_MODEL/$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
 
-python /d/hpc/home/up4472/workspace/upolanc-thesis/notebook/nbp12-bert.py \
+python /d/hpc/projects/FRI/up4472/upolanc-thesis/notebook/nbp12-bert.py \
 --model_type "$NAME_MODEL" \
 --tokenizer_name "$NAME_TOKEN" \
 --model_name_or_path "$PATH_BERT" \

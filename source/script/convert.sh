@@ -4,7 +4,7 @@
 # shellcheck disable=SC2086
 
 # Define directory
-NOTEBOOK=/d/hpc/home/up4472/workspace/upolanc-thesis/notebook
+NOTEBOOK=/d/hpc/projects/FRI/up4472/upolanc-thesis/notebook
 
 # Print status
 echo "Converting .ipynb files to .py files in [$NOTEBOOK]"

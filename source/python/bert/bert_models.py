@@ -10,6 +10,8 @@ from torch.nn import MSELoss
 
 import torch
 
+from source.python.bert.bert_pooler import DNAPooler
+
 class RegressionBertFC1 (BertPreTrainedModel) :
 	"""
 	transformers.modeling_bert.BertModel()
@@ -382,3 +384,40 @@ class FeatureExtractorBert (BertPreTrainedModel) :
 			head_mask      = head_mask,
 			inputs_embeds  = inputs_embeds
 		)
+
+class FeatureExtractorBertDNA (BertPreTrainedModel) :
+	"""
+	transformers.modeling_bert.BertModel()
+	transformers.modeling_bert.BertPreTrainedModel()
+	transformers.modeling_bert.BertForSequenceClassification()
+	"""
+
+	def __init__ (self, config) :
+		"""
+		Doc
+		"""
+
+		super().__init__(config)
+
+		self.bert   = BertModel(config)
+		self.pooler = DNAPooler(config)
+
+		self.init_weights()
+
+	def forward (self, input_ids = None, attention_mask = None, token_type_ids = None, position_ids = None, head_mask = None, inputs_embeds = None, labels = None, features = None) : # noqa : unused parameters
+		"""
+		Doc
+		"""
+
+		outputs = self.bert(
+			input_ids      = input_ids,
+			attention_mask = attention_mask,
+			token_type_ids = token_type_ids,
+			position_ids   = position_ids,
+			head_mask      = head_mask,
+			inputs_embeds  = inputs_embeds
+		)
+
+		outputs[1] = self.pooler(hidden_states = outputs[0])
+
+		return outputs

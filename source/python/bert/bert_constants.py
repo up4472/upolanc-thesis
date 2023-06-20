@@ -29,6 +29,7 @@ from transformers import glue_output_modes                     # noqa F821 :: un
 from transformers import glue_processors                       # noqa F821 :: unresolved reference :: added at runtime
 
 from source.python.bert.bert_models     import FeatureExtractorBert
+from source.python.bert.bert_models import FeatureExtractorBertDNA
 from source.python.bert.bert_models     import RegressionBertFC1
 from source.python.bert.bert_models     import RegressionBertFC3
 from source.python.bert.bert_models     import CatRegressionBertFC3
@@ -58,6 +59,7 @@ MODELS = {
 	'xlmroberta'   : (XLMRobertaConfig, XLMRobertaForSequenceClassification, XLMRobertaTokenizer),
 	'flaubert'     : (  FlaubertConfig,   FlaubertForSequenceClassification,   FlaubertTokenizer),
 	# Custom
+	'febertdna'    : (      BertConfig,             FeatureExtractorBertDNA,        DNATokenizer),
 	'febert'       : (      BertConfig,             FeatureExtractorBert,           DNATokenizer),
 	'rbertfc1'     : (      BertConfig,                   RegressionBertFC1,        DNATokenizer),
 	'rbertfc3'     : (      BertConfig,                   RegressionBertFC3,        DNATokenizer),

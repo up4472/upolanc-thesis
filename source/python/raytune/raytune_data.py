@@ -316,7 +316,7 @@ def main (tune_config : Dict[str, Any], core_config : Dict[str, Any]) -> None :
 		config = core_config
 	)
 
-	if params is not None : core_config['params/tuner'] = params
+	if params is not None : core_config['params/tuner'] = params[0]
 	else                  : core_config['params/tuner'] = None
 
 	cached = get_targets(
