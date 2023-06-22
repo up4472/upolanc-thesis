@@ -45,8 +45,8 @@ export NAME_TOKEN=dna$DATA_KMER
 export PATH_ROOT=/d/hpc/projects/FRI/up4472/upolanc-thesis
 export PATH_BERT=$PATH_ROOT/resources/dnabert/$DATA_KMER-new-12w-0
 export PATH_DATA=$PATH_ROOT/output/nbp05-target/$DATA_FILTER/dnabert-$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
-export PATH_OUTS=$PATH_ROOT/output/nbp12-bert/$DATA_FILTER/out/$NAME_MODEL/$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
-export PATH_TEMP=$PATH_ROOT/output/nbp12-bert/$DATA_FILTER/tmp/$NAME_MODEL/$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
+export PATH_OUTS=$PATH_ROOT/output/nbp12-bert/bert/$DATA_FILTER/$NAME_MODEL/$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
+export PATH_TEMP=$PATH_ROOT/output/nbp12-bert/temp/$DATA_FILTER/$NAME_MODEL/$DATA_KMER/$DATA_SEQUENCE/$DATA_TARGET
 
 python /d/hpc/projects/FRI/up4472/upolanc-thesis/notebook/nbp12-bert.py \
 --model_type "$NAME_MODEL" \
