@@ -31,10 +31,8 @@ def compute_metrics (metrics : Dict[str, FunctionType], outputs : Tensor, labels
 		else :
 			stack = report['metric'][key]
 
-			if stack is None :
-				report['metric'][key] = data
-			else :
-				report['metric'][key] = numpy.vstack((stack, data))
+			if stack is None : report['metric'][key] = data
+			else             : report['metric'][key] = numpy.vstack((stack, data))
 
 	return report
 
@@ -52,6 +50,9 @@ def train_epoch (model : Module, params : Dict[str, Any], desc : str = 'Progress
 	device     = params['device']
 	verbose    = params['verbose']
 
+	if isinstance(dataloader, list) : dataloaders =  dataloader
+	else                            : dataloaders = [dataloader]
+
 	batch_loss = 0.0
 	batch_ids = list()
 	batch_report = {
@@ -62,41 +63,42 @@ def train_epoch (model : Module, params : Dict[str, Any], desc : str = 'Progress
 	for metric in metrics.keys() :
 		batch_report['metric'][metric] = None
 
-	progbar = tqdm(dataloader, disable = not verbose)
-	progbar.set_description_str(desc = desc)
+	for dataloader in dataloaders :
+		progbar = tqdm(dataloader, disable = not verbose)
+		progbar.set_description_str(desc = desc)
 
-	for batch_index, batch in enumerate(progbar, start = 1) : # noqa
-		ids, inputs, features, labels = batch
+		for batch_index, batch in enumerate(progbar, start = 1) : # noqa
+			ids, inputs, features, labels = batch
 
-		inputs   = inputs.to(device)
-		features = features.to(device)
-		labels   = labels.to(device)
+			inputs   = inputs.to(device)
+			features = features.to(device)
+			labels   = labels.to(device)
 
-		optimizer.zero_grad()
+			optimizer.zero_grad()
 
-		outputs = model(inputs, features)
-		loss = criterion(outputs, labels)
+			outputs = model(inputs, features)
+			loss = criterion(outputs, labels)
 
-		batch_report = compute_metrics(
-			metrics = metrics,
-			outputs = outputs,
-			labels  = labels,
-			report  = batch_report
-		)
+			batch_report = compute_metrics(
+				metrics = metrics,
+				outputs = outputs,
+				labels  = labels,
+				report  = batch_report
+			)
 
-		loss.backward()
-		optimizer.step()
+			loss.backward()
+			optimizer.step()
 
-		batch_ids.extend(ids)
-		batch_loss = batch_loss + loss.item()
-		print_loss = batch_loss / batch_index
+			batch_ids.extend(ids)
+			batch_loss = batch_loss + loss.item()
+			print_loss = batch_loss / batch_index
 
-		progbar.set_description_str(
-			desc = f'{desc} | Loss = {print_loss: 8.5f}'
-		)
+			progbar.set_description_str(
+				desc = f'{desc} | Loss = {print_loss: 8.5f}'
+			)
 
 	batch_report['batch'] = numpy.array(batch_ids)
-	batch_report['loss'] = batch_loss / len(dataloader)
+	batch_report['loss']  = batch_loss / len(dataloader)
 
 	return batch_report
 
@@ -108,10 +110,11 @@ def evaluate_epoch (model : Module, params : Dict[str, Any], desc : str = 'Progr
 	model.train(mode = False)
 	model.eval()
 
-	if validation :
-		dataloader = params['valid_dataloader']
-	else :
-		dataloader = params['test_dataloader']
+	if validation : dataloader = params['valid_dataloader']
+	else          : dataloader = params['test_dataloader']
+
+	if isinstance(dataloader, list) : dataloaders =  dataloader
+	else                            : dataloaders = [dataloader]
 
 	criterion = params['criterion']
 	metrics   = params['metrics']
@@ -134,45 +137,46 @@ def evaluate_epoch (model : Module, params : Dict[str, Any], desc : str = 'Progr
 	for metric in metrics.keys() :
 		batch_report['metric'][metric] = None
 
-	progbar = tqdm(dataloader, disable = not verbose)
-	progbar.set_description_str(desc = desc)
-
 	with torch.no_grad() :
-		for batch_index, batch in enumerate(progbar, start = 1) : # noqa
-			ids, inputs, features, labels = batch
+		for dataloader in dataloaders :
+			progbar = tqdm(dataloader, disable = not verbose)
+			progbar.set_description_str(desc = desc)
 
-			inputs   = inputs.to(device)
-			features = features.to(device)
-			labels   = labels.to(device)
+			for batch_index, batch in enumerate(progbar, start = 1) : # noqa
+				ids, inputs, features, labels = batch
 
-			outputs = model(inputs, features)
+				inputs   = inputs.to(device)
+				features = features.to(device)
+				labels   = labels.to(device)
 
-			if regression and not validation :
-				outputs = torch.nn.functional.relu(
-					input   = outputs,
-					inplace = False
+				outputs = model(inputs, features)
+
+				if regression and not validation :
+					outputs = torch.nn.functional.relu(
+						input   = outputs,
+						inplace = False
+					)
+
+				loss = criterion(outputs, labels)
+
+				batch_report = compute_metrics(
+					metrics = metrics,
+					outputs = outputs,
+					labels  = labels,
+					report  = batch_report
 				)
 
-			loss = criterion(outputs, labels)
+				if not validation :
+					batch_keys.extend(ids)
+					batch_ypred.extend(outputs.detach().cpu().numpy())
+					batch_ytrue.extend(labels.detach().cpu().numpy())
 
-			batch_report = compute_metrics(
-				metrics = metrics,
-				outputs = outputs,
-				labels  = labels,
-				report  = batch_report
-			)
+				batch_loss = batch_loss + loss.item()
+				print_loss = batch_loss / batch_index
 
-			if not validation :
-				batch_keys.extend(ids)
-				batch_ypred.extend(outputs.detach().cpu().numpy())
-				batch_ytrue.extend(labels.detach().cpu().numpy())
-
-			batch_loss = batch_loss + loss.item()
-			print_loss = batch_loss / batch_index
-
-			progbar.set_description_str(
-				desc = f'{desc} | Loss = {print_loss: 8.5f}'
-			)
+				progbar.set_description_str(
+					desc = f'{desc} | Loss = {print_loss: 8.5f}'
+				)
 
 		batch_report['keys']  = numpy.array(batch_keys)
 		batch_report['ypred'] = numpy.array(batch_ypred)

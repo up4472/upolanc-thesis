@@ -1,4 +1,5 @@
 import os
+from typing import Tuple
 
 from torch                    import Tensor
 from torch.nn                 import BCELoss
@@ -342,6 +343,60 @@ def eval_classifier (model : Module, params : Dict[str, Any]) -> Dict[str, Dict]
 	"""
 
 	return evaluate(model = model, params = params, regression = False)
+
+def eval_regressor_with_report (model : Module, params : Dict[str, Any], report : Dict[str, Any], mode : str = 'evaluation/best/test') -> Tuple[Dict[str, Dict], Dict[str, Any]] :
+	"""
+	Doc
+	"""
+
+	result = eval_regressor(
+		model  = model,
+		params = params
+	)
+
+	print('{:<6s} : {}'.format('Mode', mode))
+
+	for key in ['r2', 'mae', 'mse', 'mape', 'wmape'] :
+		if not key in result['eval']['metric'].keys() :
+			continue
+
+		sid = '{}/{}/mean'.format(mode, key)
+		val = result['eval']['metric'][key].mean()
+		key = key.upper()
+
+		report[sid] = val
+		print('{:<6s} : {: 10.5f}'.format(key, val))
+
+	print()
+
+	return result, report
+
+def eval_classifier_with_report (model : Module, params : Dict[str, Any], report : Dict[str, Any], mode : str = 'evaluation/best/test') -> Tuple[Dict[str, Dict], Dict[str, Any]] :
+	"""
+	Doc
+	"""
+
+	result = eval_classifier(
+		model  = model,
+		params = params
+	)
+
+	print('{:<8s} : {}'.format('Mode', mode))
+
+	for key in ['accuracy', 'entropy', 'auroc', 'matthews'] :
+		if not key in result['eval']['metric'].keys() :
+			continue
+
+		sid = '{}/{}/mean'.format(mode, key)
+		val = result['eval']['metric'][key].mean()
+		key = key.title()
+
+		report[sid] = val
+		print('{:<8s} : {: 10.5f}'.format(key, val))
+
+	print()
+
+	return result, report
 
 def load_from_pretrained (filename : str, model : Module, strict : bool = True) -> Module :
 	"""
