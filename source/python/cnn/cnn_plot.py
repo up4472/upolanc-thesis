@@ -8,6 +8,7 @@ import matplotlib
 import numpy
 import scipy
 import seaborn
+from sklearn.metrics import ConfusionMatrixDisplay
 
 def get_regression_limits (report : Dict[str, Dict]) -> Dict[str, Tuple] :
 	"""
@@ -552,3 +553,33 @@ def show_lr (report : Dict[str, Dict], title : str = None, filename : str = None
 		limit_top   = limit_top,
 		start_index = start_index
 	)
+
+def plot_confusion_matrix (report : Dict[str, Dict], filename : str = None) -> None :
+	"""
+	Doc
+	"""
+
+	matrix = report['eval']['metric']['confusion']
+
+	if numpy.ndim(matrix) == 2 :
+		d0 = numpy.size(matrix, axis = 0) // 2
+		d1 = numpy.size(matrix, axis = 1)
+		d2 = 2
+
+		matrix = matrix.reshape((d0, d1, d2))
+
+	matrix = matrix.sum(axis = 0)
+
+	matrix = ConfusionMatrixDisplay(
+		confusion_matrix = matrix,
+		display_labels   = [False, True]
+	)
+
+	matrix.plot()
+
+	if filename is not None :
+		matplotlib.pyplot.savefig(
+			filename + '-confusion.png',
+			dpi    = 120,
+			format = 'png'
+		)
