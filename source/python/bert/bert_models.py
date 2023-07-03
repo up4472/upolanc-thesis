@@ -60,7 +60,9 @@ class RegressionBertFC1 (BertPreTrainedModel) :
 		)
 
 		if self.pooler is not None :
+			outputs    = list(outputs)
 			outputs[1] = self.pooler(hidden_states = outputs[0])
+			outputs    = tuple(outputs)
 
 		logits = outputs[1]
 		logits = self.dropout(logits)
@@ -138,7 +140,9 @@ class RegressionBertFC3 (BertPreTrainedModel) :
 		)
 
 		if self.pooler is not None :
+			outputs    = list(outputs)
 			outputs[1] = self.pooler(hidden_states = outputs[0])
+			outputs    = tuple(outputs)
 
 		logits = outputs[1]
 		logits = self.dropout(logits)
@@ -234,7 +238,9 @@ class CatRegressionBertFC3 (BertPreTrainedModel) :
 		)
 
 		if self.pooler is not None :
+			outputs    = list(outputs)
 			outputs[1] = self.pooler(hidden_states = outputs[0])
+			outputs    = tuple(outputs)
 
 		logits = outputs[1].view(batch_size, -1)
 		logits = self.dropout(logits)
@@ -347,7 +353,9 @@ class RnnRegressionBertFC3 (BertPreTrainedModel) :
 		)
 
 		if self.pooler is not None :
+			outputs    = list(outputs)
 			outputs[1] = self.pooler(hidden_states = outputs[0])
+			outputs    = tuple(outputs)
 
 		logits = outputs[1].view(batch_size, self.split, self.hidden_size)
 
@@ -418,6 +426,8 @@ class FeatureExtractorBert (BertPreTrainedModel) :
 		)
 
 		if self.pooler is not None :
+			outputs    = list(outputs)
 			outputs[1] = self.pooler(hidden_states = outputs[0])
+			outputs    = tuple(outputs)
 
 		return outputs
