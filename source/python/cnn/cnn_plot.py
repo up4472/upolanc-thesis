@@ -8,6 +8,7 @@ import matplotlib
 import numpy
 import scipy
 import seaborn
+from pandas import DataFrame
 from sklearn.metrics import ConfusionMatrixDisplay
 
 def get_regression_limits (report : Dict[str, Dict]) -> Dict[str, Tuple] :
@@ -78,10 +79,8 @@ def lineplot (values : List[Union[List, numpy.ndarray]], labels : List[str], xla
 
 	_, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
 
-	if start_index is None :
-		start_index = 0
-	elif start_index >= len(values[0]) :
-		start_index = 0
+	if   start_index is None           : start_index = 0
+	elif start_index >= len(values[0]) : start_index = 0
 
 	x = numpy.arange(1, 1 + len(values[0]))
 
@@ -554,10 +553,43 @@ def show_lr (report : Dict[str, Dict], title : str = None, filename : str = None
 		start_index = start_index
 	)
 
-def plot_confusion_matrix (report : Dict[str, Dict], filename : str = None) -> None :
+def plot_prediction_histplot (report : Dict[str, Dict], figsize : Tuple[int, int] = None, filename : str = None) -> None :
 	"""
 	Doc
 	"""
+
+	ypred = report['eval']['ypred'].flatten()
+	ytrue = report['eval']['ytrue'].flatten()
+
+	if figsize is None : figsize = (16, 10)
+
+	_, ax = matplotlib.pyplot.subplots(
+		figsize = figsize
+	)
+
+	seaborn.histplot(
+		data = DataFrame.from_dict({
+			'value' : ypred,
+			'class' : ytrue
+		}),
+		x   = 'value',
+		hue = 'class',
+		ax  = ax
+	)
+
+	if filename is not None :
+		matplotlib.pyplot.savefig(
+			filename + '-switch.png',
+			dpi    = 120,
+			format = 'png'
+		)
+
+def plot_confusion_matrix (report : Dict[str, Dict], figsize : Tuple[int, int] = None, filename : str = None) -> None :
+	"""
+	Doc
+	"""
+
+	if figsize is None : figsize = (16, 10)
 
 	matrix = report['eval']['metric']['confusion']
 
@@ -566,16 +598,25 @@ def plot_confusion_matrix (report : Dict[str, Dict], filename : str = None) -> N
 		d1 = numpy.size(matrix, axis = 1)
 		d2 = 2
 
+		olddim = ', '.join([str(x) for x in numpy.shape(matrix)])
+		newdim = ', '.join([str(x) for x in [d0, d1, d2]])
+
+		print('Reshaping matrix from [{}] to [{}]'.format(olddim, newdim))
+		print()
+
 		matrix = matrix.reshape((d0, d1, d2))
 
-	matrix = matrix.sum(axis = 0)
+	_, ax = matplotlib.pyplot.subplots(
+		figsize = figsize
+	)
 
 	matrix = ConfusionMatrixDisplay(
-		confusion_matrix = matrix,
+		confusion_matrix = matrix.sum(axis = 0),
 		display_labels   = [False, True]
 	)
 
-	matrix.plot()
+	matrix.plot(ax = ax)
+	ax.grid(visible = False)
 
 	if filename is not None :
 		matplotlib.pyplot.savefig(

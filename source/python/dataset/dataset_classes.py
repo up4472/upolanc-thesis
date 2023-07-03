@@ -74,3 +74,26 @@ class GeneDataset (Dataset) :
 		"""
 
 		return len(self.features)
+
+class SequenceDataset (Dataset) :
+
+	def __init__ (self, sequences) :
+		"""
+		Doc
+		"""
+
+		self.sequences = sequences
+
+	def __len__ (self) :
+		"""
+		Doc
+		"""
+
+		return len(self.sequences)
+
+	def __getitem__ (self, index) :
+		"""
+		Doc
+		"""
+
+		return self.sequences[index]

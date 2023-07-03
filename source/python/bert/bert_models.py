@@ -30,6 +30,10 @@ class RegressionBertFC1 (BertPreTrainedModel) :
 		self.dropout = Dropout(config.hidden_dropout_prob)
 		self.check   = config.use_features
 
+		if   config.pooler == 'dnabert' : self.pooler = DNAPooler(config)
+		elif config.pooler == 'default' : self.pooler = None
+		else                            : self.pooler = None
+
 		if config.use_features :
 			idim = config.hidden_size + config.num_features
 			odim = config.num_labels
@@ -55,8 +59,10 @@ class RegressionBertFC1 (BertPreTrainedModel) :
 			inputs_embeds  = inputs_embeds
 		)
 
-		logits = outputs[1]
+		if self.pooler is not None :
+			outputs[1] = self.pooler(hidden_states = outputs[0])
 
+		logits = outputs[1]
 		logits = self.dropout(logits)
 
 		if self.check and features is not None :
@@ -100,6 +106,10 @@ class RegressionBertFC3 (BertPreTrainedModel) :
 			inplace        = False
 		)
 
+		if   config.pooler == 'dnabert' : self.pooler = DNAPooler(config)
+		elif config.pooler == 'default' : self.pooler = None
+		else                            : self.pooler = None
+
 		if config.use_features :
 			idim = config.hidden_size + config.num_features
 			odim = config.num_labels
@@ -126,6 +136,9 @@ class RegressionBertFC3 (BertPreTrainedModel) :
 			head_mask      = head_mask,
 			inputs_embeds  = inputs_embeds
 		)
+
+		if self.pooler is not None :
+			outputs[1] = self.pooler(hidden_states = outputs[0])
 
 		logits = outputs[1]
 		logits = self.dropout(logits)
@@ -176,6 +189,10 @@ class CatRegressionBertFC3 (BertPreTrainedModel) :
 		self.bert    = BertModel(config)
 		self.dropout = Dropout(config.hidden_dropout_prob)
 
+		if   config.pooler == 'dnabert' : self.pooler = DNAPooler(config)
+		elif config.pooler == 'default' : self.pooler = None
+		else                            : self.pooler = None
+
 		self.relu    = LeakyReLU(
 			negative_slope = 0.0,
 			inplace        = False
@@ -215,6 +232,9 @@ class CatRegressionBertFC3 (BertPreTrainedModel) :
 			head_mask      = head_mask,
 			inputs_embeds  = inputs_embeds
 		)
+
+		if self.pooler is not None :
+			outputs[1] = self.pooler(hidden_states = outputs[0])
 
 		logits = outputs[1].view(batch_size, -1)
 		logits = self.dropout(logits)
@@ -273,6 +293,10 @@ class RnnRegressionBertFC3 (BertPreTrainedModel) :
 		self.bert    = BertModel(config)
 		self.dropout = Dropout(config.hidden_dropout_prob)
 
+		if   config.pooler == 'dnabert' : self.pooler = DNAPooler(config)
+		elif config.pooler == 'default' : self.pooler = None
+		else                            : self.pooler = None
+
 		if   self.rnn_type == 'lstm' : self.rnn = LSTM
 		elif self.rnn_type == 'gru'  : self.rnn = GRU
 		else : raise ValueError()
@@ -322,6 +346,9 @@ class RnnRegressionBertFC3 (BertPreTrainedModel) :
 			inputs_embeds  = inputs_embeds
 		)
 
+		if self.pooler is not None :
+			outputs[1] = self.pooler(hidden_states = outputs[0])
+
 		logits = outputs[1].view(batch_size, self.split, self.hidden_size)
 
 		if   self.rnn_type == 'lstm' : _, (ht, _)   = self.rnn(logits)
@@ -369,38 +396,10 @@ class FeatureExtractorBert (BertPreTrainedModel) :
 		super().__init__(config)
 
 		self.bert = BertModel(config)
-		self.init_weights()
 
-	def forward (self, input_ids = None, attention_mask = None, token_type_ids = None, position_ids = None, head_mask = None, inputs_embeds = None, labels = None, features = None) : # noqa : unused parameters
-		"""
-		Doc
-		"""
-
-		return self.bert(
-			input_ids      = input_ids,
-			attention_mask = attention_mask,
-			token_type_ids = token_type_ids,
-			position_ids   = position_ids,
-			head_mask      = head_mask,
-			inputs_embeds  = inputs_embeds
-		)
-
-class FeatureExtractorBertDNA (BertPreTrainedModel) :
-	"""
-	transformers.modeling_bert.BertModel()
-	transformers.modeling_bert.BertPreTrainedModel()
-	transformers.modeling_bert.BertForSequenceClassification()
-	"""
-
-	def __init__ (self, config) :
-		"""
-		Doc
-		"""
-
-		super().__init__(config)
-
-		self.bert   = BertModel(config)
-		self.pooler = DNAPooler(config)
+		if   config.pooler == 'dnabert' : self.pooler = DNAPooler(config)
+		elif config.pooler == 'default' : self.pooler = None
+		else                            : self.pooler = None
 
 		self.init_weights()
 
@@ -418,6 +417,7 @@ class FeatureExtractorBertDNA (BertPreTrainedModel) :
 			inputs_embeds  = inputs_embeds
 		)
 
-		outputs[1] = self.pooler(hidden_states = outputs[0])
+		if self.pooler is not None :
+			outputs[1] = self.pooler(hidden_states = outputs[0])
 
 		return outputs

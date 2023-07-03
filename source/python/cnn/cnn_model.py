@@ -1,6 +1,3 @@
-import os
-from typing import Tuple
-
 from torch                    import Tensor
 from torch.nn                 import BCELoss
 from torch.nn                 import Conv1d
@@ -24,6 +21,7 @@ from torch.optim.lr_scheduler import StepLR
 from typing                   import Any
 from typing                   import Dict
 from typing                   import Union
+from typing                   import Tuple
 
 from torch.nn.init import calculate_gain
 from torch.nn.init import kaiming_normal_
@@ -35,6 +33,7 @@ from torch.nn.init import zeros_
 
 import numpy
 import torch
+import os
 
 from source.python.cnn.metric import Metric_Accuracy
 from source.python.cnn.metric import Metric_AP

@@ -124,6 +124,9 @@ def bert_init_classes (args : Any, logger : Optional[Any], use_features : bool =
 			cache_dir       = cache_dir
 		)
 
+		config.pooler                       = args.pooler
+		config.min_lhs                      = None
+		config.max_lhs                      = None
 		config.use_features                 = use_features
 		config.num_features                 = num_features
 		config.hidden_dropout_prob          = args.hidden_dropout_prob

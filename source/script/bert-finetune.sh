@@ -73,4 +73,5 @@ python /d/hpc/projects/FRI/up4472/upolanc-thesis/notebook/nbp12-bert.py \
 --n_process 6 \
 --optimizer adamw \
 --freeze_layers 12 \
---num_features 72
+--num_features 72 \
+--pooler default
