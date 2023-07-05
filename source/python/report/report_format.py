@@ -385,7 +385,7 @@ def format_bert_data_dataframe (dataframe : DataFrame, mode : str) -> DataFrame 
 			'eval_max_error' : 'Eval_ME',
 			'eval_mape'      : 'Eval_MAPE',
 			'eval_mae'       : 'Eval_MAE',
-			'learning_rate'  : 'Learning_Rate',
+			'learning_rate'  : 'LR',
 			'loss'           : 'Train_MSE',
 			'step'           : 'Step'
 		})
@@ -399,17 +399,16 @@ def format_bert_data_dataframe (dataframe : DataFrame, mode : str) -> DataFrame 
 		})
 
 		dataframe = dataframe[[
-			'Mode', 'Arch', 'Type', 'Layer', 'Kmer', 'Feature', 'Filter', 'Sequence', 'Optimizer', 'Epochs',
+			'Mode', 'Arch', 'Pooler', 'Type', 'Layer', 'Kmer', 'Feature', 'Filter', 'Sequence', 'Optimizer', 'Epochs',
 			'Target0', 'Target1', 'Target2',
-			'Eval_R2', 'Eval_ME', 'Eval_MAPE', 'Eval_MAE', 'Learning_Rate',
-			'Step', 'Epoch'
+			'Eval_R2', 'Eval_ME', 'Eval_MAPE', 'Eval_MAE', 'LR', 'Epoch'
 		]]
 
-		dataframe['Eval_R2'      ] = dataframe['Eval_R2'      ].map(FLOAT_FORMAT.format)
-		dataframe['Eval_ME'      ] = dataframe['Eval_ME'      ].map(FLOAT_FORMAT.format)
-		dataframe['Eval_MAPE'    ] = dataframe['Eval_MAPE'    ].map(FLOAT_FORMAT.format)
-		dataframe['Eval_MAE'     ] = dataframe['Eval_MAE'     ].map(FLOAT_FORMAT.format)
-		dataframe['Learning_Rate'] = dataframe['Learning_Rate'].map(FLOAT_FORMAT.format)
+		dataframe['Eval_R2'  ] = dataframe['Eval_R2'  ].map(FLOAT_FORMAT.format)
+		dataframe['Eval_ME'  ] = dataframe['Eval_ME'  ].map(FLOAT_FORMAT.format)
+		dataframe['Eval_MAPE'] = dataframe['Eval_MAPE'].map(FLOAT_FORMAT.format)
+		dataframe['Eval_MAE' ] = dataframe['Eval_MAE' ].map(FLOAT_FORMAT.format)
+		dataframe['LR'       ] = dataframe['LR'       ] .map(FLOAT_FORMAT.format)
 
 		dataframe = dataframe.sort_values('Eval_R2', ascending = False)
 

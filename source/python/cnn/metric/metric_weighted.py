@@ -15,20 +15,14 @@ class Metric_Weighted (Module) :
 
 		super(Metric_Weighted, self).__init__()
 
-		self.vectorized = False
-		self.reduction  = reduction.lower()
-		self.weights    = weights
+		self.reduction = reduction.lower()
+		self.weights   = weights
 
-		if self.reduction not in ['none', 'mean', 'sum'] :
-			raise ValueError()
+		if weights is None : self.criterion = criterion(reduction = self.reduction, **kwargs)
+		else               : self.criterion = criterion(reduction = 'none',         **kwargs)
 
-		if weights is not None :
-			self.criterion = criterion(reduction = 'none', **kwargs)
-		else :
-			self.criterion = criterion(reduction = self.reduction, **kwargs)
-
-		if isinstance(self.criterion, Metric_R2) :
-			self.vectorized = True
+		self.flag1 = self.weights is not None
+		self.flag2 = self.reduction != 'none'
 
 	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor :
 		"""
@@ -37,8 +31,8 @@ class Metric_Weighted (Module) :
 
 		score = self.criterion(inputs, labels)
 
-		if self.weights is not None and self.reduction != 'none' :
-			if not self.vectorized :
+		if self.flag1 and self.flag2 :
+			if not isinstance(self.criterion, Metric_R2) :
 				score = torch.mean(score, dim = 0)
 
 			score = torch.dot(self.weights, score)

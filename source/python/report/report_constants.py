@@ -13,6 +13,7 @@ EPOCHS         = [25, 50, 100, 150, 200, 250, 500, 1000, 2000]
 TRIALS         = [250, 500, 750, 1000, 2000]
 KMERS          = [3, 6]
 BERT_ARCH      = ['def', 'rnn', 'cat', 'fex']
+BERT_POOLER    = ['v1', 'v2']
 BERT_OUTPUT    = ['fc2', 'fc3']
 BERT_LAYERS    = [6, 9, 11, 12]
 FLOAT_FORMAT   = '{:.5f}'

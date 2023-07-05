@@ -10,6 +10,7 @@ import os
 from source.python.report.report_constants import BERT_ARCH
 from source.python.report.report_constants import BERT_LAYERS
 from source.python.report.report_constants import BERT_OUTPUT
+from source.python.report.report_constants import BERT_POOLER
 from source.python.report.report_constants import CNNS
 from source.python.report.report_constants import EPOCHS
 from source.python.report.report_constants import FEATURES
@@ -413,8 +414,8 @@ def load_bert_reports_for (root : str, mode : str, n : int = 5, show : bool = Fa
 	report = dict()
 	root   = os.path.join(root, BERT_MODEL.format(mode))
 
-	for config in itertools.product(BERT_OUTPUT, BERT_ARCH, BERT_LAYERS, KMERS, FEATURES, SEQUENCES, OPTIMIZERS, FILTERS, EPOCHS, TARGETS) :
-		key    = '{:s}-{:s}-{:02d}-{:d}-{:02d}-{:s}-{:s}-{:s}-{:04d}-{:s}'.format(*config)
+	for config in itertools.product(BERT_OUTPUT, BERT_ARCH, BERT_POOLER, BERT_LAYERS, KMERS, FEATURES, SEQUENCES, OPTIMIZERS, FILTERS, EPOCHS, TARGETS) :
+		key    = '{:s}-{:s}-{:s}-{:02d}-{:d}-{:02d}-{:s}-{:s}-{:s}-{:04d}-{:s}'.format(*config)
 		folder = os.path.join(root, key)
 
 		if not os.path.exists(folder) :

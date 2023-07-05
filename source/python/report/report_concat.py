@@ -164,19 +164,24 @@ def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascend
 
 		bert_arch     = tokens[0]
 		bert_type     = tokens[1]
-		bert_layer    = tokens[2]
-		bert_kmer     = tokens[3]
-		bert_feature  = tokens[4]
-		bert_sequence = tokens[5]
-		bert_optim    = tokens[6]
-		bert_filter   = tokens[7]
-		bert_epochs   = tokens[8]
-		bert_target0  = tokens[9]
-		bert_target1  = tokens[10] if len(tokens) >= 11 else None
-		bert_target2  = tokens[11] if len(tokens) >= 12 else None
+		bert_pooler   = tokens[2]
+		bert_layer    = tokens[3]
+		bert_kmer     = tokens[4]
+		bert_feature  = tokens[5]
+		bert_sequence = tokens[6]
+		bert_optim    = tokens[7]
+		bert_filter   = tokens[8]
+		bert_epochs   = tokens[9]
+		bert_target0  = tokens[10]
+		bert_target1  = tokens[11] if len(tokens) >= 12 else None
+		bert_target2  = tokens[12] if len(tokens) >= 13 else None
+
+		if   bert_pooler == 'v1' : bert_pooler = 'def'
+		elif bert_pooler == 'v2' : bert_pooler = 'dna'
 
 		item['Mode']      = str(mode)
 		item['Arch']      = str(bert_arch)
+		item['Pooler']    = str(bert_pooler)
 		item['Type']      = str(bert_type)
 		item['Layer']     = int(bert_layer)
 		item['Kmer']      = int(bert_kmer)

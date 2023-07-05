@@ -1,6 +1,7 @@
 from source.python.cnn.metric.classification.metric_accuracy  import Metric_Accuracy       as Metric_Accuracy       # noqa : unused import
 from source.python.cnn.metric.classification.metric_ap        import Metric_AP             as Metric_AP             # noqa : unused import
 from source.python.cnn.metric.classification.metric_auroc     import Metric_AUROC          as Metric_AUROC          # noqa : unused import
+from source.python.cnn.metric.classification.metric_bce       import Metric_BCE            as Metric_BCE            # noqa : unused import
 from source.python.cnn.metric.classification.metric_confusion import Metric_Confusion      as Metric_Confusion      # noqa : unused import
 from source.python.cnn.metric.classification.metric_f1        import Metric_F1             as Metric_F1             # noqa : unused import
 from source.python.cnn.metric.classification.metric_jaccardi  import Metric_Jaccardi       as Metric_Jaccardi       # noqa : unused import

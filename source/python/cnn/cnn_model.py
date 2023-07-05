@@ -1,5 +1,4 @@
 from torch                    import Tensor
-from torch.nn                 import BCELoss
 from torch.nn                 import Conv1d
 from torch.nn                 import Conv2d
 from torch.nn                 import CrossEntropyLoss
@@ -52,6 +51,7 @@ from source.python.cnn.metric import Metric_SMAPE
 from source.python.cnn.metric import Metric_Spearman
 from source.python.cnn.metric import Metric_WMAPE
 from source.python.cnn.metric import Metric_Weighted
+from source.python.cnn.metric import Metric_BCE
 from source.python.cnn.models import Washburn2019c
 from source.python.cnn.models import Washburn2019r
 from source.python.cnn.models import Zrimec2020c
@@ -154,7 +154,7 @@ def _get_scheduler (optimizer : Optimizer, config : Dict[str, Any], epochs : int
 
 	raise ValueError()
 
-def get_model_trainers (model : Module, config : Dict[str, Any], epochs : int) -> Dict[str, Any] :
+def get_model_trainers (model : Module, config : Dict[str, Any], epochs : int, weight : Any = None) -> Dict[str, Any] :
 	"""
 	Doc
 	"""
@@ -166,7 +166,7 @@ def get_model_trainers (model : Module, config : Dict[str, Any], epochs : int) -
 	criterion_args = {
 		'query'     : config['criterion/name'],
 		'reduction' : config['criterion/reduction'],
-		'weights'   : None
+		'weights'   : weight
 	}
 
 	if config['criterion/name'].startswith('corrected-') :
@@ -194,7 +194,7 @@ def get_model_trainers (model : Module, config : Dict[str, Any], epochs : int) -
 		'scheduler' : scheduler
 	}
 
-def get_criterion (query : str, reduction : str = 'mean', weights : Union[numpy.ndarray, Tensor] = None, **kwargs) -> Metric_Weighted :
+def get_criterion (query : str, reduction : str = 'mean', weights : Union[numpy.ndarray, Tensor] = None, **kwargs) -> Module :
 	"""
 	Doc
 	"""
@@ -207,7 +207,7 @@ def get_criterion (query : str, reduction : str = 'mean', weights : Union[numpy.
 	if   query == 'accuracy'       : callable_criterion = Metric_Accuracy
 	elif query == 'ap'             : callable_criterion = Metric_AP
 	elif query == 'auroc'          : callable_criterion = Metric_AUROC
-	elif query == 'bce'            : callable_criterion = BCELoss
+	elif query == 'bce'            : return Metric_BCE(weights = weights, **kwargs)
 	elif query == 'confusion'      : callable_criterion = Metric_Confusion
 	elif query == 'corrected-mse'  : callable_criterion = Metric_Corrected_MSE
 	elif query == 'corrected-rmse' : callable_criterion = Metric_Corrected_RMSE
