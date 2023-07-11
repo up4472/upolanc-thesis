@@ -24,6 +24,7 @@ from source.python.report.report_constants import TRIALS
 from source.python.io.loader               import load_json
 from source.python.report.report_format    import format_cnn_tune_dataframe
 from source.python.report.report_format    import format_data_tune_dataframe
+from source.python.report.report_utils import convert_errlog_to_dataframe
 from source.python.report.report_utils     import convert_json_to_dataframe
 from source.python.report.report_utils     import recover_dataframe
 
@@ -421,11 +422,24 @@ def load_bert_reports_for (root : str, mode : str, n : int = 5, show : bool = Fa
 		if not os.path.exists(folder) :
 			continue
 
-		dataframe = convert_json_to_dataframe(
-			root        = folder,
-			source_name = 'results.json',
-			target_name = 'results.csv'
-		)
+		file_json = os.path.join(folder, 'results.json')
+		file_json = os.path.exists(file_json)
+
+		if not file_json :
+			errlogs = [file for file in os.listdir(folder) if file.endswith('.err')]
+
+			dataframe = convert_errlog_to_dataframe(
+				root        = folder,
+				source_name = errlogs[0],
+				target_name = 'results.csv',
+				step_size   = 100
+			)
+		else :
+			dataframe = convert_json_to_dataframe(
+				root        = folder,
+				source_name = 'results.json',
+				target_name = 'results.csv'
+			)
 
 		print(folder)
 

@@ -1,13 +1,13 @@
-from pandas import DataFrame
 from typing import Any
 from typing import Dict
 
 import seaborn
 import matplotlib
 
+from source.python.report.report_utils import convert_bert_group_to_color
 from source.python.report.report_utils import convert_bert_step_to_epoch
 
-def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str = 'iteration', x : int = None, y : int = None, filename : str = None) :
+def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str = 'iteration', steps_per_epoch : int = 485, steps_min : int = None, steps_max : int = None, alpha : float = 0.65, groupby : str = None, filename : str = None) :
 	"""
 	Doc
 	"""
@@ -28,17 +28,13 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 	else                     : xcolumn = per_step
 
 	for name, dataframe in data[mode].items() :
-		py = len(dataframe)
-		px = 0
-
-		if y is not None : py = min(py, y)
-		if x is not None : px = max(px, x)
-
-		dataframe = dataframe.head(n = py)
-		dataframe = dataframe.tail(n = py - px)
+		if steps_min is not None : dataframe = dataframe[dataframe['step'] >= steps_min]
+		if steps_max is not None : dataframe = dataframe[dataframe['step'] <= steps_max]
 
 		dataframe['epoch'] = convert_bert_step_to_epoch(
-			step = dataframe['step']
+			step            = dataframe['step'],
+			steps_per_epoch = steps_per_epoch,
+			floor           = False
 		)
 
 		if   step == 'iteration' : xcolumn = ('step',  'Step')
@@ -51,8 +47,12 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 			x     = xcolumn[0],
 			y     = 'eval_r2',
 			ax    = ax,
-			alpha = 0.65,
-			label = name
+			label = name,
+			alpha = alpha,
+			color = convert_bert_group_to_color(
+				name    = name,
+				groupby = groupby
+			)
 		)
 
 	ax.set_ylabel('Eval R2')
@@ -64,47 +64,3 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 			format = 'png',
 			dpi    = 120
 		)
-
-def model_bert_r2 (dataframe : DataFrame, x : int = None, y : int = None, filename : str = None) -> None :
-	"""
-	Doc
-	"""
-
-	if y is None : y = len(dataframe)
-	if x is None : x = 0
-
-	dataframe = dataframe.head(n = y)
-	dataframe = dataframe.tail(n = y - x)
-
-	_, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
-
-	seaborn.lineplot(
-		data = dataframe,
-		x    = 'step',
-		y    = 'eval_r2',
-		ax   = ax
-	)
-
-	ax.set_ylabel('Eval R2')
-	ax.set_xlabel('Step')
-
-	if filename is not None :
-		matplotlib.pyplot.savefig(
-			filename + '.png',
-			format = 'png',
-			dpi    = 120
-		)
-
-def model_bert_r2_keyword (data : Dict[str, Any], mode : str = 'regression', model : str = 'bertfc3-def', kmer : int = 6, sequence : str = 'promoter', epochs : int = 500, target : str = 'global-mean', x : int = 0, y : int = 1000) -> None :
-	"""
-	Doc
-	"""
-
-	key = 'model-{}-{}-{}-{}-{:04d}-{}'.format(mode, model, kmer, sequence, epochs, target)
-
-	model_bert_r2(
-		dataframe = data[mode][key],
-		x         = x,
-		y         = y,
-		filename  = None
-	)

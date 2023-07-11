@@ -143,7 +143,7 @@ def concat_feature_tune_reports (reports : Dict, mode : str, n : int = 50) -> Op
 		tune_type = TUNE_FEATURE
 	)
 
-def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascending : bool) -> Optional[DataFrame] :
+def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascending : bool = False, steps_per_epoch : int = 485) -> Optional[DataFrame] :
 	"""
 	Doc
 	"""
@@ -195,8 +195,9 @@ def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascend
 		item['Target2']   = str(bert_target2)
 
 		item['Epoch'] = convert_bert_step_to_epoch(
-			step = item['step'],
-			floor = True
+			step            = item['step'],
+			steps_per_epoch = steps_per_epoch,
+			floor           = True
 		)
 
 		array.append(item)

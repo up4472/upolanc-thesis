@@ -23,7 +23,8 @@ class Metric_BCE (Module) :
 		if 1 not in weights.keys() : raise KeyError()
 
 		self.weights = weights
-		self.eps     = eps
+		self.minval  =       eps
+		self.maxval  = 1.0 - eps
 
 	def forward (self, inputs : Tensor, labels : Tensor) -> Tensor :
 		"""
@@ -36,12 +37,18 @@ class Metric_BCE (Module) :
 		inputs = inputs.flatten()
 		labels = labels.flatten().int()
 
+		inputs = torch.clamp(
+			input = inputs,
+			min   = self.minval,
+			max   = self.maxval
+		)
+
 		plabels =       labels
 		nlabels = 1.0 - labels
 		pinputs =       inputs
 		ninputs = 1.0 - inputs
 
-		score_1 = self.weights[1] * (plabels * torch.log(pinputs + self.eps))
-		score_0 = self.weights[0] * (nlabels * torch.log(ninputs + self.eps))
+		score_1 = self.weights[1] * (plabels * torch.log(pinputs))
+		score_0 = self.weights[0] * (nlabels * torch.log(ninputs))
 
 		return torch.neg(torch.mean(score_1 + score_0))

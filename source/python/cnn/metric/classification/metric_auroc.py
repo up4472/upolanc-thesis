@@ -24,7 +24,7 @@ class Metric_AUROC (Module) :
 			else : ValueError()
 
 		elif self.task == 'binary' :
-			self.module = BinaryAUROC(task = 'binary', threshold = 0.5)
+			self.module = BinaryAUROC()
 
 		else :
 			raise ValueError()
