@@ -24,7 +24,7 @@ from source.python.report.report_constants import TRIALS
 from source.python.io.loader               import load_json
 from source.python.report.report_format    import format_cnn_tune_dataframe
 from source.python.report.report_format    import format_data_tune_dataframe
-from source.python.report.report_utils import convert_errlog_to_dataframe
+from source.python.report.report_utils     import convert_errlog_to_dataframe
 from source.python.report.report_utils     import convert_json_to_dataframe
 from source.python.report.report_utils     import recover_dataframe
 

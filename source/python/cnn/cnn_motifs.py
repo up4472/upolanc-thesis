@@ -1,3 +1,4 @@
+from collections      import Counter
 from pandas           import DataFrame
 from torch            import Tensor
 from torch.nn         import Conv1d
@@ -66,14 +67,14 @@ def get_conv_layers_from_model (model : Module) -> Dict[str, List] :
 		'bias'   : biases
 	}
 
-def get_kernel_activations (sequences : List[str], mapping : Dict[str, numpy.ndarray], layer : Module, device : Any, weighted : bool = False, threshold : Tuple[float, float] = None) -> Dict[int, Tensor] :
+def get_kernel_activations (sequences : List[str], mapping : Dict[str, numpy.ndarray], layer : Module, device : Any, weighted : bool = False, threshold : Tuple[float, float] = None, function : Tuple[Any, Any] = None) -> Dict[int, Tensor] :
 	"""
 	Doc
 	"""
 
 	filters = layer.out_channels
 	height  = len(mapping['A'])
-	width   = layer.kernel_size[0]
+	width   = layer.kernel_size[-1]
 	motifs  = numpy.zeros((filters, width, height), dtype = numpy.float64)
 
 	print('Filters : {}'.format(motifs.shape[0]))
@@ -113,7 +114,18 @@ def get_kernel_activations (sequences : List[str], mapping : Dict[str, numpy.nda
 			layer    = layer,
 			device   = device,
 			sequence = matrix
-		).detach().cpu().numpy()
+		)
+
+		if function is not None :
+			name = function[0].lower()
+			args = function[1]
+
+			if   name == 'relu'       : output = torch.nn.functional.relu(input = output, **args)
+			elif name == 'leaky_relu' : output = torch.nn.functional.leaky_relu(input = output, **args)
+			elif name == 'tanh'       : output = torch.nn.functional.tanh(input = output)
+			elif name == 'sigmoid'    : output = torch.nn.functional.sigmoid(input = output)
+
+		output = output.detach().cpu().numpy()
 
 		if threshold is None : condition = output
 		else                 : condition = numpy.logical_and(threshold[0] < output, output < threshold[1])
@@ -168,8 +180,8 @@ def plot_kernels (weights : List[Tensor], nucleotide_order : Union[str, List] = 
 	num_plot = math.ceil(sum_size / max_size)
 
 	kernels = [torch.nn.functional.softmax(x, dim = 0).cpu().detach().numpy() for x in weights]
-	vmin = numpy.min(kernels)
-	vmax = numpy.max(kernels)
+	vmin    = numpy.min(kernels)
+	vmax    = numpy.max(kernels)
 
 	print('Minimum Value : {:.5f}'.format(vmin))
 	print('Maximum Value : {:.5f}'.format(vmax))
@@ -229,7 +241,7 @@ def plot_kernels (weights : List[Tensor], nucleotide_order : Union[str, List] = 
 		if plotid != 0 :
 			matplotlib.pyplot.close(figure)
 
-def plot_kernels_and_motifs (weights : List[Tensor], activations : Dict[int, Tensor], to_type : str, nucleotide_order : Union[str, List] = None, figsize : Tuple[int, int] = None, filename : str = None, rows : int = 4, cols : int = 8) -> None :
+def plot_kernels_and_motifs (weights : List[Tensor], activations : Dict[int, Tensor], to_type : str, nucleotide_order : Union[str, List] = None, figsize : Tuple[int, int] = None, filename : str = None, rows : int = 4, cols : int = 8) -> List[Dict] :
 	"""
 	Doc
 	"""
@@ -250,9 +262,10 @@ def plot_kernels_and_motifs (weights : List[Tensor], activations : Dict[int, Ten
 
 	num_plot = math.ceil(sum_size / max_size)
 
+	motifs  = list()
 	kernels = [torch.nn.functional.softmax(x, dim = 0).cpu().detach().numpy() for x in weights]
-	vmin = numpy.min(kernels)
-	vmax = numpy.max(kernels)
+	vmin    = numpy.min(kernels)
+	vmax    = numpy.max(kernels)
 
 	print('Minimum Value : {:.5f}'.format(vmin))
 	print('Maximum Value : {:.5f}'.format(vmax))
@@ -300,6 +313,12 @@ def plot_kernels_and_motifs (weights : List[Tensor], activations : Dict[int, Ten
 			ax[kindex].grid(visible = False)
 
 			df = DataFrame(activations[corrected_index], columns = nucleotide_order)
+
+			motifs.append({
+				'name'   : 'C1K{:03d}'.format(corrected_index),
+				'matrix' : logomaker.transform_matrix(df, from_type = 'counts', to_type = 'probability')
+			})
+
 			df = logomaker.transform_matrix(df, from_type = 'counts', to_type = to_type)
 
 			logomaker.Logo(df, ax = ax[lindex])
@@ -326,3 +345,99 @@ def plot_kernels_and_motifs (weights : List[Tensor], activations : Dict[int, Ten
 
 		if plotid != 0 :
 			matplotlib.pyplot.close(figure)
+
+	return motifs
+
+def get_alphabet_letter_frequency (sequences : List[str], alphabet : str = None, to_probability : bool = False) -> Dict[str, int] :
+	"""
+	Doc
+	"""
+
+	counter = Counter()
+
+	for sequence in sequences :
+		counter.update(sequence)
+
+	frequency = {k : v for k, v in counter.items()}
+
+	if to_probability :
+		total     = sum(counter.values())
+		frequency = {k : v / total for k, v in frequency.items()}
+
+	if alphabet is not None :
+		frequency = {k : v for k, v in frequency.items() if k in alphabet}
+		total     = sum(frequency.values())
+		frequency = {k : v / total for k, v in frequency.items()}
+
+	return frequency
+
+def to_meme_format (motifs : List[Dict], filename : str, frequency : Dict[str, float], strands : str = None, alphabet : str = 'ACGT', version : int = 4) -> None :
+	"""
+	Doc
+	"""
+
+	filename     = filename + '.meme'
+	alphabet_str = alphabet
+	alphabet_arr = [x for x in alphabet]
+
+	if ''.join(sorted(alphabet)) not in ['ACGT', 'ACGU', 'ACDEFGHIKLMNPQRSTVWY'] :
+		raise ValueError()
+
+	if sum([frequency[x] for x in alphabet_arr]) != 1.0 :
+		raise ValueError()
+
+	print('Using version     : {}'.format(version))
+	print('Using alphabet    : {}'.format(alphabet_str))
+	print('Using strands     : {}'.format(strands if strands is not None else 'N/A'))
+	print('Using frequencies : {}'.format(' '.join(['{} {:.2f}'.format(k.upper(), v) for k, v in frequency.items()])))
+	print()
+
+	with open(filename, mode = 'w') as handle :
+		# Version (required)
+		handle.write('MEME version {}'.format(version))
+		handle.write('\n')
+		handle.write('\n')
+
+		# Alphabet (recommended)
+		handle.write('ALPHABET= {}'.format(alphabet_str))
+		handle.write('\n')
+		handle.write('\n')
+
+		# Strands (optional)
+		if strands is not None :
+			handle.write('strands {}'.format(strands))
+			handle.write('\n')
+			handle.write('\n')
+
+		# Frequencies (recommended)
+		handle.write('Background letter frequencies')
+		handle.write('\n')
+		handle.write(' '.join(['{:s} {:.5f}'.format(x.upper(), frequency[x]) for x in alphabet_arr]))
+		handle.write('\n')
+		handle.write('\n')
+
+		# Motifs (required)
+		for motif in motifs :
+			name   = motif['name']
+			matrix = motif['matrix'][alphabet_arr].to_numpy()
+
+			h = numpy.shape(matrix)[0]
+			w = numpy.shape(matrix)[1]
+
+			if w != len(alphabet) :
+				raise ValueError()
+
+			handle.write('MOTIF {}'.format(name))
+			handle.write('\n')
+
+			handle.write('letter-probability matrix: alength= {} w= {}'.format(w, h))
+			handle.write('\n')
+
+			for pos in matrix :
+				handle.write(' '.join(['{:.3f}'.format(x) for x in pos]))
+				handle.write('\n')
+
+			handle.write('\n')
+
+	print('Saved MEME formatted motifs : {}'.format(filename))
+	print()
