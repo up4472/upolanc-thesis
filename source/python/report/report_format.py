@@ -3,6 +3,7 @@ from typing import Tuple
 from typing import List
 
 from source.python.report.report_constants import FLOAT_FORMAT
+from source.python.report.report_constants import SHORT_FLOAT_FORMAT
 
 def format_cnn_tune_dataframe_metrics (dataframe : DataFrame, mode : str) -> Tuple[DataFrame, List] :
 	"""
@@ -386,8 +387,7 @@ def format_bert_data_dataframe (dataframe : DataFrame, mode : str) -> DataFrame 
 			'eval_mape'      : 'Eval_MAPE',
 			'eval_mae'       : 'Eval_MAE',
 			'learning_rate'  : 'LR',
-			'loss'           : 'Train_MSE',
-			'step'           : 'Step'
+			'loss'           : 'Train_MSE'
 		})
 
 		dataframe = dataframe.astype({
@@ -395,20 +395,24 @@ def format_bert_data_dataframe (dataframe : DataFrame, mode : str) -> DataFrame 
 			'Kmer'    : int,
 			'Feature' : int,
 			'Step'    : int,
-			'Epoch'   : int
+			'Steps'   : int,
+			'Epoch'   : float,
+			'Epochs'  : float
 		})
 
 		dataframe = dataframe[[
-			'Mode', 'Arch', 'Pooler', 'Type', 'Layer', 'Kmer', 'Feature', 'Filter', 'Sequence', 'Optimizer', 'Epochs',
+			'Mode', 'Arch', 'Pooler', 'Type', 'Layer', 'Kmer', 'Feature', 'Filter', 'Sequence', 'Optimizer',
 			'Target0', 'Target1', 'Target2',
-			'Eval_R2', 'Eval_ME', 'Eval_MAPE', 'Eval_MAE', 'LR', 'Epoch'
+			'Eval_R2', 'Eval_ME', 'Eval_MAPE', 'Eval_MAE', 'LR', 'Steps', 'Epochs', 'Step', 'Epoch'
 		]]
 
 		dataframe['Eval_R2'  ] = dataframe['Eval_R2'  ].map(FLOAT_FORMAT.format)
 		dataframe['Eval_ME'  ] = dataframe['Eval_ME'  ].map(FLOAT_FORMAT.format)
 		dataframe['Eval_MAPE'] = dataframe['Eval_MAPE'].map(FLOAT_FORMAT.format)
 		dataframe['Eval_MAE' ] = dataframe['Eval_MAE' ].map(FLOAT_FORMAT.format)
-		dataframe['LR'       ] = dataframe['LR'       ] .map(FLOAT_FORMAT.format)
+		dataframe['LR'       ] = dataframe['LR'       ].map(FLOAT_FORMAT.format)
+		dataframe['Epoch'    ] = dataframe['Epoch'    ].map(SHORT_FLOAT_FORMAT.format)
+		dataframe['Epochs'   ] = dataframe['Epochs'   ].map(SHORT_FLOAT_FORMAT.format)
 
 		dataframe = dataframe.sort_values('Eval_R2', ascending = False)
 

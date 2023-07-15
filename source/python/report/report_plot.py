@@ -1,5 +1,6 @@
 from typing import Any
 from typing import Dict
+from typing import Union
 
 import seaborn
 import matplotlib
@@ -7,7 +8,7 @@ import matplotlib
 from source.python.report.report_utils import convert_bert_group_to_color
 from source.python.report.report_utils import convert_bert_step_to_epoch
 
-def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str = 'iteration', steps_per_epoch : int = 485, steps_min : int = None, steps_max : int = None, alpha : float = 0.65, groupby : str = None, filename : str = None) :
+def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str = 'iteration', steps_per_epoch : Union[int, float] = 485, steps_min : int = None, steps_max : int = None, alpha : float = 0.65, groupby : str = None, filename : str = None) :
 	"""
 	Doc
 	"""
@@ -28,12 +29,21 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 	else                     : xcolumn = per_step
 
 	for name, dataframe in data[mode].items() :
-		if steps_min is not None : dataframe = dataframe[dataframe['step'] >= steps_min]
-		if steps_max is not None : dataframe = dataframe[dataframe['step'] <= steps_max]
+		if name.endswith('explode') :
+			sitr = int(5 * steps_per_epoch)
+			smin = int(5 * steps_min)
+			smax = int(5 * steps_max)
+		else :
+			sitr = int(steps_per_epoch)
+			smin = int(steps_min)
+			smax = int(steps_max)
+
+		if steps_min is not None : dataframe = dataframe[dataframe['step'] >= smin]
+		if steps_max is not None : dataframe = dataframe[dataframe['step'] <= smax]
 
 		dataframe['epoch'] = convert_bert_step_to_epoch(
 			step            = dataframe['step'],
-			steps_per_epoch = steps_per_epoch,
+			steps_per_epoch = sitr,
 			floor           = False
 		)
 

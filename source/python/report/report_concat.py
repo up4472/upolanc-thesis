@@ -2,6 +2,7 @@ from pandas import DataFrame
 from typing import Any
 from typing import Dict
 from typing import Optional
+from typing import Union
 
 import pandas
 
@@ -143,7 +144,7 @@ def concat_feature_tune_reports (reports : Dict, mode : str, n : int = 50) -> Op
 		tune_type = TUNE_FEATURE
 	)
 
-def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascending : bool = False, steps_per_epoch : int = 485) -> Optional[DataFrame] :
+def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascending : bool = False, steps_per_epoch : Union[int, float] = 485) -> Optional[DataFrame] :
 	"""
 	Doc
 	"""
@@ -156,11 +157,8 @@ def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascend
 
 	for key, dataframe in data[mode].items() :
 		dataframe = dataframe.sort_values(metric, ascending = ascending)
-		dataframe = dataframe.iloc[0, :]
-
-		item = dataframe.to_dict()
-
-		tokens = key.split('-')
+		item      = dataframe.iloc[0, :].to_dict()
+		tokens    = key.split('-')
 
 		bert_arch     = tokens[0]
 		bert_type     = tokens[1]
@@ -171,7 +169,6 @@ def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascend
 		bert_sequence = tokens[6]
 		bert_optim    = tokens[7]
 		bert_filter   = tokens[8]
-		bert_epochs   = tokens[9]
 		bert_target0  = tokens[10]
 		bert_target1  = tokens[11] if len(tokens) >= 12 else None
 		bert_target2  = tokens[12] if len(tokens) >= 13 else None
@@ -189,15 +186,25 @@ def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascend
 		item['Filter']    = str(bert_filter)
 		item['Sequence']  = str(bert_sequence)
 		item['Optimizer'] = str(bert_optim)
-		item['Epochs']    = int(bert_epochs)
 		item['Target0']   = str(bert_target0)
 		item['Target1']   = str(bert_target1)
 		item['Target2']   = str(bert_target2)
 
+		if item['Target2'] == 'explode' : sitr = int(steps_per_epoch * 5)
+		else                            : sitr = int(steps_per_epoch)
+
+		item['Steps']     = dataframe['step'].max()
+		item['Epochs']    = convert_bert_step_to_epoch(
+			step            = item['Steps'],
+			steps_per_epoch = sitr,
+			floor           = False
+		)
+
+		item['Step']  = item['step']
 		item['Epoch'] = convert_bert_step_to_epoch(
-			step            = item['step'],
-			steps_per_epoch = steps_per_epoch,
-			floor           = True
+			step            = item['Step'],
+			steps_per_epoch = sitr,
+			floor           = False
 		)
 
 		array.append(item)

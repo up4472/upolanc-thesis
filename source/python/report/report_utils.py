@@ -2,6 +2,7 @@ from pandas import DataFrame
 from typing import Any
 from typing import Dict
 from typing import Optional
+from typing import Union
 
 import json
 import pandas
@@ -124,7 +125,7 @@ def convert_bert_group_to_color (name : str, groupby : str = None) -> Optional[s
 
 	return COLORS[array.index(token)]
 
-def convert_bert_step_to_epoch (step : int, steps_per_epoch : int = 485, floor : bool = False) -> float :
+def convert_bert_step_to_epoch (step : int, steps_per_epoch : Union[int, float] = 485, floor : bool = False) -> Union[int, float] :
 	"""
 	Doc
 	"""
@@ -132,7 +133,7 @@ def convert_bert_step_to_epoch (step : int, steps_per_epoch : int = 485, floor :
 	epoch = step / steps_per_epoch
 
 	if floor :
-		epoch = math.floor(epoch)
+		return math.floor(epoch)
 
 	return epoch
 
