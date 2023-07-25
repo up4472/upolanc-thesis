@@ -37,6 +37,9 @@ def display_regression_predictions (report : Dict[str, Any], n : int = 5) -> Non
 			ytrue = item[4]
 			ypred = item[5]
 
+			if isinstance(ytrue, numpy.float) : ytrue = [ytrue]
+			if isinstance(ypred, numpy.float) : ypred = [ypred]
+
 			print(f'True : [' + '   '.join('{: .5f}'.format(x) for x in ytrue) + ']')
 			print(f'Pred : [' + '   '.join('{: .5f}'.format(x) for x in ypred) + ']')
 

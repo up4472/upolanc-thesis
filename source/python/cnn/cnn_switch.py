@@ -65,10 +65,14 @@ def to_dataset (sequence : Union[List, Dict], features : Union[List, Dict], targ
 	end    = config['dataset/sequence/end']
 
 	for index in range(len(sequence)) :
+		i_sequence = sequence[index]
+		i_features = features[index]
+		i_targets  = targets[index]
+
 		dataset = to_gene_dataset(
-			sequences   = sequence[index],
-			features    = features[index],
-			targets     = targets[index],
+			sequences   = i_sequence,
+			features    = i_features,
+			targets     = i_targets,
 			expand_dims = expand,
 			groups      = None,
 			start       = start,
@@ -76,7 +80,7 @@ def to_dataset (sequence : Union[List, Dict], features : Union[List, Dict], targ
 		)
 
 		if start is None : start = 0
-		if end   is None : end   = len(list(sequence[index].values())[0])
+		if end   is None : end   = len(list(i_sequence.values())[0])
 		if start >= end  : raise ValueError()
 
 		datasets.append(dataset)

@@ -27,17 +27,17 @@ def generate_basic_statistics (data : Union[DataFrame, numpy.ndarray], transcrip
 	else              : tissue = tissue.title()
 
 	return DataFrame.from_dict({
-		'Transcript'    : transcript,
-		'Tissue'        : tissue,
-		'Count'         : numpy.size(matrix, axis = axis),
-		'Mean'          : numpy.mean(matrix, axis = axis),
-		'Median'        : numpy.median(matrix, axis = axis),
-		'St. Deviation' : numpy.std(matrix, axis = axis),
-		'Variance'      : numpy.var(matrix, axis = axis),
-		'Minimum'       : numpy.min(matrix, axis = axis),
-		'Maximum'       : numpy.max(matrix, axis = axis),
-		'Range'         : numpy.ptp(matrix, axis = axis),
-		'MAD'           : scipy.stats.median_abs_deviation(matrix, axis = axis, nan_policy = 'omit')
+		'Transcript' : transcript,
+		'Tissue'     : tissue,
+		'Count'      : numpy.size(matrix, axis = axis),
+		'Mean'       : numpy.mean(matrix, axis = axis),
+		'Median'     : numpy.median(matrix, axis = axis),
+		'StDev'      : numpy.std(matrix, axis = axis),
+		'Var'        : numpy.var(matrix, axis = axis),
+		'Min'        : numpy.min(matrix, axis = axis),
+		'Max'        : numpy.max(matrix, axis = axis),
+		'Range'      : numpy.ptp(matrix, axis = axis),
+		'MAD'        : scipy.stats.median_abs_deviation(matrix, axis = axis, nan_policy = 'omit')
 	})
 
 def genearte_advance_statistics (data : Union[DataFrame, numpy.ndarray], transcript : List[str], tissue : str, axis : int = 1) -> DataFrame :
