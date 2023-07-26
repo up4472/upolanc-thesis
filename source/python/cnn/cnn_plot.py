@@ -1,15 +1,15 @@
-from typing import Dict
-from typing import List
-from typing import Tuple
-from typing import Union
+from typing          import Dict
+from typing          import List
+from typing          import Tuple
+from typing          import Union
+from pandas          import DataFrame
+from sklearn.metrics import ConfusionMatrixDisplay
 
 import math
 import matplotlib
 import numpy
 import scipy
 import seaborn
-from pandas import DataFrame
-from sklearn.metrics import ConfusionMatrixDisplay
 
 def get_regression_limits (report : Dict[str, Dict]) -> Dict[str, Tuple] :
 	"""
@@ -122,7 +122,10 @@ def show_prediction_error_grid (report : Dict[str, Dict], order : List[str], fil
 
 		return
 
-	data = report['eval']['ypred'] - report['eval']['ytrue']
+	ypred = report['eval']['ypred'].squeeze()
+	ytrue = report['eval']['ytrue'].squeeze()
+
+	data = ypred - ytrue
 
 	n, nrows, ncols = compute_gridsize(
 		n = numpy.shape(data)[1]
@@ -175,10 +178,15 @@ def show_prediction_error (report : Dict[str, Dict], order : List[str], group : 
 	Doc
 	"""
 
-	data = report['eval']['ypred'] - report['eval']['ytrue']
+	ypred = report['eval']['ypred'].squeeze()
+	ytrue = report['eval']['ytrue'].squeeze()
+
+	data = ypred - ytrue
 
 	index = order.index(group)
-	data = data[:, index]
+
+	if index > 0 :
+		data = data[:, index]
 
 	_, axis = matplotlib.pyplot.subplots(figsize = (16, 10))
 
@@ -213,8 +221,8 @@ def show_linear_regression_grid (report : Dict[str, Dict], order : List[str], fi
 
 		return
 
-	ypred = report['eval']['ypred']
-	ytrue = report['eval']['ytrue']
+	ypred = report['eval']['ypred'].squeeze()
+	ytrue = report['eval']['ytrue'].squeeze()
 
 	n, nrows, ncols = compute_gridsize(
 		n = numpy.shape(ytrue)[1]
@@ -295,8 +303,8 @@ def show_linear_regression (report : Dict[str, Dict], order : List[str], group :
 
 	index = order.index(group)
 
-	ypred = report['eval']['ypred'][:, index]
-	ytrue = report['eval']['ytrue'][:, index]
+	ypred = report['eval']['ypred'][:, index].squeeze()
+	ytrue = report['eval']['ytrue'][:, index].squeeze()
 
 	variance = numpy.var(ypred, axis = None)
 

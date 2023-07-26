@@ -1,13 +1,12 @@
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Tuple
-from typing import Union
-
 from torch.utils.data import DataLoader
+from typing           import Any
+from typing           import Dict
+from typing           import List
+from typing           import Tuple
+from typing           import Union
 
 from source.python.dataset.dataset_classes import GeneDataset
-from source.python.dataset.dataset_utils import to_dataloaders
+from source.python.dataset.dataset_utils   import to_dataloaders
 from source.python.dataset.dataset_utils   import to_gene_dataset
 
 def append_drop_to_each (keep : List[List], drop : List[Dict], full : List[Dict]) -> Tuple[List, List] :

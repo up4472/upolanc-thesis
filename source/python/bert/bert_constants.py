@@ -1,6 +1,7 @@
 from transformers import AlbertConfig                          # noqa F821 :: unresolved reference :: added at runtime
 from transformers import AlbertForSequenceClassification       # noqa F821 :: unresolved reference :: added at runtime
 from transformers import AlbertTokenizer                       # noqa F821 :: unresolved reference :: added at runtime
+from transformers import AutoTokenizer                         # noqa F821 :: unresolved reference :: added at runtime
 from transformers import BertConfig                            # noqa F821 :: unresolved reference :: added at runtime
 from transformers import BertForSequenceClassification         # noqa F821 :: unresolved reference :: added at runtime
 from transformers import BertForLongSequenceClassification     # noqa F821 :: unresolved reference :: added at runtime
@@ -46,24 +47,30 @@ PRETRAINED_MODELS = sum((
 
 MODELS = {
 	# Original
-	'dna'          : (      BertConfig,       BertForSequenceClassification,        DNATokenizer),
-	'dnalong'      : (      BertConfig,   BertForLongSequenceClassification,        DNATokenizer),
-	'dnalongcat'   : (      BertConfig,   BertForLongSequenceClassification,        DNATokenizer),
-	'bert'         : (      BertConfig,       BertForSequenceClassification,       BertTokenizer),
-	'xlnet'        : (     XLNetConfig,      XLNetForSequenceClassification,      XLNetTokenizer),
-	'xlm'          : (       XLMConfig,        XLMForSequenceClassification,        XLMTokenizer),
-	'roberta'      : (   RobertaConfig,    RobertaForSequenceClassification,    RobertaTokenizer),
-	'distilbert'   : (DistilBertConfig, DistilBertForSequenceClassification, DistilBertTokenizer),
-	'albert'       : (    AlbertConfig,     AlbertForSequenceClassification,     AlbertTokenizer),
-	'xlmroberta'   : (XLMRobertaConfig, XLMRobertaForSequenceClassification, XLMRobertaTokenizer),
-	'flaubert'     : (  FlaubertConfig,   FlaubertForSequenceClassification,   FlaubertTokenizer),
-	# Custom
-	'febert'       : (      BertConfig,             FeatureExtractorBert,           DNATokenizer),
-	'rbertfc1'     : (      BertConfig,                   RegressionBertFC1,        DNATokenizer),
-	'rbertfc3'     : (      BertConfig,                   RegressionBertFC3,        DNATokenizer),
-	'rbertfc3_def' : (      BertConfig,                   RegressionBertFC3,        DNATokenizer),
-	'rbertfc3_cat' : (      BertConfig,                CatRegressionBertFC3,        DNATokenizer),
-	'rbertfc3_rnn' : (      BertConfig,                RnnRegressionBertFC3,        DNATokenizer)
+	'dna'             : (      BertConfig,       BertForSequenceClassification,        DNATokenizer),
+	'dnalong'         : (      BertConfig,   BertForLongSequenceClassification,        DNATokenizer),
+	'dnalongcat'      : (      BertConfig,   BertForLongSequenceClassification,        DNATokenizer),
+	'bert'            : (      BertConfig,       BertForSequenceClassification,       BertTokenizer),
+	'xlnet'           : (     XLNetConfig,      XLNetForSequenceClassification,      XLNetTokenizer),
+	'xlm'             : (       XLMConfig,        XLMForSequenceClassification,        XLMTokenizer),
+	'roberta'         : (   RobertaConfig,    RobertaForSequenceClassification,    RobertaTokenizer),
+	'distilbert'      : (DistilBertConfig, DistilBertForSequenceClassification, DistilBertTokenizer),
+	'albert'          : (    AlbertConfig,     AlbertForSequenceClassification,     AlbertTokenizer),
+	'xlmroberta'      : (XLMRobertaConfig, XLMRobertaForSequenceClassification, XLMRobertaTokenizer),
+	'flaubert'        : (  FlaubertConfig,   FlaubertForSequenceClassification,   FlaubertTokenizer),
+	# DNABert
+	'febert'          : (      BertConfig,             FeatureExtractorBert,           DNATokenizer),
+	'rbertfc1'        : (      BertConfig,                   RegressionBertFC1,        DNATokenizer),
+	'rbertfc3'        : (      BertConfig,                   RegressionBertFC3,        DNATokenizer),
+	'rbertfc3_def'    : (      BertConfig,                   RegressionBertFC3,        DNATokenizer),
+	'rbertfc3_cat'    : (      BertConfig,                CatRegressionBertFC3,        DNATokenizer),
+	'rbertfc3_rnn'    : (      BertConfig,                RnnRegressionBertFC3,        DNATokenizer),
+	# DNABert v2
+	'rbertfc1_v2'     : (      BertConfig,                   RegressionBertFC1,       AutoTokenizer),
+	'rbertfc3_v2'     : (      BertConfig,                   RegressionBertFC3,       AutoTokenizer),
+	'rbertfc3_def_v2' : (      BertConfig,                   RegressionBertFC3,       AutoTokenizer),
+	'rbertfc3_cat_v2' : (      BertConfig,                CatRegressionBertFC3,       AutoTokenizer),
+	'rbertfc3_rnn_v2' : (      BertConfig,                RnnRegressionBertFC3,       AutoTokenizer)
 }
 
 TOKENS = [
@@ -74,5 +81,10 @@ TOKENS = [
 	'albert'
 ]
 
-PROCESSORS = glue_processors   | {'regression' : RegressionProcessor}
-MODES      = glue_output_modes | {'regression' : 'regression'}
+PROCESSORS = glue_processors | {
+	'regression' : RegressionProcessor
+}
+
+MODES = glue_output_modes | {
+	'regression' : 'regression'
+}
