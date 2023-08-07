@@ -131,7 +131,6 @@ def concat_data_tune_reports (reports : Dict, mode : str, n : int = 50) -> Optio
 		tune_type = TUNE_DATA
 	)
 
-
 def concat_feature_tune_reports (reports : Dict, mode : str, n : int = 50) -> Optional[DataFrame] :
 	"""
 	Doc
@@ -176,19 +175,19 @@ def concat_bert_reports (data : Dict[str, Any], mode : str, metric : str, ascend
 		if   bert_pooler == 'v1' : bert_pooler = 'def'
 		elif bert_pooler == 'v2' : bert_pooler = 'dna'
 
-		item['Mode']      = str(mode)
-		item['Arch']      = str(bert_arch)
-		item['Pooler']    = str(bert_pooler)
-		item['Type']      = str(bert_type)
-		item['Layer']     = int(bert_layer)
-		item['Kmer']      = int(bert_kmer)
-		item['Feature']   = int(bert_feature)
-		item['Filter']    = str(bert_filter)
-		item['Sequence']  = str(bert_sequence)
-		item['Optimizer'] = str(bert_optim)
-		item['Target0']   = str(bert_target0)
-		item['Target1']   = str(bert_target1)
-		item['Target2']   = str(bert_target2)
+		item['Mode']      = mode
+		item['Arch']      = bert_arch
+		item['Pooler']    = bert_pooler
+		item['Type']      = bert_type
+		item['Layer']     = bert_layer
+		item['Kmer']      = bert_kmer
+		item['Feature']   = bert_feature
+		item['Filter']    = bert_filter
+		item['Sequence']  = bert_sequence
+		item['Optimizer'] = bert_optim
+		item['Target0']   = bert_target0
+		item['Target1']   = bert_target1
+		item['Target2']   = bert_target2
 
 		if item['Target2'] == 'explode' : sitr = int(steps_per_epoch * 5)
 		else                            : sitr = int(steps_per_epoch)

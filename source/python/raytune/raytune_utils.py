@@ -30,7 +30,7 @@ def get_search_algorithm (config : Dict[str, Any], metric : str = 'valid_loss', 
 
 	algorithm = algorithm.lower()
 
-	if algorithm == 'hyperopt' :
+	if algorithm in ['hyperopt', 'hyperopt-search', 'hyperoptsearch'] :
 		return ConcurrencyLimiter(
 			searcher = HyperOptSearch(
 				n_initial_points   = 20,
@@ -44,13 +44,23 @@ def get_search_algorithm (config : Dict[str, Any], metric : str = 'valid_loss', 
 			max_concurrent = config['tuner/max_concurrent']
 		)
 
-	if algorithm == 'gridsearch' :
+	if algorithm in ['grid', 'grid-search', 'gridsearch'] :
 		return BasicVariantGenerator(
 			points_to_evaluate   = params,
 			max_concurrent       = config['tuner/max_concurrent'],
 			constant_grid_search = True,
 			random_state         = None
 		)
+
+	if algorithm in ['random', 'random-search', 'randomsearch'] :
+		return BasicVariantGenerator(
+			points_to_evaluate   = params,
+			max_concurrent       = config['tuner/max_concurrent'],
+			constant_grid_search = True,
+			random_state         = None
+		)
+
+	raise ValueError()
 
 def create_tune_config (config : Dict[str, Any], metric : str = 'valid_loss', mode : str = 'min', params : List[Dict[str, Any]] = None, algorithm : str = 'hyperopt') -> TuneConfig :
 	"""

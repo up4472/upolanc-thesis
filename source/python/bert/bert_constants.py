@@ -34,7 +34,8 @@ from source.python.bert.bert_models     import RegressionBertFC1
 from source.python.bert.bert_models     import RegressionBertFC3
 from source.python.bert.bert_models     import CatRegressionBertFC3
 from source.python.bert.bert_models     import RnnRegressionBertFC3
-from source.python.bert.bert_processors import RegressionProcessor
+from source.python.bert.bert_processors import KmerRegressionProcessor
+from source.python.bert.bert_processors import SequenceRegressionProcessor
 
 PRETRAINED_MODELS = sum((
 	tuple(conf.pretrained_config_archive_map.keys())
@@ -82,9 +83,13 @@ TOKENS = [
 ]
 
 PROCESSORS = glue_processors | {
-	'regression' : RegressionProcessor
+	'regression'          : KmerRegressionProcessor,
+	'regression_kmer'     : KmerRegressionProcessor,
+	'regression_sequence' : SequenceRegressionProcessor
 }
 
 MODES = glue_output_modes | {
-	'regression' : 'regression'
+	'regression'          : 'regression',
+	'regression_kmer'     : 'regression',
+	'regression_sequence' : 'regression'
 }
