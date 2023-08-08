@@ -9,7 +9,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mem-per-gpu=64G
 #SBATCH --cpus-per-gpu=6
-#SBATCH --time=2-00:00:00
+#SBATCH --time=4-00:00:00
 
 # Activate conda enviorment
 source activate /d/hpc/projects/FRI/up4472/anaconda3
@@ -43,7 +43,7 @@ python /d/hpc/projects/FRI/up4472/upolanc-thesis/notebook/nbp07-switch.py \
 --model_arch zrimec \
 --model_epochs 500 \
 --model_params 0 \
---filter_id 3 \
+--filter_id 2 \
 --generator stratified \
 --features true \
 --sequence_start none \

@@ -96,10 +96,13 @@ def data_prepare (sequences : Dict[str, str], features : Dict[str, Any], directo
 			t04
 		)
 
-def create_kmers (data : Dict[str, Dict], generator : Callable, filename : str, max_tokens : int = None, random_seed : int = None, start : int = None, end : int = None) -> None :
+def create_kmers (data : Dict[str, Dict], generator : Callable, filename : str, max_tokens : int = None, random_seed : int = None, start : int = None, end : int = None, kmers : List[int] = None) -> None :
 	"""
 	Doc
 	"""
+
+	if kmers is None :
+		kmers = [3, 4, 5, 6]
 
 	sequences  = data['sequences']
 	features   = data['features']
@@ -125,7 +128,7 @@ def create_kmers (data : Dict[str, Dict], generator : Callable, filename : str, 
 	indices = next(generator)
 	names = ['train', 'valid', 'dev']
 
-	for kmer in [3, 6] :
+	for kmer in kmers :
 		for index, name in zip(indices, names) :
 			if index is None : continue
 

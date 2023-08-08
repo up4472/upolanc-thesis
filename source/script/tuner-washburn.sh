@@ -8,7 +8,7 @@
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:1
 #SBATCH --mem-per-gpu=64G
-#SBATCH --cpus-per-gpu=12
+#SBATCH --cpus-per-gpu=6
 #SBATCH --time=4-00:00:00
 
 # Activate conda enviorment
@@ -55,8 +55,8 @@ python /d/hpc/projects/FRI/up4472/upolanc-thesis/notebook/nbp06-tuner-model.py \
 --model_mode regression \
 --model_epochs 25 \
 --tuner_concurrent 5 \
---tuner_trials 1000 \
---tuner_grace 10 \
+--tuner_trials 500 \
+--tuner_grace 5 \
 --param_share false \
 --filter_id 2 \
 --generator group \

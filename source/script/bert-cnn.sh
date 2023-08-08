@@ -29,9 +29,9 @@ fi
 
 # Default params
 # --bert_arch      : febert         : [str] febert
-# --bert_kmer      : 3              : [str] 3, 6
+# --bert_kmer      : 3              : [str] 3, 4, 5, 6
 # --bert_sequence  : promoter-512   : [str] promoter-512, promoter-4096, promoter-utr5-4096, transcript-2150
-# --bert_target    : global-mean    : [str] global-mean, tissue-mean-explode, group-mean-explode
+# --bert_target    : global-mean    : [str] global-mean, tissue-mean-explode, tissue-mean-seedling, group-mean-explode
 # --model_epochs   : 50             : [int] ...
 # --model_params   : none           : [int] none
 # --model_mode     : regression     : [str] regression, classification
@@ -41,11 +41,11 @@ fi
 # Run script
 python /d/hpc/projects/FRI/up4472/upolanc-thesis/notebook/nbp12-bert-cnn.py \
 --bert_arch febert \
---bert_kmer 6 \
+--bert_kmer 3 \
 --bert_sequence promoter-512 \
 --bert_target global-mean \
 --model_epochs 250 \
 --model_params 0 \
 --model_mode regression \
 --model_arch fc3 \
---filter_id 3 \
+--filter_id 2 \

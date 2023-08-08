@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name=bert-finetune
-#SBATCH --output=/d/hpc/projects/FRI/up4472/upolanc-thesis/slurm/bert-finetune-%j.out
-#SBATCH --error=/d/hpc/projects/FRI/up4472/upolanc-thesis/slurm/bert-finetune-%j.err
+#SBATCH --job-name=bert-v2-finetune
+#SBATCH --output=/d/hpc/projects/FRI/up4472/upolanc-thesis/slurm/bert-v2-finetune-%j.out
+#SBATCH --error=/d/hpc/projects/FRI/up4472/upolanc-thesis/slurm/bert-v2-finetune-%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --partition=gpu
@@ -27,10 +27,9 @@ if [[ ":$PATH:" != *":$ROOT:"* ]]; then
 	export PATH="$PATH:$ROOT"
 fi
 
-# KMER     : 3, 4, 5, 6
 # TARGET   : global-mean, tissue-mean-explode, tissue-mean-seedling, group-mean-explode
 # SEQUENCE : promoter-512, promoter-4096, promoter-utr5-4096, transcript-2150
-# FILTER   : filter1, filter2, filter3, filter4, filter5
+# FILTER   : filter1, filter2, filter3, filter4, filter5, filter6
 # MODELS   : febert_v2, rbertfc1_v2, rbertfc3_v2, rbertfc3_def_v2, rbertfc3_rnn_v2, rbertfc3_cat_v2
 
 # Run script
@@ -41,7 +40,7 @@ export DATA_FILTER=filter2
 export NAME_MODEL=rbertfc3_def_v2
 
 export PATH_ROOT=/d/hpc/projects/FRI/up4472/upolanc-thesis
-export PATH_BERT=$PATH_ROOT/resources/dnabert/$DATA_KMER-new-12w-0
+export PATH_BERT=$PATH_ROOT/resources/dnabert/bpe-new-12w-0
 export PATH_DATA=$PATH_ROOT/output/nbp05-target/$DATA_FILTER/dnabert-6/$DATA_SEQUENCE/$DATA_TARGET
 export PATH_OUTS=$PATH_ROOT/output/nbp12-bert/bert/$DATA_FILTER/$NAME_MODEL/bpe/$DATA_SEQUENCE/$DATA_TARGET
 export PATH_TEMP=$PATH_ROOT/output/nbp12-bert/temp/$DATA_FILTER/$NAME_MODEL/bpe/$DATA_SEQUENCE/$DATA_TARGET

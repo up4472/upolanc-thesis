@@ -51,7 +51,7 @@ python /d/hpc/projects/FRI/up4472/upolanc-thesis/notebook/nbp14-pipeline.py \
 --model_arch zrimec \
 --model_epochs 500 \
 --model_params 0 \
---filter_id 3 \
+--filter_id 2 \
 --features true \
 --sequence_start none \
 --sequence_end none \

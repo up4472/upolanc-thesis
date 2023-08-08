@@ -27,7 +27,7 @@ if [[ ":$PATH:" != *":$ROOT:"* ]]; then
 	export PATH="$PATH:$ROOT"
 fi
 
-# KMER     : 3, 6
+# KMER     : 3, 4, 5, 6
 # TARGET   : global-mean, tissue-mean-explode, tissue-mean-seedling, group-mean-explode
 # SEQUENCE : promoter-512, promoter-4096, promoter-utr5-4096, transcript-2150
 # FILTER   : filter1, filter2, filter3, filter4, filter5
@@ -38,7 +38,6 @@ export DATA_KMER=3
 export DATA_TARGET=global-mean
 export DATA_SEQUENCE=promoter-512
 export DATA_FILTER=filter2
-
 export NAME_MODEL=febert
 export NAME_TOKEN=dna$DATA_KMER
 
@@ -55,7 +54,7 @@ python /d/hpc/projects/FRI/up4472/upolanc-thesis/notebook/nbp12-bert.py \
 --data_dir "$PATH_DATA" \
 --output_dir "$PATH_OUTS" \
 --cache_dir "$PATH_TEMP" \
---task_name regression \
+--task_name regression_kmer \
 --overwrite_output \
 --do_extract \
 --evaluate_during_training \

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name=bert-finetune
-#SBATCH --output=/d/hpc/projects/FRI/up4472/upolanc-thesis/slurm/bert-finetune-%j.out
-#SBATCH --error=/d/hpc/projects/FRI/up4472/upolanc-thesis/slurm/bert-finetune-%j.err
+#SBATCH --job-name=bert-v1-finetune
+#SBATCH --output=/d/hpc/projects/FRI/up4472/upolanc-thesis/slurm/bert-v1-finetune-%j.out
+#SBATCH --error=/d/hpc/projects/FRI/up4472/upolanc-thesis/slurm/bert-v1-finetune-%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --partition=gpu
@@ -30,7 +30,7 @@ fi
 # KMER     : 3, 4, 5, 6
 # TARGET   : global-mean, tissue-mean-explode, tissue-mean-seedling, group-mean-explode
 # SEQUENCE : promoter-512, promoter-4096, promoter-utr5-4096, transcript-2150
-# FILTER   : filter1, filter2, filter3, filter4, filter5
+# FILTER   : filter1, filter2, filter3, filter4, filter5, filter6
 # MODELS   : febert, rbertfc1, rbertfc3, rbertfc3_def, rbertfc3_rnn, rbertfc3_cat
 
 # Run script
@@ -38,7 +38,6 @@ export DATA_KMER=3
 export DATA_TARGET=global-mean
 export DATA_SEQUENCE=promoter-512
 export DATA_FILTER=filter2
-
 export NAME_MODEL=rbertfc3_def
 export NAME_TOKEN=dna$DATA_KMER
 

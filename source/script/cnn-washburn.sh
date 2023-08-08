@@ -9,7 +9,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --mem-per-gpu=64G
 #SBATCH --cpus-per-gpu=6
-#SBATCH --time=2-00:00:00
+#SBATCH --time=4-00:00:00
 
 # Activate conda enviorment
 source activate /d/hpc/projects/FRI/up4472/anaconda3

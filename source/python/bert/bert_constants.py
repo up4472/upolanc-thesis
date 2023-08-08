@@ -59,7 +59,7 @@ MODELS = {
 	'albert'          : (    AlbertConfig,     AlbertForSequenceClassification,     AlbertTokenizer),
 	'xlmroberta'      : (XLMRobertaConfig, XLMRobertaForSequenceClassification, XLMRobertaTokenizer),
 	'flaubert'        : (  FlaubertConfig,   FlaubertForSequenceClassification,   FlaubertTokenizer),
-	# DNABert
+	# DNABert v1
 	'febert'          : (      BertConfig,             FeatureExtractorBert,           DNATokenizer),
 	'rbertfc1'        : (      BertConfig,                   RegressionBertFC1,        DNATokenizer),
 	'rbertfc3'        : (      BertConfig,                   RegressionBertFC3,        DNATokenizer),
@@ -67,6 +67,7 @@ MODELS = {
 	'rbertfc3_cat'    : (      BertConfig,                CatRegressionBertFC3,        DNATokenizer),
 	'rbertfc3_rnn'    : (      BertConfig,                RnnRegressionBertFC3,        DNATokenizer),
 	# DNABert v2
+	'febert_v2'       : (      BertConfig,             FeatureExtractorBert,          AutoTokenizer),
 	'rbertfc1_v2'     : (      BertConfig,                   RegressionBertFC1,       AutoTokenizer),
 	'rbertfc3_v2'     : (      BertConfig,                   RegressionBertFC3,       AutoTokenizer),
 	'rbertfc3_def_v2' : (      BertConfig,                   RegressionBertFC3,       AutoTokenizer),
@@ -83,8 +84,8 @@ TOKENS = [
 ]
 
 PROCESSORS = glue_processors | {
-	'regression'          : KmerRegressionProcessor,
-	'regression_kmer'     : KmerRegressionProcessor,
+	'regression'          :     KmerRegressionProcessor,
+	'regression_kmer'     :     KmerRegressionProcessor,
 	'regression_sequence' : SequenceRegressionProcessor
 }
 
