@@ -6,9 +6,10 @@ import seaborn
 import matplotlib
 
 from source.python.report.report_utils import convert_bert_group_to_color
+from source.python.report.report_utils import convert_bert_name
 from source.python.report.report_utils import convert_bert_step_to_epoch
 
-def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str = 'iteration', steps_per_epoch : Union[int, float] = 485, steps_min : int = None, steps_max : int = None, alpha : float = 0.65, groupby : str = None, filename : str = None) :
+def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str = 'iteration', steps_per_epoch : Union[int, float] = 485, steps_min : int = None, steps_max : int = None, alpha : float = 0.65, groupby : str = None, style : str = None, filename : str = None, bbox_inches : str = None) :
 	"""
 	Doc
 	"""
@@ -28,7 +29,7 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 	elif step == 'epoch'     : xcolumn = per_epoch
 	else                     : xcolumn = per_step
 
-	for name, dataframe in data[mode].items() :
+	for index, (name, dataframe) in enumerate(data[mode].items()) :
 		if name.endswith('explode') :
 			sitr = int(5 * steps_per_epoch)
 			smin = int(5 * steps_min)
@@ -52,6 +53,12 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 		elif step == 'epoch'     : xcolumn = ('epoch', 'Epoch')
 		else                     : xcolumn = ('step',  'Step')
 
+		name = convert_bert_name(
+			name  = name,
+			style = style,
+			index = index
+		)
+
 		seaborn.lineplot(
 			data  = dataframe,
 			x     = xcolumn[0],
@@ -71,6 +78,8 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 	if filename is not None :
 		matplotlib.pyplot.savefig(
 			filename + '.png',
-			format = 'png',
-			dpi    = 120
+			format      = 'png',
+			dpi         = 120,
+			bbox_inches = bbox_inches,
+			pad_inches  = 0
 		)

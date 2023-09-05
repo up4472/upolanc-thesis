@@ -1,4 +1,6 @@
 from collections      import Counter
+from typing import Callable
+
 from pandas           import DataFrame
 from torch            import Tensor
 from torch.nn         import Conv1d
@@ -66,6 +68,50 @@ def get_conv_layers_from_model (model : Module) -> Dict[str, List] :
 		'weight' : weights,
 		'bias'   : biases
 	}
+
+def get_position_activations (sequences : List[str], mapping : Dict[str, numpy.ndarray], layer : Module, device : Any, function : Tuple[Any, Any] = None, fn : Callable = None,) -> Dict[int, Tensor] :
+	"""
+	Doc
+	"""
+
+	motifs     = numpy.zeros((len(sequences[0])), dtype = numpy.float64)
+	dataset    = SequenceDataset(sequences)
+	dataloader = DataLoader(dataset, batch_size = 1, shuffle = False)
+
+	layer = layer.to(device)
+
+	if fn is None : fn = numpy.sum
+
+	for sequence in dataloader :
+		sequence = sequence[0]
+
+		matrix = onehot_encode(
+			sequence  = sequence,
+			mapping   = mapping,
+			default   = None,
+			transpose = False
+		)
+
+		output = get_conv_output_for_layer(
+			layer    = layer,
+			device   = device,
+			sequence = matrix
+		)
+
+		if function is not None :
+			name = function[0].lower()
+			args = function[1]
+
+			if   name == 'relu'       : output = torch.nn.functional.relu(input = output, **args)
+			elif name == 'leaky_relu' : output = torch.nn.functional.leaky_relu(input = output, **args)
+			elif name == 'tanh'       : output = torch.nn.functional.tanh(input = output)
+			elif name == 'sigmoid'    : output = torch.nn.functional.sigmoid(input = output)
+
+		output      = output.detach().cpu().numpy()
+		activations = fn(output, axis = 0)
+		motifs      = numpy.add(motifs, activations, out = motifs)
+
+	return motifs
 
 def get_kernel_activations (sequences : List[str], mapping : Dict[str, numpy.ndarray], layer : Module, device : Any, weighted : bool = False, threshold : Tuple[float, float] = None, function : Tuple[Any, Any] = None) -> Dict[int, Tensor] :
 	"""

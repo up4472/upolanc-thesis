@@ -94,6 +94,10 @@ def convert_json_to_dataframe (root : str, source_name : str, target_name : str)
 				key = line[0].strip().replace('"', '')
 				val = line[1].strip().replace('"', '').replace(',', '')
 
+				if   val is None   : val = numpy.nan
+				elif val == 'None' : val = numpy.nan
+				elif val == 'none' : val = numpy.nan
+
 				item[str(key)] = float(val)
 
 	dataframe = DataFrame(data)
@@ -137,6 +141,51 @@ def convert_bert_step_to_epoch (step : int, steps_per_epoch : Union[int, float] 
 
 	return epoch
 
+def convert_bert_name (name : str, style : str = None, index : int = None) -> str :
+	"""
+	Doc
+	"""
+
+	if style is None : return name
+
+	style = style.lower()
+
+	if style == 'none'     : return name
+	if style == 'original' : return name
+
+	tokens = name.split('-')
+
+	arch      = tokens[1]
+	pooler    = tokens[2]
+	kmer      = tokens[4]
+	sequence  = tokens[6]
+	filterid  = tokens[8][1:]
+
+	if len(tokens) == 13 : target = '{}-{}-{}'.format(tokens[-3] ,tokens[-2], tokens[-1])
+	else                 : target = '{}-{}'.format(tokens[-2], tokens[-1])
+
+	if   pooler == 'v1' : pooler = 'first'
+	elif pooler == 'v2' : pooler = 'mean'
+
+	if   sequence == 'po0512' : sequence = 'promoter 512 bp'
+	elif sequence == 'po4096' : sequence = 'promoter 4096 bp'
+	elif sequence == 'po5000' : sequence = 'promoter 5000 bp'
+	elif sequence == 'pu4096' : sequence = 'promoter + 5\'utr 4096 bp'
+	elif sequence == 'pu5000' : sequence = 'promoter + 5\'utr 5000 bp'
+	elif sequence == 'tf2150' : sequence = 'transcript 2150 bp'
+	elif sequence == 'tf6150' : sequence = 'transcript 6150 bp'
+
+	if style == 'sequence'            : return sequence
+	if style == 'target'              : return target
+	if style == 'pooler'              : return pooler
+	if style == 'architecture'        : return arch
+	if style == 'kmer'                : return '{}-mer'.format(kmer)
+	if style == 'pooler-architecture' : return '{}-{}'.format(arch, pooler)
+	if style == 'filter'              : return 'filter {}'.format(filterid)
+	if style == 'index'               : return '{:02d} : {}'.format(index, name)
+
+	return name
+
 def convert_errlog_to_dataframe (root : str, source_name : str, target_name : str, step_size : int = 100) -> DataFrame :
 	"""
 	Doc
@@ -165,7 +214,11 @@ def convert_errlog_to_dataframe (root : str, source_name : str, target_name : st
 
 				index = line.index(string) + len(string)
 				score = line[index:].strip()
-				score = float(score)
+
+				if score == 'None' or score == 'none' :
+					score = float(0.0)
+				else :
+					score = float(score)
 
 				if metric not in scores.keys() :
 					scores[metric] = list()

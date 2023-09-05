@@ -137,16 +137,12 @@ def show_prediction_error_grid (report : Dict[str, Dict], order : List[str], fil
 		'figsize' : (16 * ncols, 10 * nrows)
 	}
 
-	if ncols > 1 :
-		_, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
-	else :
-		_, ax = matplotlib.pyplot.subplots(nrows, **kwargs)
+	if ncols > 1 : _, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
+	else         : _, ax = matplotlib.pyplot.subplots(nrows, **kwargs)
 
 	for index in range(n) :
-		if nrows == 1 or ncols == 1 :
-			axis = ax[index]
-		else :
-			axis = ax[index // ncols, index % ncols]
+		if nrows == 1 or ncols == 1 : axis = ax[index]
+		else                        : axis = ax[index // ncols, index % ncols]
 
 		seaborn.histplot(
 			x     = data[:, index],
@@ -159,10 +155,8 @@ def show_prediction_error_grid (report : Dict[str, Dict], order : List[str], fil
 		axis.set_xlabel('Prediction Error')
 
 	for index in range(n, nrows * ncols) :
-		if nrows == 1 or ncols == 1 :
-			axis = ax[index]
-		else :
-			axis = ax[index // ncols, index % ncols]
+		if nrows == 1 or ncols == 1 : axis = ax[index]
+		else                        : axis = ax[index // ncols, index % ncols]
 
 		axis.axis('off')
 

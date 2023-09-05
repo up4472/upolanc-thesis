@@ -84,9 +84,11 @@ def format_cnn_tune_dataframe_params (dataframe : DataFrame) -> Tuple[DataFrame,
 	has_beta     = 'config/optimizer/beta1' in dataframe.columns and 'config/optimizer/beta2' in dataframe.columns
 
 	columns.extend(['Epoch', 'Optimizer', 'LR'])
-	columns.extend(['Decay', 'Scheduler', 'Batch', 'Dropout'])
+	columns.extend(['Decay', 'Gamma', 'Scheduler', 'Batch', 'Dropout'])
 
 	if has_beta :
+		columns.extend(['Beta1', 'Beta2'])
+
 		dataframe = dataframe.rename(columns = {
 			'config/optimizer/beta1' : 'Beta1',
 			'config/optimizer/beta2' : 'Beta2'
@@ -96,6 +98,8 @@ def format_cnn_tune_dataframe_params (dataframe : DataFrame) -> Tuple[DataFrame,
 		dataframe['Beta2'] = dataframe['Beta2'].map(FLOAT_FORMAT.format)
 
 	if has_momentum :
+		columns.extend(['Momentum'])
+
 		dataframe = dataframe.rename(columns = {
 			'config/optimizer/momentum' : 'Momentum'
 		})
@@ -103,13 +107,14 @@ def format_cnn_tune_dataframe_params (dataframe : DataFrame) -> Tuple[DataFrame,
 		dataframe['Momentum'] = dataframe['Momentum'].map(FLOAT_FORMAT.format)
 
 	dataframe = dataframe.rename(columns = {
-		'training_iteration'        : 'Epoch',
-		'config/optimizer/name'     : 'Optimizer',
-		'config/optimizer/lr'       : 'LR',
-		'config/optimizer/decay'    : 'Decay',
-		'config/scheduler/name'     : 'Scheduler',
-		'config/dataset/batch_size' : 'Batch',
-		'config/model/dropout'      : 'Dropout'
+		'training_iteration'                  : 'Epoch',
+		'config/optimizer/name'               : 'Optimizer',
+		'config/optimizer/lr'                 : 'LR',
+		'config/optimizer/decay'              : 'Decay',
+		'config/scheduler/name'               : 'Scheduler',
+		'config/scheduler/exponential/factor' : 'Gamma',
+		'config/dataset/batch_size'           : 'Batch',
+		'config/model/dropout'                : 'Dropout'
 	})
 
 	dataframe = dataframe.astype({
@@ -117,6 +122,7 @@ def format_cnn_tune_dataframe_params (dataframe : DataFrame) -> Tuple[DataFrame,
 		'Optimizer' : str,
 		'LR'        : float,
 		'Decay'     : float,
+		'Gamma'     : float,
 		'Scheduler' : str,
 		'Batch'     : int,
 		'Dropout'   : float
@@ -125,6 +131,7 @@ def format_cnn_tune_dataframe_params (dataframe : DataFrame) -> Tuple[DataFrame,
 	dataframe['LR'     ] = dataframe['LR'     ].map(FLOAT_FORMAT.format)
 	dataframe['Decay'  ] = dataframe['Decay'  ].map(FLOAT_FORMAT.format)
 	dataframe['Dropout'] = dataframe['Dropout'].map(FLOAT_FORMAT.format)
+	dataframe['Gamma'  ] = dataframe['Gamma'  ].map(FLOAT_FORMAT.format)
 
 	return dataframe, columns
 
