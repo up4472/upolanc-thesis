@@ -2,6 +2,8 @@ from anndata  import AnnData
 from openTSNE import TSNEEmbedding
 from openTSNE import affinity
 from openTSNE import initialization
+from typing   import Any
+from typing   import Dict
 from typing   import List
 
 import distinctipy
@@ -51,7 +53,7 @@ def compute_tsne (data : AnnData, features : str, store_into : str = 'tsne', per
 
 	return data
 
-def visualize (data : AnnData, feature : str, groupby : str, filename : str = None, alpha : float = 0.5, size : int = 1) -> None :
+def visualize (data : AnnData, feature : str, groupby : str, filename : str = None, alpha : float = 0.5, size : int = 1, prop : Dict[str, Any] = None) -> None :
 	"""
 	Doc
 	"""
@@ -114,12 +116,16 @@ def visualize (data : AnnData, feature : str, groupby : str, filename : str = No
 		handles        = legend_handles,
 		loc            = 'center left',
 		bbox_to_anchor = (1.0, 0.5),
-		frameon        = False
+		frameon        = False,
+		prop           = prop
 	)
 
 	if filename is not None :
 		matplotlib.pyplot.savefig(
 			filename + '.png',
-			dpi    = 120,
-			format = 'png'
+			dpi         = 120,
+			format      = 'png',
+			bbox_inches = 'tight',
+			pad_inches  = 0
+
 		)

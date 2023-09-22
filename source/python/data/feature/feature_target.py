@@ -290,9 +290,12 @@ def compute_gridsize (n : int) -> Tuple[int, int, int] :
 	nrows = math.ceil(math.sqrt(n))
 	ncols = math.ceil(n / nrows)
 
+	if nrows > ncols :
+		return n, ncols, nrows
+
 	return n, nrows, ncols
 
-def distribution_histplot (data : List[Dict], names : List[str], groupby : str, discrete : bool = False, filename : str = None) -> None :
+def distribution_histplot (data : List[Dict], names : List[str], groupby : str, discrete : bool = False, title : bool = False, filename : str = None) -> None :
 	"""
 	Doc
 	"""
@@ -311,8 +314,10 @@ def distribution_histplot (data : List[Dict], names : List[str], groupby : str, 
 			'figsize' : (ncols * 16, nrows * 10)
 		}
 
-		if ncols > 1 : _, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
-		else         : _, ax = matplotlib.pyplot.subplots(       ncols, **kwargs)
+		if ncols > 1 : fig, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
+		else         : fig, ax = matplotlib.pyplot.subplots(       ncols, **kwargs)
+
+		fig.tight_layout()
 
 		for index, tkey in enumerate(group.keys()) :
 			if   nrows == 1 and ncols == 1 : axis = ax
@@ -340,7 +345,9 @@ def distribution_histplot (data : List[Dict], names : List[str], groupby : str, 
 				alpha    = 0.65
 			)
 
-			axis.set_title(tkey.title())
+			if title :
+				axis.set_title(tkey.title())
+
 			axis.set_xlabel('')
 			axis.set_ylabel('')
 
@@ -353,8 +360,10 @@ def distribution_histplot (data : List[Dict], names : List[str], groupby : str, 
 		if filename is not None :
 			matplotlib.pyplot.savefig(
 				filename + '.png',
-				dpi    = 120,
-				format = 'png'
+				dpi         = 120,
+				format      = 'png',
+				bbox_inches = 'tight',
+				pad_inches  = 0
 			)
 
 def create_mapping (values : Dict[str, Any], labels : Dict[str, Any], order : Dict[str, Any]) -> Tuple[Dict, Dict, Dict] :

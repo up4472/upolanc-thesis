@@ -1,0 +1,14 @@
+Pretrained models for DNABERT:
+
+https://github.com/jerryji1993/DNABERT
+https://drive.google.com/file/d/1nVBaIoiJpnwQxiz4dSq6Sv9kBKfXhZuM/view
+https://drive.google.com/file/d/1V7CChcC6KgdJ7Gwdyn73OS6dZR_J-Lrs/view
+https://drive.google.com/file/d/1KMqgXYCzrrYD1qxdyNWnmUYPtrhQqRBM/view
+https://drive.google.com/file/d/1BJjqb5Dl2lNMg2warsFQ0-Xvn1xxfFXC/view
+
+Models are saved into folders :
+
+3-new-12w-0
+4-new-12w-0
+5-new-12w-0
+6-new-12w-0

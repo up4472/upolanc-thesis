@@ -1,0 +1,11 @@
+Data for Arabidopsis Thaliana:
+
+https://ftp.ensemblgenomes.org/pub/plants/release-36/fasta/arabidopsis_thaliana/dna/Arabidopsis_thaliana.TAIR10.dna.toplevel.fa.gz
+https://ftp.ensemblgenomes.org/pub/plants/release-36/gff3/arabidopsis_thaliana/Arabidopsis_thaliana.TAIR10.36.gff3.gz
+
+Data is saved into files :
+
+arabidopsis-r36/gene-annotation.gff3
+arabidopsis-r36/gene-assembly.fa
+arabidopsis-r36/tissue-metedata.tsv
+arabidposis-r36/tissue-tpm.tsv

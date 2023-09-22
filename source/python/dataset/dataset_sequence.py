@@ -1,3 +1,4 @@
+from typing import Any
 from typing import Callable
 from typing import Dict
 
@@ -17,7 +18,7 @@ def get_subsequences (sequences : Dict[str, str], start : int = None, end : int 
 		for key, value in sequences.items()
 	}
 
-def get_encoding (sequences : Dict[str, str], should_encode : bool, expand_dims : int, encoder : Callable, expander : Callable) -> Dict[str, str] :
+def get_encoding (sequences : Dict[str, str], should_encode : bool, expand_dims : int, encoder : Callable, expander : Callable) -> Dict[str, Any] :
 	"""
 	Doc
 	"""

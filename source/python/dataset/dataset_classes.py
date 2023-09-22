@@ -23,6 +23,7 @@ class GeneDataset (Dataset) :
 		self.features  = features
 		self.targets   = targets
 		self.groups    = groups
+		self.transform = None
 
 		self.mapping = generate_onehot_mapping(
 			nucleotide_order = 'ACGT',
@@ -51,6 +52,13 @@ class GeneDataset (Dataset) :
 			expander      = expand
 		)
 
+	def set_transform (self, transform : Any = None) -> None :
+		"""
+		Doc
+		"""
+
+		self.transform = transform
+
 	def __getitem__ (self, index : int) -> Tuple[str, Any, numpy.ndarray, numpy.ndarray] :
 		"""
 		Doc
@@ -61,12 +69,17 @@ class GeneDataset (Dataset) :
 		key_without_group    = key.split('?')[-1]
 		key_without_mutation = key.split('-')[ 0]
 
-		return (
+		sample = (
 			key,
 			self.sequences[key_without_group],
 			self.features [key],
 			self.targets  [key_without_mutation]
 		)
+
+		if self.transform is not None :
+			return self.transform(sample)
+
+		return sample
 
 	def __len__ (self) -> int :
 		"""

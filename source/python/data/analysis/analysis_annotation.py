@@ -149,7 +149,7 @@ def length_statistics (data : DataFrame, regions : List[str] = None) -> DataFram
 
 	return dataframe
 
-def length_histplot (data : DataFrame, value : str, vline : int, filename : str = None) -> None :
+def length_histplot (data : DataFrame, value : str, vline : int, linewidth : int = 1, show_xlabel : bool = True, show_ylabel : bool = True, filename : str = None) -> None :
 	"""
 	Doc
 	"""
@@ -175,14 +175,20 @@ def length_histplot (data : DataFrame, value : str, vline : int, filename : str 
 		x = 1.05 * vline
 		y = 0.95 * axis.get_ylim()[-1]
 
-		axis.axvline(vline, color = '#F0665E', alpha = 0.9)
+		axis.axvline(vline, color = '#F0665E', linewidth = linewidth, alpha = 0.9)
 		axis.text(x, y, f'{percentile:.1f}%', color = '#F0665E', alpha = 0.9)
 
-	axis.set_xlabel(value)
+	if show_xlabel : axis.set_xlabel(value)
+	else           : axis.set_xlabel(None)
+
+	if show_ylabel : ...
+	else           : axis.set_ylabel(None)
 
 	if filename is not None :
 		matplotlib.pyplot.savefig(
 			filename + '.png',
-			dpi    = 120,
-			format = 'png'
+			dpi         = 120,
+			format      = 'png',
+			bbox_inches = 'tight',
+			pad_inches  = 0
 		)

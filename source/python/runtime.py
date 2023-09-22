@@ -1,3 +1,4 @@
+import matplotlib
 import multiprocessing
 import numpy
 import os
@@ -39,7 +40,13 @@ def set_plot_theme () -> None :
 	Doc
 	"""
 
-	seaborn.set_theme()
+	matplotlib.rcParams.update({
+		'font.size' : 24
+	})
+
+	seaborn.set_theme(
+		font_scale = 2
+	)
 
 def lock_random (seed : int = None, generate : bool = False) -> int :
 	"""

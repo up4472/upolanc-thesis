@@ -158,6 +158,7 @@ def get_dataset (config : Dict[str, Any], sequence : Dict[str, Any], feature : D
 		feature = {
 			key : numpy.concatenate((feature[key.split('?')[-1]], value))
 			for key, value in dataframe['Feature'].to_dict().items()
+			if key.split('?')[-1] in feature.keys()
 		}
 
 	if config['model/mode'] == 'regression' :

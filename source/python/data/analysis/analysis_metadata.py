@@ -64,29 +64,37 @@ def distribution_barplot (data : DataFrame, group : str, filename : str = None) 
 	counts = [len(data.loc[data[group] == name]) for name in unique]
 
 	df = DataFrame.from_dict({
-		'Names' : unique,
-		'Counts' : counts
-	}).sort_values('Counts', ascending = False)
+		'Class' : unique,
+		'Count' : counts
+	}).sort_values('Count', ascending = False)
 
 	fig, axis = matplotlib.pyplot.subplots(figsize = (16, 10))
+	fig.tight_layout()
 
-	seaborn.barplot(
-		data  = df,
-		x     = 'Counts',
-		y     = 'Names',
-		ax    = axis,
-		color = 'b',
-		alpha = 0.9
+	graph = seaborn.barplot(
+		data   = df,
+		x      = 'Class',
+		y      = 'Count',
+		hue    = 'Class',
+		width  = 0.8,
+		ax     = axis,
+		alpha  = 0.9,
+		dodge  = False
 	)
 
-	axis.bar_label(axis.containers[0])
-	axis.set_xlabel('')
-	axis.set_ylabel('')
-	fig.tight_layout()
+	graph.set(xticklabels = [])
+	graph.set(xlabel = None)
+	graph.tick_params(bottom = False)
+
+	axis.set_xlabel(None)
+	axis.set_ylabel(None)
+	axis.legend(loc = 'upper right')
 
 	if filename is not None :
 		matplotlib.pyplot.savefig(
 			filename + '.png',
-			dpi    = 120,
-			format = 'png'
+			dpi         = 120,
+			format      = 'png',
+			bbox_inches = 'tight',
+			pad_inches  = 0
 		)

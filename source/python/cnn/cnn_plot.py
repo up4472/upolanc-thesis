@@ -70,6 +70,9 @@ def compute_gridsize (n : int) -> Tuple[int, int, int] :
 	nrows = math.ceil(math.sqrt(n))
 	ncols = math.ceil(n / nrows)
 
+	if nrows > ncols :
+		return n, ncols, nrows
+
 	return n, nrows, ncols
 
 def lineplot (values : List[Union[List, numpy.ndarray]], labels : List[str], xlabel : str, ylabel : str, title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None) -> None :
