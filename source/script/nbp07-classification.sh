@@ -39,7 +39,7 @@ fi
 # --sequence_type  : transcript-2150 : [str] transcript-2150, transcript-6150, promoter-full-5000, promoter-utr5-5000
 
 # Run script
-python /d/hpc/projects/FRI/up4472/upolanc-thesis/notebook/nbp07-switch.py \
+python /d/hpc/projects/FRI/up4472/upolanc-thesis/notebook/nbp07-classification.py \
 --model_arch zrimec \
 --model_epochs 500 \
 --model_params 0 \

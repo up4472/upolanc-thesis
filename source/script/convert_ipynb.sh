@@ -13,3 +13,8 @@ echo "Converting .ipynb files to .py files in [$NOTEBOOK]"
 for filepath in $NOTEBOOK/*.ipynb; do
 	jupyter nbconvert --no-prompt --to script $filepath > /dev/null 2>&1
 done
+
+# Print status
+echo "Removing .ipynb files in [$NOTEBOOK]"
+
+rm $NOTEBOOK/*.ipynb
