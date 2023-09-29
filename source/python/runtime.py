@@ -11,7 +11,7 @@ import seaborn
 import subprocess
 import torch
 
-def set_numpy_format () -> None :
+def set_numpy_format (float_format : str = '{: 7,.3f}') -> None :
 	"""
 	Doc
 	"""
@@ -20,33 +20,23 @@ def set_numpy_format () -> None :
 		suppress  = True,
 		edgeitems = 25,
 		linewidth = 150,
-		formatter = {
-			'float_kind' : '{: 7,.3f}'.format
-		}
+		formatter = {'float_kind' : float_format.format}
 	)
 
-def set_pandas_format () -> None :
+def set_pandas_format (float_format : str = '{:.3f}') -> None :
 	"""
 	Doc
 	"""
 
-	pandas.set_option(
-		'display.float_format',
-		'{:.3f}'.format
-	)
+	pandas.set_option('display.float_format', float_format.format)
 
-def set_plot_theme () -> None :
+def set_plot_theme (font_scale : float = 2) -> None :
 	"""
 	Doc
 	"""
 
-	matplotlib.rcParams.update({
-		'font.size' : 24
-	})
-
-	seaborn.set_theme(
-		font_scale = 2
-	)
+	matplotlib.rcParams.update({'font.size' : int(font_scale * 12)})
+	seaborn.set_theme(font_scale = font_scale)
 
 def lock_random (seed : int = None, generate : bool = False) -> int :
 	"""

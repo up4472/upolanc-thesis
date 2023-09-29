@@ -1,4 +1,5 @@
 from torch.utils.data import DataLoader
+from typing           import Any
 from typing           import Dict
 from typing           import List
 
@@ -58,7 +59,7 @@ def get_mutation_report (report : Dict[str, Dict]) -> Dict[str, Dict] :
 
 	return data
 
-def plot_mutation_classification (report : Dict[str, Dict], order : List[str], transcript : str = None, mutation : str = None, filename : str = None) -> None : # noqa : unused
+def plot_mutation_classification (report : Dict[str, Dict], order : List[str], transcript : str = None, mutation : str = None, alpha : float = 0.9, linewidth : int = 2, filename : str = None) -> None : # noqa : unused
 	"""
 	Doc
 	"""
@@ -77,7 +78,7 @@ def plot_mutation_classification (report : Dict[str, Dict], order : List[str], t
 	print('TODO - to be implemented')
 	return
 
-def plot_mutation_regression (report, order, transcript, mutation, filename = None) :
+def plot_mutation_regression (report : Dict[Any, Any], order : Any, transcript : Any, mutation : Any, filename : str = None) -> None :
 	"""
 	Doc
 	"""
@@ -94,7 +95,8 @@ def plot_mutation_regression (report, order, transcript, mutation, filename = No
 	if ndim > 1 :
 		return
 
-	_, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
+	fig, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
+	fig.tight_layout()
 
 	ytrue = report[transcript]['M00']['ytrue']
 	ypred = report[transcript]['M00']['ypred'][0]
@@ -103,20 +105,20 @@ def plot_mutation_regression (report, order, transcript, mutation, filename = No
 		y = [numpy.array(ypred).flatten() - ytrue] * nmut
 		x = numpy.arange(nmut)
 
-		ax.plot(x, y, linestyle = '-', linewidth = 3, color = 'g', alpha = 0.9)
+		ax.plot(x, y, linestyle = '-', linewidth = 4, color = 'g', alpha = 0.9)
 
 		y = numpy.array(data['ypred']).flatten() - ytrue
-		ax.plot(x, y, linestyle = '-', linewidth = 1, color = 'b', alpha = 0.4)
+		ax.plot(x, y, linestyle = '-', linewidth = 2, color = 'b', alpha = 0.4)
 
 		ax.set_xticks(range(nmut))
 		ax.set_xlabel('Variant')
 		ax.set_ylabel('MAE(TPM)')
 	else :
-		ax.plot(ytrue, linestyle = '-', linewidth = 3, color = 'r', alpha = 0.9)
-		ax.plot(ypred, linestyle = '-', linewidth = 3, color = 'g', alpha = 0.9)
+		ax.plot(ytrue, linestyle = '-', linewidth = 4, color = 'r', alpha = 0.9)
+		ax.plot(ypred, linestyle = '-', linewidth = 4, color = 'g', alpha = 0.9)
 
 		for y, label in zip(data['ypred'], data['label']) :
-			ax.plot(y, linestyle = '-', linewidth = 1, color = 'b', alpha = 0.4)
+			ax.plot(y, linestyle = '-', linewidth = 2, color = 'b', alpha = 0.4)
 
 		ax.set_xticks(range(len(order)))
 		ax.set_xticklabels(order)
@@ -128,7 +130,9 @@ def plot_mutation_regression (report, order, transcript, mutation, filename = No
 
 	if filename is not None :
 		matplotlib.pyplot.savefig(
-			'{}-{}-{}.png'.format(filename, transcript, mutation),
-			dpi    = 120,
-			format = 'png'
+			'{}-{}-{}.png'.format(filename, transcript, mutation).replace('?', '_'),
+			dpi         = 120,
+			format      = 'png',
+			bbox_inches = 'tight',
+			pad_inches  = 0
 		)

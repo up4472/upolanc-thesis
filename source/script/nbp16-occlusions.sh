@@ -32,6 +32,7 @@ fi
 # --occlusion_size   : 10       : [int] ...
 # --occlusion_stride : 10       : [int] ...
 # --occlusion_type   : zero     : [int] zero, shuffle, random
+# --occlusion_method : window   : [str] window, region
 # --relevance_type   : r2       : [str] r2, mse, mae
 
 # Run script
@@ -40,4 +41,5 @@ python /d/hpc/projects/FRI/up4472/upolanc-thesis/notebook/nbp16-occlusion.py \
 --occlusion_size 10 \
 --occlusion_stride 1 \
 --occlusion_type zero \
+--occlusion_method window \
 --relevance_type r2

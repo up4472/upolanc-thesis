@@ -9,7 +9,7 @@ from source.python.report.report_utils import convert_bert_group_to_color
 from source.python.report.report_utils import convert_bert_name
 from source.python.report.report_utils import convert_bert_step_to_epoch
 
-def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str = 'iteration', steps_per_epoch : Union[int, float] = 485, steps_min : int = None, steps_max : int = None, alpha : float = 0.65, groupby : str = None, style : str = None, filename : str = None, bbox_inches : str = None) :
+def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str = 'iteration', steps_per_epoch : Union[int, float] = 485, steps_min : int = None, steps_max : int = None, alpha : float = 0.65, linewidth : int = 2, groupby : str = None, style : str = None, filename : str = None) -> None:
 	"""
 	Doc
 	"""
@@ -18,7 +18,8 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 	if data[mode] is None   : return
 	if len(data[mode]) == 0 : return
 
-	_, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
+	fig, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
+	fig.tight_layout()
 
 	per_step  = ('step', 'Step')
 	per_epoch = ('epoch', 'Epoch')
@@ -60,19 +61,20 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 		)
 
 		seaborn.lineplot(
-			data  = dataframe,
-			x     = xcolumn[0],
-			y     = 'eval_r2',
-			ax    = ax,
-			label = name,
-			alpha = alpha,
+			data      = dataframe,
+			x         = xcolumn[0],
+			y         = 'eval_r2',
+			ax        = ax,
+			label     = name,
+			alpha     = alpha,
+			linewidth = linewidth,
 			color = convert_bert_group_to_color(
 				name    = name,
 				groupby = groupby
 			)
 		)
 
-	ax.set_ylabel('Eval R2')
+	ax.set_ylabel('R2')
 	ax.set_xlabel(xcolumn[1])
 
 	if filename is not None :
@@ -80,6 +82,6 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 			filename + '.png',
 			format      = 'png',
 			dpi         = 120,
-			bbox_inches = bbox_inches,
+			bbox_inches = 'tight',
 			pad_inches  = 0
 		)

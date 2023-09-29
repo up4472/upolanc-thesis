@@ -75,12 +75,13 @@ def compute_gridsize (n : int) -> Tuple[int, int, int] :
 
 	return n, nrows, ncols
 
-def lineplot (values : List[Union[List, numpy.ndarray]], labels : List[str], xlabel : str, ylabel : str, title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None) -> None :
+def lineplot (values : List[Union[List, numpy.ndarray]], labels : List[str], xlabel : str, ylabel : str, title : str = None, alpha : float = 0.9, linewidth : int = 2, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None) -> None :
 	"""
 	Doc
 	"""
 
-	_, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
+	fig, ax = matplotlib.pyplot.subplots(figsize = (16, 10))
+	fig.tight_layout()
 
 	if   start_index is None           : start_index = 0
 	elif start_index >= len(values[0]) : start_index = 0
@@ -89,10 +90,12 @@ def lineplot (values : List[Union[List, numpy.ndarray]], labels : List[str], xla
 
 	for y, label in zip(values, labels) :
 		seaborn.lineplot(
-			x     = x[start_index:],
-			y     = y[start_index:],
-			label = label,
-			ax    = ax
+			x         = x[start_index:],
+			y         = y[start_index:],
+			linewidth = linewidth,
+			alpha     = alpha,
+			label     = label,
+			ax        = ax
 		)
 
 	ax.set_xlabel(xlabel)
@@ -106,11 +109,13 @@ def lineplot (values : List[Union[List, numpy.ndarray]], labels : List[str], xla
 	if filename is not None :
 		matplotlib.pyplot.savefig(
 			filename + '.png',
-			dpi    = 120,
-			format = 'png'
+			dpi         = 120,
+			format      = 'png',
+			bbox_inches = 'tight',
+			pad_inches  = 0
 		)
 
-def show_prediction_error_grid (report : Dict[str, Dict], order : List[str], filename : str = None) -> None :
+def show_prediction_error_grid (report : Dict[str, Dict], order : List[str], alpha : float = 0.9, bins : Union[str, int] = 'auto', filename : str = None) -> None :
 	"""
 	Doc
 	"""
@@ -140,8 +145,10 @@ def show_prediction_error_grid (report : Dict[str, Dict], order : List[str], fil
 		'figsize' : (16 * ncols, 10 * nrows)
 	}
 
-	if ncols > 1 : _, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
-	else         : _, ax = matplotlib.pyplot.subplots(nrows, **kwargs)
+	if ncols > 1 : fig, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
+	else         : fig, ax = matplotlib.pyplot.subplots(nrows, **kwargs)
+
+	fig.tight_layout()
 
 	for index in range(n) :
 		if nrows == 1 or ncols == 1 : axis = ax[index]
@@ -150,7 +157,8 @@ def show_prediction_error_grid (report : Dict[str, Dict], order : List[str], fil
 		seaborn.histplot(
 			x     = data[:, index],
 			ax    = axis,
-			alpha = 0.9
+			alpha = alpha,
+			bins  = bins
 		)
 
 		axis.axvline(x = 0, color = 'r', linewidth = 3)
@@ -166,11 +174,13 @@ def show_prediction_error_grid (report : Dict[str, Dict], order : List[str], fil
 	if filename is not None :
 		matplotlib.pyplot.savefig(
 			filename + '-prediction_error.png',
-			dpi    = 120,
-			format = 'png'
+			dpi         = 120,
+			format      = 'png',
+			bbox_inches = 'tight',
+			pad_inches  = 0
 		)
 
-def show_prediction_error (report : Dict[str, Dict], order : List[str], group : str, filename : str = None) -> None :
+def show_prediction_error (report : Dict[str, Dict], order : List[str], group : str, alpha : float = 0.9, bins : Union[str, int] = 'auto', filename : str = None) -> None :
 	"""
 	Doc
 	"""
@@ -185,12 +195,14 @@ def show_prediction_error (report : Dict[str, Dict], order : List[str], group : 
 	if index > 0 :
 		data = data[:, index]
 
-	_, axis = matplotlib.pyplot.subplots(figsize = (16, 10))
+	fig, axis = matplotlib.pyplot.subplots(figsize = (16, 10))
+	fig.tight_layout()
 
 	seaborn.histplot(
 		x     = data,
 		ax    = axis,
-		alpha = 0.9
+		alpha = alpha,
+		bins  = bins
 	)
 
 	axis.axvline(x = 0, color = 'r', linewidth = 3)
@@ -200,10 +212,13 @@ def show_prediction_error (report : Dict[str, Dict], order : List[str], group : 
 	if filename is not None :
 		matplotlib.pyplot.savefig(
 			filename + '-' + group + '-error.png',
-			dpi    = 120,
-			format = 'png'
+			dpi         = 120,
+			format      = 'png',
+			bbox_inches = 'tight',
+			pad_inches  = 0
 		)
-def show_linear_regression_grid (report : Dict[str, Dict], order : List[str], filename : str = None) -> None :
+
+def show_linear_regression_grid (report : Dict[str, Dict], order : List[str], alpha : float = 0.9, linewidth : int = 2, filename : str = None) -> None :
 	"""
 	Doc
 	"""
@@ -238,10 +253,10 @@ def show_linear_regression_grid (report : Dict[str, Dict], order : List[str], fi
 			print('Variance in [{}] is almost zero ({:.2e}) : {:.8f}'.format(order[index], 1e-7, variance))
 			return
 
-	if ncols > 1 :
-		_, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
-	else :
-		_, ax = matplotlib.pyplot.subplots(nrows, **kwargs)
+	if ncols > 1 : fig, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
+	else         : fig, ax = matplotlib.pyplot.subplots(nrows, **kwargs)
+
+	fig.tight_layout()
 
 	for index in range(n) :
 		if nrows == 1 or ncols == 1 :
@@ -256,14 +271,14 @@ def show_linear_regression_grid (report : Dict[str, Dict], order : List[str], fi
 			x     = x1,
 			y     = x2,
 			ax    = axis,
-			alpha = 0.9
+			alpha = alpha
 		)
 
 		res = scipy.stats.linregress(x1, x2)
 
 		axis.plot(x1, res.intercept + res.slope * x1,
 			color     = 'r',
-			linewidth = 2
+			linewidth = linewidth
 		)
 
 		xmin, xmax = axis.get_xlim()
@@ -289,11 +304,13 @@ def show_linear_regression_grid (report : Dict[str, Dict], order : List[str], fi
 	if filename is not None :
 		matplotlib.pyplot.savefig(
 			filename + '-prediction_linefit.png',
-			dpi    = 120,
-			format = 'png'
+			dpi         = 120,
+			format      = 'png',
+			bbox_inches = 'tight',
+			pad_inches  = 0
 		)
 
-def show_linear_regression (report : Dict[str, Dict], order : List[str], group : str, filename : str = None) -> None :
+def show_linear_regression (report : Dict[str, Dict], order : List[str], group : str, alpha : float = 0.9, linewidth : int = 2, filename : str = None) -> None :
 	"""
 	Doc
 	"""
@@ -309,12 +326,14 @@ def show_linear_regression (report : Dict[str, Dict], order : List[str], group :
 		print('Variance in [{}] is almost zero ({:.2e}) : {:.8f}'.format(group, 1e-7, variance))
 		return
 
-	_, axis = matplotlib.pyplot.subplots(figsize = (16, 10))
+	fig, axis = matplotlib.pyplot.subplots(figsize = (16, 10))
+	fig.tight_layout()
 
 	seaborn.scatterplot(
-		x  = ypred,
-		y  = ytrue,
-		ax = axis
+		x     = ypred,
+		y     = ytrue,
+		ax    = axis,
+		alpha = alpha
 	)
 
 	res = scipy.stats.linregress(ypred, ytrue)
@@ -322,8 +341,8 @@ def show_linear_regression (report : Dict[str, Dict], order : List[str], group :
 	axis.plot(
 		ypred,
 		res.intercept + res.slope * ypred,
-		color = 'r',
-		linewidth = 1
+		color     = 'r',
+		linewidth = linewidth
 	)
 
 	xmin, xmax = axis.get_xlim()
@@ -344,11 +363,13 @@ def show_linear_regression (report : Dict[str, Dict], order : List[str], group :
 	if filename is not None :
 		matplotlib.pyplot.savefig(
 			filename + '-' + group + '-linefit.png',
-			dpi    = 120,
-			format = 'png'
+			dpi         = 120,
+			format      = 'png',
+			bbox_inches = 'tight',
+			pad_inches  = 0
 		)
 
-def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename : str = None, apply_limits : bool = False, start_index : int = None) -> None :
+def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', alpha : float = 0.9, linewidth : int = 2, filename : str = None, apply_limits : bool = False, start_index : int = None) -> None :
 	"""
 	Doc
 	"""
@@ -375,7 +396,7 @@ def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename :
 		elif metric == 'auroc'      : names.append(['Score',  'AUROC'])
 		elif metric == 'bce'        : names.append(['Loss',   'Binary Cross Entropy'])
 		elif metric == 'entropy'    : names.append(['Loss',   'Cross Entropy'])
-		elif metric == 'f1'         : names.append(['Score',  'F1 Score'])
+		elif metric == 'f1'         : names.append(['Score',  'F1'])
 		elif metric == 'huber'      : names.append(['Loss',   'Huber'])
 		elif metric == 'jaccardi'   : names.append(['Score',  'Jaccardi Index'])
 		elif metric == 'mae'        : names.append(['Loss',   'MAE'])
@@ -383,7 +404,7 @@ def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename :
 		elif metric == 'matthews'   : names.append(['Score',  'Matthews Correlation Coef.'])
 		elif metric == 'mse'        : names.append(['Loss',   'MSE'])
 		elif metric == 'nll'        : names.append(['Loss',   'Negative Log Likelihood'])
-		elif metric == 'r2'         : names.append(['Score',  'R2 Score'])
+		elif metric == 'r2'         : names.append(['Score',  'R2'])
 		elif metric == 'smae'       : names.append(['Loss',   'Smooth MAE'])
 		elif metric == 'wmape'      : names.append(['Loss',   'Weighted MAPE'])
 		else                        : pass
@@ -396,10 +417,10 @@ def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename :
 		'figsize' : (16 * ncols, 10 * nrows)
 	}
 
-	if ncols > 1 :
-		_, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
-	else :
-		_, ax = matplotlib.pyplot.subplots(nrows, **kwargs)
+	if ncols > 1 : fig, ax = matplotlib.pyplot.subplots(nrows, ncols, **kwargs)
+	else         : fig, ax = matplotlib.pyplot.subplots(nrows, **kwargs)
+
+	fig.tight_layout()
 
 	for index, (metric, name) in enumerate(zip(metrics, names)):
 		if apply_limits and limits is not None and metric in limits.keys() :
@@ -422,9 +443,11 @@ def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename :
 			start_index = 0
 
 		seaborn.lineplot(
-			x   = x[start_index:],
-			y   = y[start_index:],
-			ax  = axis
+			x         = x[start_index:],
+			y         = y[start_index:],
+			ax        = axis,
+			alpha     = alpha,
+			linewidth = linewidth
 		)
 
 		axis.set_xlabel('Epoch')
@@ -445,14 +468,25 @@ def show_metric_grid (report : Dict[str, Dict], mode : str = 'train', filename :
 
 		axis.axis('off')
 
+	matplotlib.pyplot.subplots_adjust(
+		left   = None,
+		bottom = None,
+		right  = None,
+		top    = None,
+		wspace = 0.15,
+		hspace = 0.30
+	)
+
 	if filename is not None :
 		matplotlib.pyplot.savefig(
 			filename + '-metrics.png',
-			dpi    = 120,
-			format = 'png'
+			dpi         = 120,
+			format      = 'png',
+			bbox_inches = 'tight',
+			pad_inches  = 0
 		)
 
-def show_metric (report : Dict[str, Dict], mode : str, metric : str, title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None) -> None :
+def show_metric (report : Dict[str, Dict], mode : str, metric : str, title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None, alpha : float = 0.9, linewidth : int = 2) -> None :
 	"""
 	Doc
 	"""
@@ -466,13 +500,15 @@ def show_metric (report : Dict[str, Dict], mode : str, metric : str, title : str
 		title       = title,
 		xlabel      = 'Epoch',
 		ylabel      = 'Loss',
+		alpha       = alpha,
+		linewidth   = linewidth,
 		filename    = filename + '-' + metric,
 		limit_bot   = limit_bot,
 		limit_top   = limit_top,
 		start_index = start_index
 	)
 
-def show_loss (report : Dict[str, Dict], title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None) -> None :
+def show_loss (report : Dict[str, Dict], title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None, alpha : float = 0.9, linewidth : int = 2) -> None :
 	"""
 	Doc
 	"""
@@ -486,13 +522,15 @@ def show_loss (report : Dict[str, Dict], title : str = None, filename : str = No
 		title       = title,
 		xlabel      = 'Epoch',
 		ylabel      = 'Loss',
+		alpha       = alpha,
+		linewidth   = linewidth,
 		filename    = filename + '-loss',
 		limit_bot   = limit_bot,
 		limit_top   = limit_top,
 		start_index = start_index
 	)
 
-def show_r2 (report : Dict[str, Dict], title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None) -> None :
+def show_r2 (report : Dict[str, Dict], title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None, alpha : float = 0.9, linewidth : int = 2) -> None :
 	"""
 	Doc
 	"""
@@ -509,13 +547,15 @@ def show_r2 (report : Dict[str, Dict], title : str = None, filename : str = None
 		title       = title,
 		xlabel      = 'Epoch',
 		ylabel      = 'R2 Score',
+		alpha       = alpha,
+		linewidth   = linewidth,
 		filename    = filename + '-r2',
 		limit_bot   = limit_bot,
 		limit_top   = limit_top,
 		start_index = start_index
 	)
 
-def show_accuracy (report : Dict[str, Dict], title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None) -> None :
+def show_accuracy (report : Dict[str, Dict], title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None, alpha : float = 0.9, linewidth : int = 2) -> None :
 	"""
 	Doc
 	"""
@@ -532,13 +572,15 @@ def show_accuracy (report : Dict[str, Dict], title : str = None, filename : str 
 		title       = title,
 		xlabel      = 'Epoch',
 		ylabel      = 'Accuracy',
+		alpha       = alpha,
+		linewidth   = linewidth,
 		filename    = filename + '-accuracy',
 		limit_bot   = limit_bot,
 		limit_top   = limit_top,
 		start_index = start_index
 	)
 
-def show_lr (report : Dict[str, Dict], title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None) -> None :
+def show_lr (report : Dict[str, Dict], title : str = None, filename : str = None, limit_bot : float = None, limit_top : float = None, start_index : int = None, alpha : float = 0.9, linewidth : int = 2) -> None :
 	"""
 	Doc
 	"""
@@ -552,13 +594,15 @@ def show_lr (report : Dict[str, Dict], title : str = None, filename : str = None
 		title       = title,
 		xlabel      = 'Epoch',
 		ylabel      = 'Learning Rate',
+		alpha       = alpha,
+		linewidth   = linewidth,
 		filename    = filename + '-lr',
 		limit_bot   = limit_bot,
 		limit_top   = limit_top,
 		start_index = start_index
 	)
 
-def plot_prediction_histplot (report : Dict[str, Dict], figsize : Tuple[int, int] = None, filename : str = None) -> None :
+def plot_prediction_histplot (report : Dict[str, Dict], alpha : float = 0.9, figsize : Tuple[int, int] = None, filename : str = None) -> None :
 	"""
 	Doc
 	"""
@@ -568,25 +612,27 @@ def plot_prediction_histplot (report : Dict[str, Dict], figsize : Tuple[int, int
 
 	if figsize is None : figsize = (16, 10)
 
-	_, ax = matplotlib.pyplot.subplots(
-		figsize = figsize
-	)
+	fig, ax = matplotlib.pyplot.subplots(figsize = figsize)
+	fig.tight_layout()
 
 	seaborn.histplot(
 		data = DataFrame.from_dict({
-			'value' : ypred,
-			'class' : ytrue
+			'Value' : ypred,
+			'Class' : ytrue
 		}),
-		x   = 'value',
-		hue = 'class',
-		ax  = ax
+		x     = 'Value',
+		hue   = 'Class',
+		alpha = alpha,
+		ax    = ax
 	)
 
 	if filename is not None :
 		matplotlib.pyplot.savefig(
 			filename + '-switch.png',
-			dpi    = 120,
-			format = 'png'
+			dpi         = 120,
+			format      = 'png',
+			bbox_inches = 'tight',
+			pad_inches  = 0
 		)
 
 def plot_confusion_matrix (report : Dict[str, Dict], figsize : Tuple[int, int] = None, filename : str = None) -> None :
@@ -611,9 +657,8 @@ def plot_confusion_matrix (report : Dict[str, Dict], figsize : Tuple[int, int] =
 
 		matrix = matrix.reshape((d0, d1, d2))
 
-	_, ax = matplotlib.pyplot.subplots(
-		figsize = figsize
-	)
+	fig, ax = matplotlib.pyplot.subplots(figsize = figsize)
+	fig.tight_layout()
 
 	matrix = ConfusionMatrixDisplay(
 		confusion_matrix = matrix.sum(axis = 0),
@@ -626,6 +671,8 @@ def plot_confusion_matrix (report : Dict[str, Dict], figsize : Tuple[int, int] =
 	if filename is not None :
 		matplotlib.pyplot.savefig(
 			filename + '-confusion.png',
-			dpi    = 120,
-			format = 'png'
+			dpi         = 120,
+			format      = 'png',
+			bbox_inches = 'tight',
+			pad_inches  = 0
 		)
