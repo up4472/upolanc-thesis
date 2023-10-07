@@ -82,12 +82,15 @@ def zscore (data : numpy.ndarray, z : float = 3, axis : int = None, ddof : int =
 	score = scipy.stats.zscore(data, ddof = ddof, axis = axis)
 
 	mean = numpy.mean(data, axis = axis)
-	std = numpy.std(data, axis = axis)
+	std  = numpy.std(data,  axis = axis)
 
 	upper = mean + z * std
 	lower = mean - z * std
 
-	threshold = score < z
+	upper_threshold = score <  z
+	lower_threshold = score > -z
+
+	threshold = numpy.logical_and(upper_threshold, lower_threshold)
 
 	data, keep = sanity_check_filter(
 		data      = data,
