@@ -30,7 +30,10 @@ def models_bert_r2 (data : Dict[str, Any], mode : str = 'regression', step : str
 	elif step == 'epoch'     : xcolumn = per_epoch
 	else                     : xcolumn = per_step
 
-	for index, (name, dataframe) in enumerate(data[mode].items()) :
+	items = data[mode].items()
+	items = sorted(items, key = lambda x : x[1]['eval_r2'].max(), reverse = True)
+
+	for index, (name, dataframe) in enumerate(items) :
 		if name.endswith('explode') :
 			sitr = int(5 * steps_per_epoch)
 			smin = int(5 * steps_min)
